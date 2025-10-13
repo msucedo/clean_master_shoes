@@ -20,7 +20,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,7 +28,7 @@
     font-weight: 900;
     color: white;
     flex-shrink: 0;
-    box-shadow: 0 6px 18px rgba(255, 56, 56, 0.3);
+    box-shadow: var(--shadow-primary-sm);
     position: relative;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .client-meta-value.debt {
-    color: #ff3838;
+    color: var(--color-primary);
 }
 
 .client-meta-label {
@@ -123,9 +123,9 @@
 }
 
 .btn-action:hover {
-    border-color: #ff3838;
-    color: #ff3838;
-    background: rgba(255, 56, 56, 0.1);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--bg-primary-10);
 }
 
 .btn-action.whatsapp:hover {

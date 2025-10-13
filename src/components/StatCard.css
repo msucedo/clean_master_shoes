@@ -38,8 +38,8 @@
 }
 
 .stat-card.pagos .stat-icon {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
-    box-shadow: 0 6px 20px rgba(255, 56, 56, 0.3);
+    background: var(--gradient-primary);
+    box-shadow: 0 6px 20px rgba(255, 0, 110, 0.3);
 }
 
 .stat-card.ingresos .stat-icon {

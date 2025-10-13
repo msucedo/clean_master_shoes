@@ -68,7 +68,7 @@
 }
 
 .section-icon.security {
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
 }
 
 .section-icon.integrations {
@@ -116,8 +116,8 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #ff3838;
-  box-shadow: 0 0 0 3px rgba(255, 56, 56, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--bg-primary-10);
 }
 
 .form-input::placeholder {
@@ -137,8 +137,8 @@
 }
 
 .upload-area:hover {
-  border-color: #ff3838;
-  background: rgba(255, 56, 56, 0.05);
+  border-color: var(--color-primary);
+  background: var(--bg-primary-05);
 }
 
 .upload-icon {
@@ -224,7 +224,7 @@
 }
 
 input:checked + .toggle-slider {
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
 }
 
 input:checked + .toggle-slider:before {
@@ -234,7 +234,7 @@ input:checked + .toggle-slider:before {
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   padding: 14px 28px;
@@ -249,7 +249,7 @@ input:checked + .toggle-slider:before {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 56, 56, 0.5);
+  box-shadow: var(--shadow-primary-lg);
 }
 
 .btn-secondary {
@@ -267,15 +267,15 @@ input:checked + .toggle-slider:before {
 }
 
 .btn-secondary:hover {
-  border-color: #ff3838;
-  color: #ff3838;
-  background: rgba(255, 56, 56, 0.05);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--bg-primary-05);
 }
 
 .btn-danger {
   background: transparent;
-  color: #ff3838;
-  border: 1px solid #ff3838;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   padding: 14px 28px;
   border-radius: 12px;
   font-size: 14px;
@@ -288,7 +288,7 @@ input:checked + .toggle-slider:before {
 }
 
 .btn-danger:hover {
-  background: #ff3838;
+  background: var(--color-primary);
   color: white;
 }
 
@@ -336,7 +336,7 @@ input:checked + .toggle-slider:before {
 }
 
 .integration-icon.analytics {
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
 }
 
 .integration-info {
@@ -377,12 +377,12 @@ input:checked + .toggle-slider:before {
 }
 
 .btn-connect.connected {
-  border-color: #ff3838;
-  color: #ff3838;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .btn-connect.connected:hover {
-  background: rgba(255, 56, 56, 0.1);
+  background: var(--bg-primary-10);
 }
 
 /* Responsive */

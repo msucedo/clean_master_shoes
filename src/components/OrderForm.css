@@ -29,8 +29,8 @@
 }
 
 .order-menu-button:hover {
-    border-color: #ff3838;
-    background: rgba(255, 56, 56, 0.1);
+    border-color: var(--color-primary);
+    background: var(--bg-primary-10);
     transform: scale(1.05);
 }
 
@@ -128,9 +128,9 @@
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #ff3838, #ff6b00, #ffd700);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), #000000);
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 20px rgba(255, 56, 56, 0.6);
+    box-shadow: 0 0 20px rgba(255, 0, 110, 0.6);
 }
 
 /* Steps Indicator */
@@ -169,10 +169,10 @@
 }
 
 .step-item.active .step-number {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
-    border-color: #ff3838;
+    background: var(--gradient-primary);
+    border-color: var(--color-primary);
     color: white;
-    box-shadow: 0 6px 20px rgba(255, 56, 56, 0.5);
+    box-shadow: 0 6px 20px rgba(255, 0, 110, 0.5);
     transform: scale(1.1);
 }
 
@@ -192,7 +192,7 @@
 }
 
 .step-item.active .step-label {
-    color: #ff3838;
+    color: var(--color-primary);
 }
 
 .step-item.completed .step-label {
@@ -243,7 +243,7 @@
     font-size: 48px;
     text-align: center;
     margin-bottom: 12px;
-    filter: drop-shadow(0 4px 10px rgba(255, 56, 56, 0.3));
+    filter: drop-shadow(0 4px 10px rgba(255, 0, 110, 0.3));
 }
 
 .step-title-large {
@@ -299,7 +299,7 @@
 }
 
 .required {
-    color: #ff3838;
+    color: var(--color-primary);
 }
 
 .form-input {
@@ -316,8 +316,8 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #ff3838;
-    box-shadow: 0 0 0 4px rgba(255, 56, 56, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--bg-primary-10);
 }
 
 .form-input::placeholder {
@@ -325,8 +325,8 @@
 }
 
 .form-input.error {
-    border-color: #ff3838;
-    background: rgba(255, 56, 56, 0.05);
+    border-color: var(--color-primary);
+    background: var(--bg-primary-05);
 }
 
 .form-textarea {
@@ -340,7 +340,7 @@ select.form-input {
 
 .error-message {
     font-size: 13px;
-    color: #ff3838;
+    color: var(--color-primary);
     font-weight: 600;
     margin-top: -5px;
 }
@@ -369,9 +369,9 @@ select.form-input {
 }
 
 .service-card-option.selected {
-    border-color: #ff3838;
-    background: rgba(255, 56, 56, 0.1);
-    box-shadow: 0 8px 25px rgba(255, 56, 56, 0.3);
+    border-color: var(--color-primary);
+    background: var(--bg-primary-10);
+    box-shadow: 0 8px 25px rgba(255, 0, 110, 0.3);
 }
 
 .service-card-header {
@@ -390,7 +390,7 @@ select.form-input {
 .service-card-price {
     font-size: 20px;
     font-weight: 900;
-    color: #ff3838;
+    color: var(--color-primary);
 }
 
 .service-card-duration {
@@ -426,9 +426,9 @@ select.form-input {
 }
 
 .payment-method.selected {
-    border-color: #ff3838;
-    background: rgba(255, 56, 56, 0.1);
-    box-shadow: 0 6px 20px rgba(255, 56, 56, 0.3);
+    border-color: var(--color-primary);
+    background: var(--bg-primary-10);
+    box-shadow: 0 6px 20px rgba(255, 0, 110, 0.3);
 }
 
 .payment-icon {
@@ -443,7 +443,7 @@ select.form-input {
 }
 
 .payment-method.selected .payment-label {
-    color: #ff3838;
+    color: var(--color-primary);
 }
 
 .payment-info {
@@ -515,13 +515,13 @@ select.form-input {
 
 .summary-value.price-highlight {
     font-size: 28px;
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .summary-value.priority-high {
-    color: #ff3838;
+    color: var(--color-primary);
 }
 
 .summary-notes {
@@ -564,14 +564,14 @@ select.form-input {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     color: white;
-    box-shadow: 0 8px 25px rgba(255, 56, 56, 0.5);
+    box-shadow: var(--shadow-primary-lg);
 }
 
 .btn-primary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(255, 56, 56, 0.7);
+    box-shadow: var(--shadow-primary-hover);
 }
 
 .btn-primary:active {
@@ -585,9 +585,9 @@ select.form-input {
 }
 
 .btn-secondary:hover {
-    border-color: #ff3838;
-    color: #ff3838;
-    background: rgba(255, 56, 56, 0.05);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--bg-primary-05);
 }
 
 /* Responsive */

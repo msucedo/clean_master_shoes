@@ -32,7 +32,7 @@
 }
 
 .btn-add-service {
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   padding: 16px 32px;
@@ -40,7 +40,7 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 25px rgba(255, 56, 56, 0.5);
+  box-shadow: var(--shadow-primary-lg);
   transition: all 0.3s;
   display: flex;
   align-items: center;
@@ -51,7 +51,7 @@
 
 .btn-add-service:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(255, 56, 56, 0.7);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 /* Search */
@@ -83,8 +83,8 @@
 
 .services-page .search-input:focus {
   outline: none;
-  border-color: #ff3838;
-  box-shadow: 0 0 0 3px rgba(255, 56, 56, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--bg-primary-10);
 }
 
 .services-page .search-input::placeholder {

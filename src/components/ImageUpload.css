@@ -28,7 +28,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     opacity: 0;
     transition: opacity 0.3s;
 }
@@ -38,7 +38,7 @@
 }
 
 .upload-box:hover {
-    border-color: #ff3838;
+    border-color: var(--color-primary);
     transform: scale(1.02);
 }
 
@@ -103,8 +103,8 @@
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 56, 56, 0.5);
-    color: #ff3838;
+    border: 1px solid rgba(255, 0, 110, 0.5);
+    color: var(--color-primary);
     font-size: 16px;
     cursor: pointer;
     display: flex;
@@ -120,7 +120,7 @@
 }
 
 .remove-image-btn:hover {
-    background: #ff3838;
+    background: var(--color-primary);
     color: white;
     transform: rotate(90deg);
 }

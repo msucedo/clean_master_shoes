@@ -1,0 +1,74 @@
+/* ========================================
+   COLOR SYSTEM - Clean Master Shoes
+   ======================================== */
+
+:root {
+    /* Primary Colors - Rosa Mexicano */
+    --color-primary: #FF006E;
+    --color-primary-light: #E91E63;
+    --color-primary-dark: #C2185B;
+
+    /* Secondary Colors */
+    --color-secondary-green: #00ff88;
+    --color-secondary-green-dark: #00d9a3;
+    --color-secondary-cyan: #00d9ff;
+    --color-secondary-cyan-dark: #0099cc;
+    --color-secondary-gold: #ffd700;
+    --color-secondary-gold-dark: #ffaa00;
+
+    /* Neutral Colors */
+    --color-black: #0a0a0a;
+    --color-gray-dark: #0f0f0f;
+    --color-gray-800: #1a1a1a;
+    --color-gray-700: #2a2a2a;
+    --color-gray-600: #3a3a3a;
+    --color-gray-500: #555;
+    --color-gray-400: #666;
+    --color-gray-300: #888;
+    --color-gray-200: #999;
+    --color-white: #fff;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    --gradient-primary-90deg: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    --gradient-background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-dark) 100%);
+    --gradient-green: linear-gradient(135deg, var(--color-secondary-green) 0%, var(--color-secondary-green-dark) 100%);
+    --gradient-cyan: linear-gradient(135deg, var(--color-secondary-cyan) 0%, var(--color-secondary-cyan-dark) 100%);
+    --gradient-gold: linear-gradient(135deg, var(--color-secondary-gold) 0%, var(--color-secondary-gold-dark) 100%);
+    --gradient-text: linear-gradient(135deg, var(--color-white) 0%, var(--color-gray-200) 100%);
+
+    /* Shadows */
+    --shadow-primary: 0 8px 20px rgba(255, 0, 110, 0.4);
+    --shadow-primary-hover: 0 12px 35px rgba(255, 0, 110, 0.7);
+    --shadow-primary-sm: 0 6px 18px rgba(255, 0, 110, 0.3);
+    --shadow-primary-lg: 0 8px 25px rgba(255, 0, 110, 0.5);
+    --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --shadow-card-hover: 0 12px 35px rgba(0, 0, 0, 0.5);
+
+    /* Backgrounds with opacity */
+    --bg-primary-10: rgba(255, 0, 110, 0.1);
+    --bg-primary-05: rgba(255, 0, 110, 0.05);
+    --bg-primary-15: rgba(255, 0, 110, 0.15);
+
+    /* Focus States */
+    --focus-primary: 0 0 0 4px rgba(255, 0, 110, 0.1);
+    --focus-primary-sm: 0 0 0 3px rgba(255, 0, 110, 0.1);
+
+    /* Borders */
+    --border-primary: 1px solid var(--color-primary);
+    --border-primary-2: 2px solid var(--color-primary);
+    --border-gray: 1px solid var(--color-gray-700);
+    --border-gray-2: 2px solid var(--color-gray-700);
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-full: 50%;
+
+    /* Transitions */
+    --transition-base: all 0.3s;
+    --transition-fast: all 0.2s;
+}

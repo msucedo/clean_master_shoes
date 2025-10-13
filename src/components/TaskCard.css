@@ -35,8 +35,8 @@
 }
 
 .task-badge.urgent {
-    background: rgba(255, 56, 56, 0.15);
-    color: #ff3838;
+    background: var(--bg-primary-15);
+    color: var(--color-primary);
 }
 
 .task-badge.today {
@@ -99,9 +99,9 @@
 
 .task-card-action {
     padding: 8px 18px;
-    background: rgba(255, 56, 56, 0.1);
-    border: 1px solid #ff3838;
-    color: #ff3838;
+    background: var(--bg-primary-10);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
     border-radius: 8px;
     font-size: 12px;
     font-weight: 700;
@@ -111,7 +111,7 @@
 }
 
 .task-card-action:hover {
-    background: #ff3838;
+    background: var(--color-primary);
     color: #fff;
 }
 

@@ -52,9 +52,9 @@
 
 .date-filter-btn:hover,
 .date-filter-btn.active {
-  border-color: #ff3838;
-  color: #ff3838;
-  background: rgba(255, 56, 56, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--bg-primary-10);
 }
 
 /* Stats Grid */
@@ -97,7 +97,7 @@
 }
 
 .stat-card.pending::before {
-  background: linear-gradient(90deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary-90deg);
 }
 
 .stat-card:hover {
@@ -135,7 +135,7 @@
 }
 
 .stat-card.pending .stat-icon {
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
 }
 
 .stat-info {
@@ -169,7 +169,7 @@
 }
 
 .stat-change.negative {
-  color: #ff3838;
+  color: var(--color-primary);
 }
 
 /* Charts Section */
@@ -263,7 +263,7 @@
   width: 35px;
   height: 35px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;

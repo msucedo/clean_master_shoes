@@ -48,8 +48,8 @@
 .dropdown-count {
     font-size: 11px;
     font-weight: 700;
-    color: #ff3838;
-    background: rgba(255, 56, 56, 0.1);
+    color: var(--color-primary);
+    background: var(--bg-primary-10);
     padding: 4px 10px;
     border-radius: 8px;
 }
@@ -91,14 +91,14 @@
 }
 
 .dropdown-item:hover {
-    background: rgba(255, 56, 56, 0.05);
+    background: var(--bg-primary-05);
 }
 
 .client-avatar-small {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -106,7 +106,7 @@
     font-weight: 900;
     color: white;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(255, 56, 56, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 0, 110, 0.3);
 }
 
 .client-avatar-small.vip {

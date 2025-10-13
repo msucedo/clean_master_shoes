@@ -73,7 +73,7 @@
 .detail-value.price {
     font-size: 24px;
     font-weight: 900;
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -92,8 +92,8 @@
 
 .detail-input:focus {
     outline: none;
-    border-color: #ff3838;
-    box-shadow: 0 0 0 4px rgba(255, 56, 56, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--bg-primary-10);
 }
 
 .detail-textarea {
@@ -112,8 +112,8 @@
 
 .detail-textarea:focus {
     outline: none;
-    border-color: #ff3838;
-    box-shadow: 0 0 0 4px rgba(255, 56, 56, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--bg-primary-10);
 }
 
 .detail-notes {
@@ -139,9 +139,9 @@
 .remove-service-btn {
     padding: 8px 16px;
     background: transparent;
-    border: 2px solid #ff3838;
+    border: 2px solid var(--color-primary);
     border-radius: 8px;
-    color: #ff3838;
+    color: var(--color-primary);
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
@@ -149,7 +149,7 @@
 }
 
 .remove-service-btn:hover {
-    background: rgba(255, 56, 56, 0.1);
+    background: var(--bg-primary-10);
     transform: scale(1.05);
 }
 
@@ -221,15 +221,15 @@
 }
 
 .cancel-selector-btn:hover {
-    border-color: #ff3838;
-    color: #ff3838;
-    background: rgba(255, 56, 56, 0.05);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--bg-primary-05);
 }
 
 /* Total Section */
 .total-section {
-    border: 2px solid #ff3838;
-    background: rgba(255, 56, 56, 0.05);
+    border: 2px solid var(--color-primary);
+    background: var(--bg-primary-05);
 }
 
 .total-row {
@@ -247,7 +247,7 @@
 .total-value {
     font-size: 32px;
     font-weight: 900;
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -333,25 +333,25 @@
 
 .btn-cancel-order {
     background: transparent;
-    color: #ff3838;
-    border: 2px solid #ff3838;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
 }
 
 .btn-cancel-order:hover {
-    background: rgba(255, 56, 56, 0.1);
+    background: var(--bg-primary-10);
     transform: translateY(-2px);
 }
 
 .btn-save {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     color: white;
-    box-shadow: 0 6px 20px rgba(255, 56, 56, 0.4);
+    box-shadow: 0 6px 20px rgba(255, 0, 110, 0.4);
     grid-column: span 2;
 }
 
 .btn-save:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 56, 56, 0.6);
+    box-shadow: 0 8px 25px rgba(255, 0, 110, 0.6);
 }
 
 .btn-cancel {
@@ -362,9 +362,9 @@
 }
 
 .btn-cancel:hover {
-    border-color: #ff3838;
-    color: #ff3838;
-    background: rgba(255, 56, 56, 0.05);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--bg-primary-05);
 }
 
 /* Responsive */

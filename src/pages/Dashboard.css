@@ -70,8 +70,8 @@
 
 .search-input:focus {
     outline: none;
-    border-color: #ff3838;
-    box-shadow: 0 0 0 4px rgba(255, 56, 56, 0.1), 0 12px 40px rgba(0, 0, 0, 0.4);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--bg-primary-10), 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 .search-input::placeholder {
@@ -80,7 +80,7 @@
 }
 
 .btn-new-order {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
     color: white;
     border: none;
     padding: 28px 50px;
@@ -88,7 +88,7 @@
     font-size: 18px;
     font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(255, 56, 56, 0.5);
+    box-shadow: 0 10px 30px rgba(255, 0, 110, 0.5);
     transition: all 0.3s;
     display: flex;
     align-items: center;
@@ -100,7 +100,7 @@
 
 .btn-new-order:hover {
     transform: translateY(-4px);
-    box-shadow: 0 15px 40px rgba(255, 56, 56, 0.7);
+    box-shadow: 0 15px 40px rgba(255, 0, 110, 0.7);
 }
 
 .btn-new-order:active {
@@ -157,7 +157,7 @@
 }
 
 .task-group-icon.pagos {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    background: var(--gradient-primary);
 }
 
 .task-group-icon.proceso {

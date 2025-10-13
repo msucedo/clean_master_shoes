@@ -105,7 +105,7 @@
 
 /* Drag Over Effect */
 .kanban-column.drag-over .cards-container {
-    background: rgba(255, 56, 56, 0.05);
-    border: 2px dashed #ff3838;
+    background: var(--bg-primary-05);
+    border: 2px dashed var(--color-primary);
     border-radius: 12px;
 }

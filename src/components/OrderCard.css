@@ -56,8 +56,8 @@
 }
 
 .card-priority.high {
-    background: #ff3838;
-    box-shadow: 0 0 10px rgba(255, 56, 56, 0.5);
+    background: var(--color-primary);
+    box-shadow: 0 0 10px rgba(255, 0, 110, 0.5);
 }
 
 .sneaker-image {
@@ -139,7 +139,7 @@
 }
 
 .card-date.urgent {
-    color: #ff3838;
+    color: var(--color-primary);
     font-weight: 700;
 }
 

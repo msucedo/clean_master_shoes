@@ -14,7 +14,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #ff3838, #ff6b00, #ffd700, #00ff88, #00d9ff);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-black), var(--color-primary), var(--color-primary-light));
     background-size: 200% 100%;
     animation: slideGradient 3s linear infinite;
 }
@@ -34,7 +34,7 @@
     display: block;
     font-size: 40px;
     margin-bottom: 10px;
-    filter: drop-shadow(0 0 20px rgba(255, 56, 56, 0.6));
+    filter: drop-shadow(0 0 20px rgba(255, 0, 110, 0.6));
 }
 
 .menu-item {
@@ -65,9 +65,9 @@
 }
 
 .menu-item.active {
-    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%) !important;
-    color: #fff !important;
-    box-shadow: 0 8px 20px rgba(255, 56, 56, 0.4);
+    background: var(--gradient-primary) !important;
+    color: var(--color-white) !important;
+    box-shadow: var(--shadow-primary);
     transform: translateX(5px);
 }
 
