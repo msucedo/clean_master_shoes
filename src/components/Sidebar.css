@@ -1,0 +1,91 @@
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+    padding: 30px 20px;
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    border-right: 1px solid #2a2a2a;
+}
+
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff3838, #ff6b00, #ffd700, #00ff88, #00d9ff);
+    background-size: 200% 100%;
+    animation: slideGradient 3s linear infinite;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 40px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    letter-spacing: -1px;
+}
+
+.logo-icon {
+    display: block;
+    font-size: 40px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 20px rgba(255, 56, 56, 0.6));
+}
+
+.menu-item {
+    padding: 16px 20px;
+    margin: 8px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #888;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    z-index: 1;
+    font-size: 15px;
+    text-decoration: none;
+    border: none !important;
+    border-bottom: none !important;
+    outline: none;
+    background: transparent;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.menu-item.active {
+    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 20px rgba(255, 56, 56, 0.4);
+    transform: translateX(5px);
+}
+
+.menu-icon {
+    font-size: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 80px;
+    }
+
+    .menu-item span:not(.menu-icon) {
+        display: none;
+    }
+
+    .logo-text {
+        display: none;
+    }
+}

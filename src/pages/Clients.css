@@ -1,0 +1,151 @@
+.clients-page {
+    width: 100%;
+}
+
+/* Header */
+.page-header {
+    margin-bottom: 35px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-title {
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, #999 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -2px;
+}
+
+.btn-add-client {
+    background: linear-gradient(135deg, #ff3838 0%, #ff6b00 100%);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(255, 56, 56, 0.5);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-add-client:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(255, 56, 56, 0.7);
+}
+
+/* Search */
+.search-box {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+    color: #666;
+}
+
+.search-input {
+    width: 100%;
+    padding: 20px 20px 20px 60px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    font-size: 17px;
+    color: #fff;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #ff3838;
+    box-shadow: 0 0 0 3px rgba(255, 56, 56, 0.1);
+}
+
+.search-input::placeholder {
+    color: #555;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.filter-btn {
+    padding: 12px 24px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    color: #999;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    border-color: #ff3838;
+    color: #ff3838;
+    background: rgba(255, 56, 56, 0.1);
+}
+
+/* Clients List */
+.clients-list {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-text {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #999;
+}
+
+.empty-subtext {
+    font-size: 15px;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 32px;
+    }
+}
