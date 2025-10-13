@@ -1,237 +1,298 @@
 import { useState } from 'react';
-import ImageUpload from './ImageUpload';
 import './OrderDetailView.css';
 
 const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp, onInvoice }) => {
-  const [additionalServices, setAdditionalServices] = useState(order.additionalServices || []);
-  const [showServiceSelector, setShowServiceSelector] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  const availableServices = [
-    { id: 1, name: 'Lavado Básico', duration: '2-3 días', price: 150, daysToAdd: 2 },
-    { id: 2, name: 'Lavado Profundo', duration: '3-5 días', price: 250, daysToAdd: 4 },
-    { id: 3, name: 'Restauración', duration: '5-7 días', price: 400, daysToAdd: 6 },
-    { id: 4, name: 'Lavado Express', duration: '1 día', price: 100, daysToAdd: 1 }
+  // Obtener todos los pares (nuevo formato o convertir del antiguo)
+  const shoePairs = order.shoePairs || [
+    {
+      id: 'legacy',
+      model: order.model,
+      service: order.service,
+      price: order.price,
+      images: order.images || [],
+      notes: order.notes || '',
+      status: 'pending' // Estado por defecto
+    }
   ];
 
-  const handleAddService = (service) => {
-    const newService = {
-      id: Date.now(),
-      ...service
+  // Estados disponibles para cada par
+  const pairStatuses = [
+    { value: 'pending', label: '⏳ Pendiente', color: '#fbbf24' },
+    { value: 'in-progress', label: '🔄 En Proceso', color: '#0096ff' },
+    { value: 'completed', label: '✅ Completado', color: '#10b981' },
+    { value: 'delivered', label: '📦 Entregado', color: '#8b5cf6' }
+  ];
+
+  // Calcular precio total
+  const totalPrice = order.totalPrice || order.price || 0;
+  const advancePayment = parseFloat(order.advancePayment) || 0;
+  const remainingPayment = totalPrice - advancePayment;
+
+  // Métodos de pago
+  const getPaymentMethodLabel = (method) => {
+    const methods = {
+      'cash': '💵 Efectivo',
+      'card': '💳 Tarjeta',
+      'transfer': '📱 Transferencia',
+      'pending': '⏳ Pendiente'
     };
+    return methods[method] || '⏳ Pendiente';
+  };
 
-    const updatedServices = [...additionalServices, newService];
-    setAdditionalServices(updatedServices);
-    setShowServiceSelector(false);
+  // Abrir modal de imagen
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
 
-    // Calculate new delivery date based on longest service
-    const allServices = [
-      { daysToAdd: getDaysFromDuration(order.service) },
-      ...updatedServices
-    ];
-    const maxDays = Math.max(...allServices.map(s => s.daysToAdd || 0));
+  // Cerrar modal de imagen
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
 
-    const today = new Date();
-    today.setDate(today.getDate() + maxDays);
-    const newDeliveryDate = 'Entrega: ' + today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  // Obtener todas las imágenes de todos los pares
+  const getAllImages = () => {
+    return shoePairs.flatMap(pair => pair.images || []);
+  };
 
-    // Calculate new total price
-    const additionalTotal = updatedServices.reduce((sum, s) => sum + s.price, 0);
-    const newTotal = parseInt(order.price) + additionalTotal;
+  const handleWhatsApp = () => {
+    const phone = order.phone.replace(/\D/g, '');
+    const message = `Hola ${order.client}, tu orden está lista para recoger. Total: $${totalPrice}`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+  };
 
-    // Update order
+  // Cambiar estado de un par individual
+  const handlePairStatusChange = (pairId, newStatus) => {
+    const updatedPairs = shoePairs.map(pair =>
+      pair.id === pairId ? { ...pair, status: newStatus } : pair
+    );
+
     const updatedOrder = {
       ...order,
-      additionalServices: updatedServices,
-      deliveryDate: newDeliveryDate,
-      totalPrice: newTotal
+      shoePairs: updatedPairs
     };
 
-    onSave(updatedOrder);
+    // Llamar a onSave si está disponible
+    if (onSave) {
+      onSave(updatedOrder);
+    }
   };
 
-  const handleRemoveService = (serviceId) => {
-    const updatedServices = additionalServices.filter(s => s.id !== serviceId);
-    setAdditionalServices(updatedServices);
-
-    // Recalculate totals
-    const additionalTotal = updatedServices.reduce((sum, s) => sum + s.price, 0);
-    const newTotal = parseInt(order.price) + additionalTotal;
-
-    const updatedOrder = {
-      ...order,
-      additionalServices: updatedServices,
-      totalPrice: newTotal
-    };
-
-    onSave(updatedOrder);
-  };
-
-  const getDaysFromDuration = (serviceName) => {
-    const serviceMap = {
-      'Lavado Básico': 2,
-      'Lavado Profundo': 4,
-      'Restauración Completa': 6,
-      'Lavado Express': 1,
-      'Restauración': 6
-    };
-    return serviceMap[serviceName] || 3;
-  };
-
-  const calculateTotal = () => {
-    const basePrice = parseInt(order.price) || 0;
-    const additionalTotal = additionalServices.reduce((sum, s) => sum + s.price, 0);
-    return basePrice + additionalTotal;
+  // Obtener el label del estado
+  const getStatusLabel = (status) => {
+    const statusObj = pairStatuses.find(s => s.value === status);
+    return statusObj ? statusObj.label : '⏳ Pendiente';
   };
 
   return (
     <div className="order-detail-view">
-      {/* Header con fotos */}
-      <div className="order-detail-header">
-        <div className="order-detail-photos">
-          <ImageUpload images={order.images} onChange={() => {}} />
-        </div>
-      </div>
-
-      {/* Información de la orden */}
-      <div className="order-detail-content">
-        {/* Cliente */}
-        <div className="detail-section">
-          <h3 className="detail-section-title">👤 Información del Cliente</h3>
-          <div className="detail-grid">
-            <div className="detail-item">
-              <label className="detail-label">Cliente</label>
-              <div className="detail-value">{order.client}</div>
-            </div>
-            <div className="detail-item">
-              <label className="detail-label">Teléfono</label>
-              <div className="detail-value">{order.phone}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Servicio Principal */}
-        <div className="detail-section">
-          <h3 className="detail-section-title">👟 Servicio Principal</h3>
-          <div className="detail-grid">
-            <div className="detail-item">
-              <label className="detail-label">Modelo</label>
-              <div className="detail-value">{order.model}</div>
-            </div>
-            <div className="detail-item">
-              <label className="detail-label">Servicio</label>
-              <div className="detail-value">{order.service}</div>
-            </div>
-            <div className="detail-item">
-              <label className="detail-label">Precio</label>
-              <div className="detail-value price">${order.price}</div>
-            </div>
-            <div className="detail-item">
-              <label className="detail-label">Fecha de Entrega</label>
-              <div className="detail-value">{order.deliveryDate}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Servicios Adicionales */}
-        {additionalServices.map((service, index) => (
-          <div key={service.id} className="detail-section additional-service">
-            <div className="section-header-with-remove">
-              <h3 className="detail-section-title">➕ Servicio Adicional #{index + 1}</h3>
-              <button
-                className="remove-service-btn"
-                onClick={() => handleRemoveService(service.id)}
+      {/* Galería de Imágenes Principal */}
+      {getAllImages().length > 0 && (
+        <div className="order-gallery-section">
+          <h3 className="section-title">📸 Galería de Imágenes</h3>
+          <div className="order-main-gallery">
+            {getAllImages().map((image, index) => (
+              <div
+                key={index}
+                className="gallery-image-card"
+                onClick={() => openImageModal(image)}
               >
-                ✕ Quitar
-              </button>
-            </div>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <label className="detail-label">Servicio</label>
-                <div className="detail-value">{service.name}</div>
-              </div>
-              <div className="detail-item">
-                <label className="detail-label">Duración</label>
-                <div className="detail-value">{service.duration}</div>
-              </div>
-              <div className="detail-item">
-                <label className="detail-label">Precio</label>
-                <div className="detail-value price">${service.price}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Selector de Servicio */}
-        {showServiceSelector && (
-          <div className="detail-section service-selector">
-            <h3 className="detail-section-title">Selecciona un Servicio Adicional</h3>
-            <div className="service-options">
-              {availableServices.map((service) => (
-                <div
-                  key={service.id}
-                  className="service-option"
-                  onClick={() => handleAddService(service)}
-                >
-                  <div className="service-option-header">
-                    <span className="service-option-name">{service.name}</span>
-                    <span className="service-option-price">${service.price}</span>
-                  </div>
-                  <div className="service-option-duration">⏱️ {service.duration}</div>
+                <img src={image} alt={`Imagen ${index + 1}`} className="gallery-image" />
+                <div className="gallery-image-overlay">
+                  <span className="gallery-icon">🔍</span>
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Información de Pares de Tenis */}
+      <div className="order-pairs-section">
+        <h3 className="section-title">👟 Pares de Tenis ({shoePairs.length})</h3>
+        <div className="pairs-grid">
+          {shoePairs.map((pair, index) => (
+            <div key={pair.id || index} className={`pair-detail-card pair-status-${pair.status || 'pending'}`}>
+              <div className="pair-card-header">
+                <div className="pair-header-left">
+                  <span className="pair-number">Par #{index + 1}</span>
+                  <span className={`pair-status-badge status-${pair.status || 'pending'}`}>
+                    {getStatusLabel(pair.status || 'pending')}
+                  </span>
+                </div>
+                <span className="pair-price-badge">${pair.price}</span>
+              </div>
+
+              <div className="pair-card-body">
+                <div className="pair-info-row">
+                  <span className="pair-info-label">Modelo:</span>
+                  <span className="pair-info-value">{pair.model}</span>
+                </div>
+                <div className="pair-info-row">
+                  <span className="pair-info-label">Servicio:</span>
+                  <span className="pair-info-value">{pair.service}</span>
+                </div>
+
+                {/* Selector de Estado */}
+                <div className="pair-status-selector">
+                  <span className="pair-info-label">Estado del Par:</span>
+                  <select
+                    className={`pair-status-select status-${pair.status || 'pending'}`}
+                    value={pair.status || 'pending'}
+                    onChange={(e) => handlePairStatusChange(pair.id, e.target.value)}
+                  >
+                    {pairStatuses.map(status => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {pair.images && pair.images.length > 0 && (
+                  <div className="pair-images-preview">
+                    <span className="pair-info-label">Fotos:</span>
+                    <div className="pair-thumbnails">
+                      {pair.images.slice(0, 3).map((image, imgIndex) => (
+                        <img
+                          key={imgIndex}
+                          src={image}
+                          alt={`${pair.model} - ${imgIndex + 1}`}
+                          className="pair-thumbnail"
+                          onClick={() => openImageModal(image)}
+                        />
+                      ))}
+                      {pair.images.length > 3 && (
+                        <div className="thumbnail-more">
+                          +{pair.images.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {pair.notes && (
+                  <div className="pair-notes">
+                    <span className="pair-info-label">Notas:</span>
+                    <p className="pair-notes-text">{pair.notes}</p>
+                  </div>
+                )}
+              </div>
             </div>
-            <button
-              className="cancel-selector-btn"
-              onClick={() => setShowServiceSelector(false)}
-            >
-              Cancelar
+          ))}
+        </div>
+      </div>
+
+      {/* Información de Pago y Entrega */}
+      <div className="order-details-grid">
+        {/* Pago */}
+        <div className="detail-card">
+          <h3 className="detail-card-title">💰 Información de Pago</h3>
+          <div className="detail-card-content">
+            <div className="detail-row">
+              <span className="detail-label">Precio Total:</span>
+              <span className="detail-value price-large">${totalPrice}</span>
+            </div>
+            {advancePayment > 0 && (
+              <>
+                <div className="detail-row">
+                  <span className="detail-label">Anticipo:</span>
+                  <span className="detail-value">${advancePayment}</span>
+                </div>
+                <div className="detail-row highlight">
+                  <span className="detail-label">Restante por Cobrar:</span>
+                  <span className="detail-value price-highlight">${remainingPayment}</span>
+                </div>
+              </>
+            )}
+            <div className="detail-row">
+              <span className="detail-label">Método de Pago:</span>
+              <span className="detail-value">{getPaymentMethodLabel(order.paymentMethod)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Entrega */}
+        <div className="detail-card">
+          <h3 className="detail-card-title">📅 Información de Entrega</h3>
+          <div className="detail-card-content">
+            <div className="detail-row">
+              <span className="detail-label">Fecha de Entrega:</span>
+              <span className="detail-value">{order.deliveryDate}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Estado:</span>
+              <span className={`status-badge status-${order.status || 'pending'}`}>
+                {order.status === 'pending' && '⏳ Pendiente'}
+                {order.status === 'in-progress' && '🔄 En Proceso'}
+                {order.status === 'ready' && '✅ Listo'}
+                {order.status === 'delivered' && '📦 Entregado'}
+                {!order.status && '⏳ Pendiente'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Notas Generales */}
+      {order.generalNotes && (
+        <div className="general-notes-section">
+          <h3 className="section-title">📝 Notas Generales</h3>
+          <div className="notes-card">
+            <p>{order.generalNotes}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Botones de Acción */}
+      <div className="order-actions-footer">
+        <div className="action-buttons-grid">
+          <button
+            className="action-btn btn-whatsapp"
+            onClick={handleWhatsApp}
+          >
+            <span className="action-icon">💬</span>
+            <span className="action-text">WhatsApp</span>
+          </button>
+
+          <button
+            className="action-btn btn-email"
+            onClick={() => onEmail && onEmail(order)}
+          >
+            <span className="action-icon">📧</span>
+            <span className="action-text">Enviar Email</span>
+          </button>
+
+          <button
+            className="action-btn btn-invoice"
+            onClick={() => onInvoice && onInvoice(order)}
+          >
+            <span className="action-icon">🧾</span>
+            <span className="action-text">Generar Factura</span>
+          </button>
+
+          <button
+            className="action-btn btn-edit"
+            onClick={onClose}
+          >
+            <span className="action-icon">✏️</span>
+            <span className="action-text">Editar Orden</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Modal de Imagen */}
+      {selectedImage && (
+        <div className="image-modal" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={closeImageModal}>
+              ✕
             </button>
+            <img src={selectedImage} alt="Vista ampliada" className="image-modal-img" />
           </div>
-        )}
-
-        {/* Total */}
-        {additionalServices.length > 0 && (
-          <div className="detail-section total-section">
-            <div className="total-row">
-              <span className="total-label">Total a Cobrar:</span>
-              <span className="total-value">${calculateTotal()}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Notas */}
-        {order.notes && (
-          <div className="detail-section">
-            <h3 className="detail-section-title">📝 Notas</h3>
-            <div className="detail-notes">{order.notes}</div>
-          </div>
-        )}
-      </div>
-
-      {/* Botones de acción */}
-      <div className="order-detail-actions">
-        <button
-          className="action-btn btn-add-service"
-          onClick={() => setShowServiceSelector(true)}
-        >
-          ➕ Agregar Servicio
-        </button>
-        <button className="action-btn btn-charge" onClick={() => onSave({ ...order, additionalServices })}>
-          💰 Cobrar
-        </button>
-        <button className="action-btn btn-email" onClick={() => onEmail(order)}>
-          📧 Enviar Correo
-        </button>
-        <button className="action-btn btn-whatsapp" onClick={() => onWhatsApp(order)}>
-          💬 WhatsApp
-        </button>
-        <button className="action-btn btn-invoice" onClick={() => onInvoice(order)}>
-          🧾 Generar Factura
-        </button>
-        <button className="action-btn btn-cancel-order" onClick={() => onCancel(order)}>
-          🗑️ Cancelar Orden
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

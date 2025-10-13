@@ -1,46 +1,40 @@
 import { useState, useEffect } from 'react';
 import ClientAutocomplete from './ClientAutocomplete';
-import ImageUpload from './ImageUpload';
+import ShoePairItem from './ShoePairItem';
 import './OrderForm.css';
+
+// Función para generar IDs únicos
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
 
 const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showMenu, setShowMenu] = useState(false);
+
+  // Nueva estructura de datos con múltiples pares
   const [formData, setFormData] = useState({
     client: '',
     phone: '',
     email: '',
-    model: '',
-    service: '',
-    price: '',
+    shoePairs: [
+      {
+        id: generateId(),
+        model: '',
+        service: '',
+        price: 0,
+        images: [],
+        notes: ''
+      }
+    ],
     deliveryDate: '',
     priority: '',
     paymentMethod: 'pending',
     advancePayment: '',
-    notes: '',
-    images: []
+    generalNotes: ''
   });
 
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        client: initialData.client || '',
-        phone: initialData.phone || '',
-        email: initialData.email || '',
-        model: initialData.model || '',
-        service: initialData.service || '',
-        price: initialData.price || '',
-        deliveryDate: initialData.deliveryDate?.split(': ')[1] || '',
-        priority: initialData.priority || '',
-        paymentMethod: initialData.paymentMethod || 'pending',
-        advancePayment: initialData.advancePayment || '',
-        notes: initialData.notes || '',
-        images: initialData.images || []
-      });
-    }
-  }, [initialData]);
 
   const services = [
     { name: 'Lavado Básico', price: 150, duration: '2-3 días', daysToAdd: 2 },
@@ -48,6 +42,48 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     { name: 'Lavado Express', price: 100, duration: '1 día', daysToAdd: 1 },
     { name: 'Restauración Completa', price: 400, duration: '5-7 días', daysToAdd: 6 }
   ];
+
+  // Calcular precio total de todos los pares
+  const calculateTotalPrice = () => {
+    return formData.shoePairs.reduce((total, pair) => total + (pair.price || 0), 0);
+  };
+
+  // Cargar datos iniciales (para editar órdenes existentes)
+  useEffect(() => {
+    if (initialData) {
+      // Convertir datos antiguos al nuevo formato
+      if (initialData.model && initialData.service) {
+        // Formato antiguo - convertir a array de pares
+        setFormData({
+          client: initialData.client || '',
+          phone: initialData.phone || '',
+          email: initialData.email || '',
+          shoePairs: [{
+            id: generateId(),
+            model: initialData.model || '',
+            service: initialData.service || '',
+            price: initialData.price || 0,
+            images: initialData.images || [],
+            notes: ''
+          }],
+          deliveryDate: initialData.deliveryDate?.split(': ')[1] || '',
+          priority: initialData.priority || '',
+          paymentMethod: initialData.paymentMethod || 'pending',
+          advancePayment: initialData.advancePayment || '',
+          generalNotes: initialData.notes || ''
+        });
+      } else if (initialData.shoePairs) {
+        // Formato nuevo - usar directamente
+        setFormData({
+          ...initialData,
+          shoePairs: initialData.shoePairs.map(pair => ({
+            ...pair,
+            id: pair.id || generateId()
+          }))
+        });
+      }
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,28 +100,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     }
   };
 
-  const handleServiceChange = (serviceName) => {
-    const selectedService = services.find(s => s.name === serviceName);
-
-    // Calculate delivery date
-    let deliveryDate = '';
-    if (selectedService && selectedService.daysToAdd) {
-      const today = new Date();
-      today.setDate(today.getDate() + selectedService.daysToAdd);
-      deliveryDate = today.toISOString().split('T')[0];
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      service: serviceName,
-      price: selectedService ? selectedService.price : '',
-      deliveryDate: deliveryDate
-    }));
-    if (errors.service) {
-      setErrors(prev => ({ ...prev, service: '' }));
-    }
-  };
-
   const handleSelectClient = (client) => {
     setFormData(prev => ({
       ...prev,
@@ -96,8 +110,44 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     setErrors(prev => ({ ...prev, client: '', phone: '' }));
   };
 
-  const handleImagesChange = (images) => {
-    setFormData(prev => ({ ...prev, images }));
+  // Agregar un nuevo par de tenis
+  const handleAddPair = () => {
+    setFormData(prev => ({
+      ...prev,
+      shoePairs: [
+        ...prev.shoePairs,
+        {
+          id: generateId(),
+          model: '',
+          service: '',
+          price: 0,
+          images: [],
+          notes: ''
+        }
+      ]
+    }));
+  };
+
+  // Eliminar un par de tenis
+  const handleRemovePair = (pairId) => {
+    if (formData.shoePairs.length === 1) {
+      alert('Debe haber al menos un par de tenis en la orden');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      shoePairs: prev.shoePairs.filter(pair => pair.id !== pairId)
+    }));
+  };
+
+  // Actualizar un par de tenis
+  const handleUpdatePair = (pairId, updatedPair) => {
+    setFormData(prev => ({
+      ...prev,
+      shoePairs: prev.shoePairs.map(pair =>
+        pair.id === pairId ? updatedPair : pair
+      )
+    }));
   };
 
   const validateStep = (step) => {
@@ -113,17 +163,25 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         newErrors.phone = 'Formato de teléfono inválido';
       }
     } else if (step === 2) {
-      if (!formData.model.trim()) {
-        newErrors.model = 'El modelo de tenis es requerido';
+      // Validar que haya al menos un par
+      if (formData.shoePairs.length === 0) {
+        newErrors.shoePairs = 'Debe agregar al menos un par de tenis';
       }
-      if (!formData.service) {
-        newErrors.service = 'Selecciona un servicio';
-      }
+      // Validar cada par
+      formData.shoePairs.forEach((pair, index) => {
+        if (!pair.model.trim()) {
+          newErrors[`pair_${index}_model`] = 'El modelo es requerido';
+        }
+        if (!pair.service) {
+          newErrors[`pair_${index}_service`] = 'El servicio es requerido';
+        }
+      });
     } else if (step === 3) {
       if (!formData.deliveryDate) {
         newErrors.deliveryDate = 'La fecha de entrega es requerida';
       }
-      if (formData.advancePayment && parseFloat(formData.advancePayment) > parseFloat(formData.price)) {
+      const totalPrice = calculateTotalPrice();
+      if (formData.advancePayment && parseFloat(formData.advancePayment) > totalPrice) {
         newErrors.advancePayment = 'El anticipo no puede ser mayor al precio total';
       }
     }
@@ -134,6 +192,26 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
+      // Auto-calcular fecha de entrega basada en el servicio más largo
+      if (currentStep === 2 && !formData.deliveryDate) {
+        const maxDays = Math.max(
+          ...formData.shoePairs
+            .map(pair => {
+              const service = services.find(s => s.name === pair.service);
+              return service?.daysToAdd || 0;
+            })
+        );
+
+        if (maxDays > 0) {
+          const today = new Date();
+          today.setDate(today.getDate() + maxDays);
+          setFormData(prev => ({
+            ...prev,
+            deliveryDate: today.toISOString().split('T')[0]
+          }));
+        }
+      }
+
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -146,7 +224,12 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateStep(currentStep)) {
-      onSubmit(formData);
+      // Agregar el precio total calculado
+      const orderData = {
+        ...formData,
+        totalPrice: calculateTotalPrice()
+      };
+      onSubmit(orderData);
     }
   };
 
@@ -155,21 +238,16 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
     switch(action) {
       case 'invoice':
-        // TODO: Implementar generación de factura
         alert('Generar factura para ' + formData.client);
         break;
       case 'email':
-        // TODO: Implementar envío de correo basado en etapa de la orden
-        // La funcionalidad completa seleccionará la plantilla según la etapa
         alert('Enviar correo a ' + formData.client + '\nSe seleccionará la plantilla según la etapa de la orden');
         break;
       case 'contact':
-        // TODO: Implementar contacto con cliente
         const phone = formData.phone.replace(/\D/g, '');
         window.open(`https://wa.me/${phone}`, '_blank');
         break;
       case 'delete':
-        // TODO: Implementar eliminación de orden
         if (confirm('¿Estás seguro de eliminar esta orden?')) {
           alert('Orden eliminada');
           onCancel();
@@ -182,6 +260,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   const totalSteps = 4;
   const progress = (currentStep / totalSteps) * 100;
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -227,64 +306,42 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         return (
           <div className="step-content">
             <div className="step-icon-large">👟</div>
-            <h3 className="step-title-large">Servicio y Fotos</h3>
-            <p className="step-description">Selecciona el servicio y sube fotos de los tenis</p>
+            <h3 className="step-title-large">Pares de Tenis</h3>
+            <p className="step-description">Agrega todos los pares de tenis del cliente</p>
 
-            {/* Show photos first when editing */}
-            {initialData && (
-              <div className="form-section">
-                <label className="form-label">📸 Fotos de los Tenis</label>
-                <ImageUpload images={formData.images} onChange={handleImagesChange} />
+            <div className="shoe-pairs-container">
+              {formData.shoePairs.map((pair, index) => (
+                <ShoePairItem
+                  key={pair.id}
+                  pair={pair}
+                  index={index}
+                  onUpdate={handleUpdatePair}
+                  onRemove={handleRemovePair}
+                  canRemove={formData.shoePairs.length > 1}
+                  services={services}
+                />
+              ))}
+
+              <button
+                type="button"
+                className="btn-add-pair"
+                onClick={handleAddPair}
+              >
+                <span className="btn-add-icon">➕</span>
+                <span>Agregar otro par de tenis</span>
+              </button>
+
+              {errors.shoePairs && <span className="error-message">{errors.shoePairs}</span>}
+
+              <div className="total-price-preview">
+                <span className="total-label">Total:</span>
+                <span className="total-value">${calculateTotalPrice()}</span>
               </div>
-            )}
-
-            <div className="form-group">
-              <label className="form-label">
-                Modelo de Tenis <span className="required">*</span>
-              </label>
-              <input
-                type="text"
-                name="model"
-                className={`form-input ${errors.model ? 'error' : ''}`}
-                placeholder="Ej: Nike Air Max 90, Adidas Superstar..."
-                value={formData.model}
-                onChange={handleChange}
-              />
-              {errors.model && <span className="error-message">{errors.model}</span>}
             </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                Servicio <span className="required">*</span>
-              </label>
-              <div className="service-cards">
-                {services.map((service) => (
-                  <div
-                    key={service.name}
-                    className={`service-card-option ${formData.service === service.name ? 'selected' : ''}`}
-                    onClick={() => handleServiceChange(service.name)}
-                  >
-                    <div className="service-card-header">
-                      <span className="service-card-name">{service.name}</span>
-                      <span className="service-card-price">${service.price}</span>
-                    </div>
-                    <span className="service-card-duration">⏱️ {service.duration}</span>
-                  </div>
-                ))}
-              </div>
-              {errors.service && <span className="error-message">{errors.service}</span>}
-            </div>
-
-            {/* Show photos last when creating new order */}
-            {!initialData && (
-              <div className="form-section">
-                <label className="form-label">📸 Fotos de los Tenis</label>
-                <ImageUpload images={formData.images} onChange={handleImagesChange} />
-              </div>
-            )}
           </div>
         );
-        case 3:
+
+      case 3:
         return (
           <div className="step-content">
             <div className="step-icon-large">💰</div>
@@ -366,21 +423,22 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                   onChange={handleChange}
                 />
                 {errors.advancePayment && <span className="error-message">{errors.advancePayment}</span>}
-                {formData.advancePayment && formData.price && (
+                {formData.advancePayment && (
                   <div className="payment-info">
-                    <span>Restante: ${parseFloat(formData.price || 0) - parseFloat(formData.advancePayment || 0)}</span>
+                    <span>Total: ${calculateTotalPrice()} | </span>
+                    <span>Restante: ${calculateTotalPrice() - parseFloat(formData.advancePayment || 0)}</span>
                   </div>
                 )}
               </div>
 
               <div className="form-group full-width">
-                <label className="form-label">Notas adicionales</label>
+                <label className="form-label">Notas generales de la orden</label>
                 <textarea
-                  name="notes"
+                  name="generalNotes"
                   className="form-input form-textarea"
-                  placeholder="Cualquier detalle importante sobre el servicio..."
+                  placeholder="Notas generales que aplican a toda la orden..."
                   rows="3"
-                  value={formData.notes}
+                  value={formData.generalNotes}
                   onChange={handleChange}
                 />
               </div>
@@ -389,6 +447,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         );
 
       case 4:
+        const totalPrice = calculateTotalPrice();
         return (
           <div className="step-content">
             <div className="step-icon-large">✅</div>
@@ -409,26 +468,41 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
               </div>
 
               <div className="summary-section">
-                <h4 className="summary-section-title">👟 Servicio</h4>
-                <div className="summary-row">
-                  <span className="summary-label">Modelo:</span>
-                  <span className="summary-value">{formData.model || '-'}</span>
-                </div>
-                <div className="summary-row">
-                  <span className="summary-label">Servicio:</span>
-                  <span className="summary-value">{formData.service || '-'}</span>
-                </div>
-                <div className="summary-row">
-                  <span className="summary-label">Fotos:</span>
-                  <span className="summary-value">{formData.images.length} imagen{formData.images.length !== 1 ? 'es' : ''}</span>
-                </div>
+                <h4 className="summary-section-title">👟 Pares de Tenis ({formData.shoePairs.length})</h4>
+                {formData.shoePairs.map((pair, index) => (
+                  <div key={pair.id} className="summary-pair">
+                    <div className="summary-pair-header">Par #{index + 1}</div>
+                    <div className="summary-row">
+                      <span className="summary-label">Modelo:</span>
+                      <span className="summary-value">{pair.model || '-'}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Servicio:</span>
+                      <span className="summary-value">{pair.service || '-'}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Precio:</span>
+                      <span className="summary-value price-highlight">${pair.price || '0'}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Fotos:</span>
+                      <span className="summary-value">{pair.images?.length || 0} imagen{(pair.images?.length || 0) !== 1 ? 'es' : ''}</span>
+                    </div>
+                    {pair.notes && (
+                      <div className="summary-row">
+                        <span className="summary-label">Notas:</span>
+                        <span className="summary-value">{pair.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
 
               <div className="summary-section">
                 <h4 className="summary-section-title">💰 Pago</h4>
                 <div className="summary-row">
                   <span className="summary-label">Precio Total:</span>
-                  <span className="summary-value price-highlight">${formData.price || '0'}</span>
+                  <span className="summary-value price-highlight">${totalPrice}</span>
                 </div>
                 {formData.advancePayment && (
                   <>
@@ -438,7 +512,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                     </div>
                     <div className="summary-row">
                       <span className="summary-label">Restante:</span>
-                      <span className="summary-value">${parseFloat(formData.price || 0) - parseFloat(formData.advancePayment || 0)}</span>
+                      <span className="summary-value">${totalPrice - parseFloat(formData.advancePayment || 0)}</span>
                     </div>
                   </>
                 )}
@@ -463,10 +537,10 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                 )}
               </div>
 
-              {formData.notes && (
+              {formData.generalNotes && (
                 <div className="summary-section">
-                  <h4 className="summary-section-title">📝 Notas</h4>
-                  <p className="summary-notes">{formData.notes}</p>
+                  <h4 className="summary-section-title">📝 Notas Generales</h4>
+                  <p className="summary-notes">{formData.generalNotes}</p>
                 </div>
               )}
             </div>
@@ -477,6 +551,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         return null;
     }
   };
+
   return (
     <div className="order-form">
       {/* Menu Button (only show when editing) */}
@@ -542,7 +617,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         <div className="step-line"></div>
         <div className={`step-item ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
           <div className="step-number">{currentStep > 2 ? '✓' : '2'}</div>
-          <div className="step-label">Servicio</div>
+          <div className="step-label">Pares</div>
         </div>
         <div className="step-line"></div>
         <div className={`step-item ${currentStep >= 3 ? 'active' : ''} ${currentStep > 3 ? 'completed' : ''}`}>
