@@ -111,8 +111,8 @@
 
 .pair-preview-item {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
     padding: 10px;
     background: var(--bg-darker);
     border: 1px solid var(--color-gray-800);
@@ -133,26 +133,25 @@
     font-size: 14px;
     font-weight: 700;
     color: var(--color-white);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.4;
+    word-wrap: break-word;
 }
 
 .pair-preview-details {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    margin-left: auto;
 }
 
 .pair-preview-service {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--color-gray-500);
     font-weight: 600;
     padding: 4px 8px;
     background: var(--color-gray-800);
     border-radius: 6px;
+    white-space: nowrap;
 }
 
 .pair-preview-more {

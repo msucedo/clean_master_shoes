@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PageHeader from '../components/PageHeader';
 import './Settings.css';
 
 const Settings = () => {
@@ -62,10 +63,9 @@ const Settings = () => {
   return (
     <div className="settings-page">
       {/* Header */}
-      <div className="page-header">
-        <h1 className="page-title">Configuración</h1>
-        <p className="page-subtitle">Administra las preferencias de tu negocio</p>
-      </div>
+      <PageHeader
+        title="Configuración"
+      />
 
       {/* Settings Grid */}
       <div className="settings-grid">

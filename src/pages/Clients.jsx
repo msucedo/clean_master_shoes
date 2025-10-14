@@ -2,6 +2,8 @@ import { useState } from 'react';
 import ClientItem from '../components/ClientItem';
 import Modal from '../components/Modal';
 import ClientForm from '../components/ClientForm';
+import PageHeader from '../components/PageHeader';
+import { mockClients } from '../data/mockData';
 import './Clients.css';
 
 const Clients = () => {
@@ -186,48 +188,33 @@ const Clients = () => {
   return (
     <div className="clients-page">
       {/* Header */}
-      <div className="page-header">
-        <div className="header-top">
-          <h1 className="page-title">Clientes</h1>
-          <button className="btn-add-client" onClick={handleOpenNewClient}>
-            ➕ Agregar Cliente
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="search-box">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Buscar cliente por nombre o teléfono..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        {/* Filters */}
-        <div className="filters">
-          <button
-            className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('all')}
-          >
-            Todos
-          </button>
-          <button
-            className={`filter-btn ${activeFilter === 'debt' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('debt')}
-          >
-            Con Deuda
-          </button>
-          <button
-            className={`filter-btn ${activeFilter === 'vip' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('vip')}
-          >
-            Clientes VIP
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Clientes"
+        buttonLabel="Agregar Cliente"
+        buttonIcon="➕"
+        onButtonClick={handleOpenNewClient}
+        showSearch={true}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar cliente por nombre o teléfono..."
+        filters={[
+          {
+            label: 'Todos',
+            onClick: () => setActiveFilter('all'),
+            active: activeFilter === 'all'
+          },
+          {
+            label: 'Con Deuda',
+            onClick: () => setActiveFilter('debt'),
+            active: activeFilter === 'debt'
+          },
+          {
+            label: 'Clientes VIP',
+            onClick: () => setActiveFilter('vip'),
+            active: activeFilter === 'vip'
+          }
+        ]}
+      />
 
       {/* Clients List */}
       <div className="clients-list">

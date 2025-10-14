@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PageHeader from '../components/PageHeader';
 import './Reports.css';
 
 const Reports = () => {
@@ -65,25 +66,14 @@ const Reports = () => {
   return (
     <div className="reports-page">
       {/* Header */}
-      <div className="page-header">
-        <div className="header-top">
-          <div>
-            <h1 className="page-title">Reportes</h1>
-            <p className="page-subtitle">Análisis y métricas de tu negocio</p>
-          </div>
-          <div className="date-filters">
-            {dateFilters.map((filter) => (
-              <button
-                key={filter}
-                className={`date-filter-btn ${activeFilter === filter ? 'active' : ''}`}
-                onClick={() => handleFilterChange(filter)}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Reportes"
+        filters={dateFilters.map((filter) => ({
+          label: filter,
+          onClick: () => handleFilterChange(filter),
+          active: activeFilter === filter
+        }))}
+      />
 
       {/* Stats Grid */}
       <div className="stats-grid">

@@ -2,20 +2,19 @@
 .services-page {
   padding: 0;
 }
-
 /* Header */
-.services-page .page-header {
+.page-header {
   margin-bottom: 35px;
 }
 
-.services-page .header-top {
+.header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 30px;
 }
 
-.services-page .page-title {
+.page-title {
   font-size: 42px;
   font-weight: 900;
   background: linear-gradient(135deg, #fff 0%, #999 100%);
@@ -52,43 +51,6 @@
 .btn-add-service:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-primary-hover);
-}
-
-/* Search */
-.services-page .search-box {
-  position: relative;
-  margin-top: 25px;
-}
-
-.services-page .search-icon {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 20px;
-  color: #666;
-}
-
-.services-page .search-input {
-  width: 100%;
-  padding: 18px 20px 18px 55px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
-  border: 1px solid #2a2a2a;
-  border-radius: 16px;
-  font-size: 16px;
-  color: #fff;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.services-page .search-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--bg-primary-10);
-}
-
-.services-page .search-input::placeholder {
-  color: #555;
 }
 
 /* Services Grid */

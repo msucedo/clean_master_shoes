@@ -8,7 +8,7 @@ const MainLayout = () => {
       <Sidebar />
       <div className="main-content">
         <Outlet />
-      </div>
+      </div> 
     </div>
   );
 };

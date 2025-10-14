@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import StatCard from '../components/StatCard';
 import TaskCard from '../components/TaskCard';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Obtener fecha dinámica
   const getCurrentDate = () => {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -16,6 +19,10 @@ const Dashboard = () => {
     const year = today.getFullYear();
 
     return `${dayName}, ${day} de ${month} ${year}`;
+  };
+
+  const handleNewOrder = () => {
+    console.log('Open new order form');
   };
 
   const stats = [
@@ -63,32 +70,14 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      {/* Hero Section */}
+      {/* Header with welcome message */}
       <div className="hero-section">
         <div className="welcome-text">
           <div className="welcome-greeting">{getCurrentDate()}</div>
-          <h1 className="welcome-title">¿Qué buscas hoy?</h1>
-        </div>
-
-        {/* Big Search and New Order Button */}
-        <div className="search-container">
-          <div className="search-wrapper">
-            <div className="search-box">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Buscar cliente, orden, teléfono..."
-                autoFocus
-              />
-            </div>
-            <button className="btn-new-order">
-              <span className="btn-icon">➕</span>
-              <span>Nueva Orden</span>
-            </button>
-          </div>
+          <h1 className="welcome-title">Bienvenido de nuevo</h1>
         </div>
       </div>
+
 
       {/* Quick Stats */}
       <div className="quick-stats">

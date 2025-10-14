@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import ServiceCard from '../components/ServiceCard';
+import PageHeader from '../components/PageHeader';
+import { mockServices } from '../data/mockData';
 import './Services.css';
 
 const Services = () => {
@@ -65,29 +67,16 @@ const Services = () => {
   return (
     <div className="services-page">
       {/* Header */}
-      <div className="page-header">
-        <div className="header-top">
-          <div>
-            <h1 className="page-title">Servicios</h1>
-            <p className="page-subtitle">Gestiona tus servicios y precios</p>
-          </div>
-          <button className="btn-add-service" onClick={handleAddService}>
-            ➕ Agregar Servicio
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="search-box">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Buscar servicio..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
+      <PageHeader
+        title="Servicios"
+        buttonLabel="Agregar Servicio"
+        buttonIcon="➕"
+        onButtonClick={handleAddService}
+        showSearch={true}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar servicio..."
+      />
 
       {/* Services Grid */}
       <div className="services-grid">
