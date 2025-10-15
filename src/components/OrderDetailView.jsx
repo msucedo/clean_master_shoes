@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import ImageUpload from './ImageUpload';
 import './OrderDetailView.css';
 
-const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp, onInvoice }) => {
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, onCancel, onEmail, onWhatsApp, onInvoice, onCobrar, onEntregar }) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   // Estado local para gestionar los pares editables
@@ -21,7 +21,8 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
   );
 
   // Estado local para gestionar el estado general de la orden
-  const [orderStatus, setOrderStatus] = useState(order.status || 'pending');
+  // Usar currentTab que indica en qué pestaña está la orden actualmente
+  const [orderStatus, setOrderStatus] = useState(currentTab || 'recibidos');
 
   // Obtener todos los pares (usando el estado local)
   const shoePairs = localShoePairs;
@@ -35,12 +36,11 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
     { value: 'cancelled', label: '❌ Cancelado', color: '#ef4444' }
   ];
 
-  // Estados disponibles para la orden general
+  // Estados disponibles para la orden general (deben coincidir con las pestañas)
   const orderStatuses = [
-    { value: 'pending', label: '⏳ Pendiente' },
-    { value: 'in-progress', label: '🔄 En Proceso' },
-    { value: 'ready', label: '✅ Listo' },
-    { value: 'delivered', label: '📦 Entregado' }
+    { value: 'recibidos', label: '📥 Recibidos' },
+    { value: 'proceso', label: '🔧 En Proceso' },
+    { value: 'listos', label: '✅ Listos' }
   ];
 
   // Calcular precio total excluyendo pares cancelados (reactivo)
@@ -57,6 +57,13 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
 
   const advancePayment = parseFloat(order.advancePayment) || 0;
   const remainingPayment = totalPrice - advancePayment;
+
+  // Determinar si la orden está completamente pagada
+  const isFullyPaid = remainingPayment <= 0 || order.paymentStatus === 'paid';
+
+  // Determinar si mostrar botón de Cobrar o Entregar
+  const showCobrarButton = currentTab === 'listos' && !isFullyPaid;
+  const showEntregarButton = currentTab === 'listos' && isFullyPaid;
 
   // Métodos de pago
   const getPaymentMethodLabel = (method) => {
@@ -132,15 +139,9 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
   const handleOrderStatusChange = (newStatus) => {
     setOrderStatus(newStatus);
 
-    const updatedOrder = {
-      ...order,
-      status: newStatus,
-      shoePairs: localShoePairs
-    };
-
-    // Llamar a onSave si está disponible
-    if (onSave) {
-      onSave(updatedOrder);
+    // Llamar a onStatusChange para mover la orden entre columnas
+    if (onStatusChange) {
+      onStatusChange(order, newStatus);
     }
   };
 
@@ -301,6 +302,37 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
         </div>
       )}
 
+      {/* Botones de Cierre de Orden */}
+      {(showCobrarButton || showEntregarButton) && (
+        <div className="order-close-section">
+          {showCobrarButton && (
+            <button
+              className="btn-close-order btn-cobrar-large"
+              onClick={() => onCobrar && onCobrar(order)}
+            >
+              <span className="btn-close-icon">💳</span>
+              <div className="btn-close-content">
+                <span className="btn-close-title">Cobrar</span>
+                <span className="btn-close-subtitle">Registrar pago de ${remainingPayment}</span>
+              </div>
+            </button>
+          )}
+
+          {showEntregarButton && (
+            <button
+              className="btn-close-order btn-entregar-large"
+              onClick={() => onEntregar && onEntregar(order)}
+            >
+              <span className="btn-close-icon">📦</span>
+              <div className="btn-close-content">
+                <span className="btn-close-title">Entregar Orden</span>
+                <span className="btn-close-subtitle">Marcar como completada y entregada</span>
+              </div>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Botones de Acción */}
       <div className="order-actions-footer">
         <div className="action-buttons-grid">
@@ -326,6 +358,14 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
           >
             <span className="action-icon">🧾</span>
             <span className="action-text">Generar Factura</span>
+          </button>
+
+          <button
+            className="action-btn btn-cancel"
+            onClick={() => onCancel && onCancel(order)}
+          >
+            <span className="action-icon">🗑️</span>
+            <span className="action-text">Cancelar Orden</span>
           </button>
         </div>
       </div>

@@ -1,19 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '../components/Modal';
 import OrderForm from '../components/OrderForm';
 import OrderDetailView from '../components/OrderDetailView';
 import OrderCard from '../components/OrderCard';
 import PageHeader from '../components/PageHeader';
-import { mockOrders } from '../data/mockData';
 import './Orders.css';
+
+// Estructura inicial vacía para las órdenes
+const EMPTY_ORDERS = {
+  recibidos: [],
+  proceso: [],
+  listos: [],
+  completados: []
+};
+
+// Clave para localStorage
+const ORDERS_STORAGE_KEY = 'cleanmaster_orders';
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingOrder, setEditingOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('recibidos');
 
-  const [orders, setOrders] = useState(mockOrders);
+  // Cargar órdenes desde localStorage al iniciar
+  const [orders, setOrders] = useState(() => {
+    const savedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
+    return savedOrders ? JSON.parse(savedOrders) : EMPTY_ORDERS;
+  });
+
+  // Guardar órdenes en localStorage cada vez que cambien
+  useEffect(() => {
+    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+  }, [orders]);
 
   const handleStatusChange = (order, newStatus) => {
     // Find which column the order is currently in
@@ -61,18 +80,18 @@ const Orders = () => {
   };
 
   const handleOpenNewOrder = () => {
-    setEditingOrder(null);
+    setSelectedOrder(null);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setEditingOrder(null);
+    setSelectedOrder(null);
   };
 
   const generateOrderId = () => {
     // Get all orders from all columns
-    const allOrders = [...orders.recibidos, ...orders.proceso, ...orders.listos];
+    const allOrders = [...orders.recibidos, ...orders.proceso, ...orders.listos, ...orders.completados];
 
     // Find the highest ID number
     const maxId = allOrders.reduce((max, order) => {
@@ -109,7 +128,7 @@ const Orders = () => {
   };
 
   const handleOrderClick = (order) => {
-    setEditingOrder(order);
+    setSelectedOrder(order);
     setIsModalOpen(true);
   };
 
@@ -170,61 +189,78 @@ const Orders = () => {
     alert(`Generar factura para orden #${order.id}\nCliente: ${order.client}\nTotal: $${order.price}`);
   };
 
+  const handleCobrar = (order) => {
+    // TODO: Integrar con Clip para procesar pago
+    const totalPrice = order.totalPrice || 0;
+    const advancePayment = parseFloat(order.advancePayment) || 0;
+    const remainingPayment = totalPrice - advancePayment;
+
+    if (confirm(`¿Cobrar $${remainingPayment} a ${order.client}?`)) {
+      // Marcar como pagado completamente
+      const updatedOrder = {
+        ...order,
+        advancePayment: totalPrice, // Ahora está pagado todo
+        paymentStatus: 'paid'
+      };
+
+      handleSaveOrder(updatedOrder);
+      alert('Pago registrado exitosamente');
+    }
+  };
+
+  const handleEntregar = (order) => {
+    if (confirm(`¿Marcar orden #${order.id} como entregada?`)) {
+      // Mover a completados
+      setOrders(prev => {
+        const newOrders = { ...prev };
+
+        // Buscar y remover de la columna actual
+        for (const key of Object.keys(newOrders)) {
+          newOrders[key] = newOrders[key].filter(o => o.id !== order.id);
+        }
+
+        // Agregar a completados con estado completado
+        const completedOrder = {
+          ...order,
+          orderStatus: 'completados',
+          completedDate: new Date().toISOString()
+        };
+
+        // Asegurar que completados existe como array
+        newOrders.completados = [completedOrder, ...(newOrders.completados || [])];
+
+        return newOrders;
+      });
+
+      handleCloseModal();
+      alert(`Orden #${order.id} entregada exitosamente`);
+    }
+  };
+
   const handleSubmitOrder = (formData) => {
     const deliveryInfo = formatDeliveryDate(formData.deliveryDate);
 
-    if (editingOrder) {
-      // Edit existing order
-      const updatedOrder = {
-        ...editingOrder,
-        client: formData.client,
-        phone: formData.phone,
-        model: formData.model,
-        service: formData.service,
-        price: formData.price,
-        deliveryDate: deliveryInfo.text,
-        priority: formData.priority,
-        dateClass: deliveryInfo.className,
-        notes: formData.notes
-      };
+    // Create new order with new format (shoePairs)
+    const newOrder = {
+      id: generateOrderId(),
+      client: formData.client,
+      phone: formData.phone,
+      email: formData.email || '',
+      shoePairs: formData.shoePairs || [],
+      totalPrice: formData.totalPrice || 0,
+      deliveryDate: deliveryInfo.text,
+      priority: formData.priority || '',
+      dateClass: deliveryInfo.className,
+      paymentMethod: formData.paymentMethod || 'pending',
+      advancePayment: formData.advancePayment || 0,
+      generalNotes: formData.generalNotes || ''
+    };
 
-      // Find which column has the order and update it
-      setOrders(prev => {
-        const newOrders = { ...prev };
-        for (const [key, ordersList] of Object.entries(newOrders)) {
-          const index = ordersList.findIndex(o => o.id === editingOrder.id);
-          if (index !== -1) {
-            newOrders[key] = [
-              ...ordersList.slice(0, index),
-              updatedOrder,
-              ...ordersList.slice(index + 1)
-            ];
-            break;
-          }
-        }
-        return newOrders;
-      });
-    } else {
-      // Create new order
-      const newOrder = {
-        id: generateOrderId(),
-        client: formData.client,
-        phone: formData.phone,
-        model: formData.model,
-        service: formData.service,
-        price: formData.price,
-        deliveryDate: deliveryInfo.text,
-        priority: formData.priority,
-        dateClass: deliveryInfo.className,
-        notes: formData.notes
-      };
-
-      // Add to "Recibidos" column
-      setOrders(prev => ({
-        ...prev,
-        recibidos: [newOrder, ...prev.recibidos]
-      }));
-    }
+    // Add to "Recibidos" column
+    setOrders(prev => ({
+      ...prev,
+      recibidos: [newOrder, ...prev.recibidos]
+    }));
 
     handleCloseModal();
   };
@@ -290,22 +326,26 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Modal for New/Edit Order */}
+      {/* Modal for New Order or Order Detail */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingOrder ? `Orden #${editingOrder.id}` : 'Nueva Orden'}
+        title={selectedOrder ? `Orden #${selectedOrder.id}` : 'Nueva Orden'}
         size="large"
       >
-        {editingOrder ? (
+        {selectedOrder ? (
           <OrderDetailView
-            order={editingOrder}
+            order={selectedOrder}
+            currentTab={activeTab}
             onClose={handleCloseModal}
             onSave={handleSaveOrder}
+            onStatusChange={handleStatusChange}
             onCancel={handleCancelOrder}
             onEmail={handleEmail}
             onWhatsApp={handleWhatsApp}
             onInvoice={handleInvoice}
+            onCobrar={handleCobrar}
+            onEntregar={handleEntregar}
           />
         ) : (
           <OrderForm
