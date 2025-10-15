@@ -40,12 +40,23 @@ const Orders = () => {
 
     return ordersList.filter(order => {
       const searchLower = searchTerm.toLowerCase();
-      return (
+
+      // Buscar en campos básicos
+      const basicMatch =
         order.client.toLowerCase().includes(searchLower) ||
         order.phone.includes(searchLower) ||
-        order.id.includes(searchLower) ||
-        order.model.toLowerCase().includes(searchLower)
+        order.id.includes(searchLower);
+
+      // Buscar en modelo (formato antiguo)
+      const modelMatch = order.model?.toLowerCase().includes(searchLower);
+
+      // Buscar en pares de tenis (formato nuevo)
+      const pairsMatch = order.shoePairs?.some(pair =>
+        pair.model?.toLowerCase().includes(searchLower) ||
+        pair.service?.toLowerCase().includes(searchLower)
       );
+
+      return basicMatch || modelMatch || pairsMatch;
     });
   };
 
@@ -238,11 +249,6 @@ const Orders = () => {
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Buscar por cliente, orden o teléfono..."
-        filters={[
-          { label: 'Fecha', icon: '📅', onClick: () => {} },
-          { label: 'Pago', icon: '💰', onClick: () => {} },
-          { label: 'Servicio', icon: '🔧', onClick: () => {} }
-        ]}
       />
 
       {/* Status Tabs */}

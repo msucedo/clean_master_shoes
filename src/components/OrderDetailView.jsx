@@ -1,32 +1,60 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import ImageUpload from './ImageUpload';
 import './OrderDetailView.css';
 
 const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp, onInvoice }) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Obtener todos los pares (nuevo formato o convertir del antiguo)
-  const shoePairs = order.shoePairs || [
-    {
-      id: 'legacy',
-      model: order.model,
-      service: order.service,
-      price: order.price,
-      images: order.images || [],
-      notes: order.notes || '',
-      status: 'pending' // Estado por defecto
-    }
-  ];
+  // Estado local para gestionar los pares editables
+  const [localShoePairs, setLocalShoePairs] = useState(
+    order.shoePairs || [
+      {
+        id: 'legacy',
+        model: order.model,
+        service: order.service,
+        price: order.price,
+        images: order.images || [],
+        notes: order.notes || '',
+        status: 'pending' // Estado por defecto
+      }
+    ]
+  );
+
+  // Estado local para gestionar el estado general de la orden
+  const [orderStatus, setOrderStatus] = useState(order.status || 'pending');
+
+  // Obtener todos los pares (usando el estado local)
+  const shoePairs = localShoePairs;
 
   // Estados disponibles para cada par
   const pairStatuses = [
     { value: 'pending', label: '⏳ Pendiente', color: '#fbbf24' },
     { value: 'in-progress', label: '🔄 En Proceso', color: '#0096ff' },
     { value: 'completed', label: '✅ Completado', color: '#10b981' },
-    { value: 'delivered', label: '📦 Entregado', color: '#8b5cf6' }
+    { value: 'delivered', label: '📦 Entregado', color: '#8b5cf6' },
+    { value: 'cancelled', label: '❌ Cancelado', color: '#ef4444' }
   ];
 
-  // Calcular precio total
-  const totalPrice = order.totalPrice || order.price || 0;
+  // Estados disponibles para la orden general
+  const orderStatuses = [
+    { value: 'pending', label: '⏳ Pendiente' },
+    { value: 'in-progress', label: '🔄 En Proceso' },
+    { value: 'ready', label: '✅ Listo' },
+    { value: 'delivered', label: '📦 Entregado' }
+  ];
+
+  // Calcular precio total excluyendo pares cancelados (reactivo)
+  const totalPrice = useMemo(() => {
+    // Si tiene shoePairs, calcular total sumando solo pares no cancelados
+    if (localShoePairs && localShoePairs.length > 0 && localShoePairs[0].id !== 'legacy') {
+      return localShoePairs
+        .filter(pair => pair.status !== 'cancelled')
+        .reduce((sum, pair) => sum + (pair.price || 0), 0);
+    }
+    // Formato antiguo
+    return order.totalPrice || order.price || 0;
+  }, [localShoePairs, order.totalPrice, order.price]);
+
   const advancePayment = parseFloat(order.advancePayment) || 0;
   const remainingPayment = totalPrice - advancePayment;
 
@@ -64,13 +92,50 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
 
   // Cambiar estado de un par individual
   const handlePairStatusChange = (pairId, newStatus) => {
-    const updatedPairs = shoePairs.map(pair =>
+    const updatedPairs = localShoePairs.map(pair =>
       pair.id === pairId ? { ...pair, status: newStatus } : pair
     );
+
+    setLocalShoePairs(updatedPairs);
 
     const updatedOrder = {
       ...order,
       shoePairs: updatedPairs
+    };
+
+    // Llamar a onSave si está disponible
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Cambiar imágenes de un par individual
+  const handlePairImagesChange = (pairId, newImages) => {
+    const updatedPairs = localShoePairs.map(pair =>
+      pair.id === pairId ? { ...pair, images: newImages } : pair
+    );
+
+    setLocalShoePairs(updatedPairs);
+
+    const updatedOrder = {
+      ...order,
+      shoePairs: updatedPairs
+    };
+
+    // Llamar a onSave si está disponible
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Cambiar estado general de la orden
+  const handleOrderStatusChange = (newStatus) => {
+    setOrderStatus(newStatus);
+
+    const updatedOrder = {
+      ...order,
+      status: newStatus,
+      shoePairs: localShoePairs
     };
 
     // Llamar a onSave si está disponible
@@ -150,27 +215,14 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
                   </select>
                 </div>
 
-                {pair.images && pair.images.length > 0 && (
-                  <div className="pair-images-preview">
-                    <span className="pair-info-label">Fotos:</span>
-                    <div className="pair-thumbnails">
-                      {pair.images.slice(0, 3).map((image, imgIndex) => (
-                        <img
-                          key={imgIndex}
-                          src={image}
-                          alt={`${pair.model} - ${imgIndex + 1}`}
-                          className="pair-thumbnail"
-                          onClick={() => openImageModal(image)}
-                        />
-                      ))}
-                      {pair.images.length > 3 && (
-                        <div className="thumbnail-more">
-                          +{pair.images.length - 3}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Sección de imágenes editable */}
+                <div className="pair-images-section">
+                  <span className="pair-info-label">📸 Fotos del Par:</span>
+                  <ImageUpload
+                    images={pair.images || []}
+                    onChange={(newImages) => handlePairImagesChange(pair.id, newImages)}
+                  />
+                </div>
 
                 {pair.notes && (
                   <div className="pair-notes">
@@ -222,14 +274,18 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
               <span className="detail-value">{order.deliveryDate}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Estado:</span>
-              <span className={`status-badge status-${order.status || 'pending'}`}>
-                {order.status === 'pending' && '⏳ Pendiente'}
-                {order.status === 'in-progress' && '🔄 En Proceso'}
-                {order.status === 'ready' && '✅ Listo'}
-                {order.status === 'delivered' && '📦 Entregado'}
-                {!order.status && '⏳ Pendiente'}
-              </span>
+              <span className="detail-label">Estado de la Orden:</span>
+              <select
+                className={`order-status-select status-${orderStatus}`}
+                value={orderStatus}
+                onChange={(e) => handleOrderStatusChange(e.target.value)}
+              >
+                {orderStatuses.map(status => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -270,14 +326,6 @@ const OrderDetailView = ({ order, onClose, onSave, onCancel, onEmail, onWhatsApp
           >
             <span className="action-icon">🧾</span>
             <span className="action-text">Generar Factura</span>
-          </button>
-
-          <button
-            className="action-btn btn-edit"
-            onClick={onClose}
-          >
-            <span className="action-icon">✏️</span>
-            <span className="action-text">Editar Orden</span>
           </button>
         </div>
       </div>

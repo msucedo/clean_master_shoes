@@ -15,7 +15,7 @@ const Sidebar = () => {
     <div className="sidebar">
       <div className="logo">
         <span className="logo-icon">👟</span>
-        <span className="logo-text">SNEAKERWASH</span>
+        <span className="logo-text">CLEAN MASTER SHOES</span>
       </div>
       {menuItems.map((item) => (
         <NavLink
