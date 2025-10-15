@@ -35,23 +35,29 @@ const Orders = () => {
   }, [orders]);
 
   const handleStatusChange = (order, newStatus) => {
-    // Find which column the order is currently in
-    let sourceColumn = null;
-    for (const [key, ordersList] of Object.entries(orders)) {
-      if (ordersList.find(o => o.id === order.id)) {
-        sourceColumn = key;
-        break;
+    setOrders(prev => {
+      // Find which column the order is currently in
+      let sourceColumn = null;
+      let currentOrder = null;
+
+      for (const [key, ordersList] of Object.entries(prev)) {
+        const foundOrder = ordersList.find(o => o.id === order.id);
+        if (foundOrder) {
+          sourceColumn = key;
+          currentOrder = foundOrder; // Get the actual order from state (with latest changes)
+          break;
+        }
       }
-    }
 
-    if (sourceColumn === newStatus) return;
+      if (!sourceColumn || sourceColumn === newStatus) return prev;
 
-    // Remove from source column and add to target column
-    setOrders(prev => ({
-      ...prev,
-      [sourceColumn]: prev[sourceColumn].filter(o => o.id !== order.id),
-      [newStatus]: [...prev[newStatus], order]
-    }));
+      // Remove from source column and add to target column with the current order data
+      return {
+        ...prev,
+        [sourceColumn]: prev[sourceColumn].filter(o => o.id !== order.id),
+        [newStatus]: [...prev[newStatus], currentOrder]
+      };
+    });
   };
 
   const filterOrders = (ordersList) => {
@@ -199,8 +205,8 @@ const Orders = () => {
       // Marcar como pagado completamente
       const updatedOrder = {
         ...order,
-        advancePayment: totalPrice, // Ahora está pagado todo
-        paymentStatus: 'paid'
+        paymentStatus: 'paid',
+        paymentMethod: 'cash' // Actualizar método de pago a efectivo
       };
 
       handleSaveOrder(updatedOrder);

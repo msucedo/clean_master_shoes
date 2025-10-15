@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import './PageHeader.css';
 
@@ -12,34 +13,50 @@ const PageHeader = ({
   searchPlaceholder = 'Buscar...',
   filters = []
 }) => {
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+  const handleSearchToggle = () => {
+    if (!isSearchExpanded) {
+      setIsSearchExpanded(true);
+    }
+  };
+
+  const handleSearchBlur = () => {
+    if (!searchValue) {
+      setIsSearchExpanded(false);
+    }
+  };
+
   return (
     <div className="page-header">
-      {(title || buttonLabel) && (
-        <div className="header-top">
-          {title && <h1 className="page-title">{title}</h1>}
-          {buttonLabel && (
-            <button className="btn-primary-action" onClick={onButtonClick}>
-              {buttonIcon && <span className="btn-icon">{buttonIcon}</span>}
-              {buttonLabel}
-            </button>
-          )}
-        </div>
-      )}
+      <div className="header-main-row">
+        {title && <h1 className="page-title">{title}</h1>}
 
-      {(showSearch || filters.length > 0) && (
-        <div className="controls">
+        <div className="header-actions">
           {showSearch && (
-            <div className="search-box">
-              <span className="search-icon">🔍</span>
+            <div className={`search-box-compact ${isSearchExpanded ? 'expanded' : ''}`}>
+              <span className="search-icon" onClick={handleSearchToggle}>🔍</span>
               <input
                 type="text"
-                className="search-input"
+                className="search-input-compact"
                 placeholder={searchPlaceholder}
                 value={searchValue}
                 onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+                onFocus={() => setIsSearchExpanded(true)}
+                onBlur={handleSearchBlur}
               />
             </div>
           )}
+          {buttonLabel && (
+            <button className="btn-add-compact" onClick={onButtonClick} title={buttonLabel}>
+              {buttonIcon || '+'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {filters.length > 0 && (
+        <div className="filters-row">
           {filters.map((filter, idx) => (
             <button
               key={idx}

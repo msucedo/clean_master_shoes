@@ -2,21 +2,6 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import './OrderCard.css';
 
-// Constantes
-const STATUS_ICONS = {
-  completed: '✅',
-  'in-progress': '🔄',
-  delivered: '📦',
-  pending: '⏳',
-  cancelled: '❌'
-};
-
-const STATUS_OPTIONS = [
-  { value: 'recibidos', label: '📥 Recibidos' },
-  { value: 'proceso', label: '🔧 En Proceso' },
-  { value: 'listos', label: '✅ Listos' }
-];
-
 // Componente: Header de la tarjeta
 const OrderCardHeader = ({ orderId, priority, deliveryDate, dateClass }) => (
   <div className="order-card-header">
@@ -50,89 +35,17 @@ ClientSection.propTypes = {
   phone: PropTypes.string.isRequired
 };
 
-// Componente: Preview de un par individual
-const PairPreviewItem = ({ pair }) => (
-  <div className="pair-preview-item">
-    <div className="pair-preview-model">{pair.model}</div>
-    <div className="pair-preview-details">
-      <span className="pair-preview-service">{pair.service}</span>
-      <span className={`pair-preview-status status-${pair.status || 'pending'}`}>
-        {STATUS_ICONS[pair.status] || STATUS_ICONS.pending}
-      </span>
-    </div>
-  </div>
-);
-
-PairPreviewItem.propTypes = {
-  pair: PropTypes.shape({
-    model: PropTypes.string.isRequired,
-    service: PropTypes.string.isRequired,
-    status: PropTypes.string
-  }).isRequired
-};
-
-// Componente: Sección de pares de tenis
-const PairsSummarySection = ({ pairs }) => {
-  const displayPairs = pairs.slice(0, 2);
-  const remainingCount = pairs.length - 2;
-  const pairsLabel = pairs.length === 1 ? 'Par' : 'Pares';
-
-  return (
-    <div className="order-pairs-summary">
-      <div className="pairs-count-badge">
-        👟 {pairs.length} {pairsLabel}
-      </div>
-      <div className="pairs-preview">
-        {displayPairs.map((pair, idx) => (
-          <PairPreviewItem key={pair.id || idx} pair={pair} />
-        ))}
-        {remainingCount > 0 && (
-          <div className="pair-preview-more">
-            +{remainingCount} más
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-PairsSummarySection.propTypes = {
-  pairs: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string,
-      model: PropTypes.string.isRequired,
-      service: PropTypes.string.isRequired,
-      status: PropTypes.string
-    })
-  ).isRequired
-};
-
-// Componente: Footer con precio y selector de estado
-const OrderCardFooter = ({ totalPrice, activeTab, onStatusChange, onSelectClick }) => (
+// Componente: Footer con precio
+const OrderCardFooter = ({ totalPrice }) => (
   <div className="order-card-footer">
     <div className="order-total-price">
-      Total: ${totalPrice}
+      ${totalPrice}
     </div>
-    <select
-      className="order-status-selector"
-      value={activeTab}
-      onChange={onStatusChange}
-      onClick={onSelectClick}
-    >
-      {STATUS_OPTIONS.map(option => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
   </div>
 );
 
 OrderCardFooter.propTypes = {
-  totalPrice: PropTypes.number.isRequired,
-  activeTab: PropTypes.string.isRequired,
-  onStatusChange: PropTypes.func.isRequired,
-  onSelectClick: PropTypes.func.isRequired
+  totalPrice: PropTypes.number.isRequired
 };
 
 // Utilidad: Normalizar pares de tenis (formato antiguo → nuevo)
@@ -178,14 +91,8 @@ const OrderCard = ({ order, activeTab, onOrderClick, onStatusChange }) => {
     onOrderClick(order);
   };
 
-  const handleStatusChange = (e) => {
-    e.stopPropagation();
-    onStatusChange(order, e.target.value);
-  };
-
-  const handleSelectClick = (e) => {
-    e.stopPropagation();
-  };
+  const pairsCount = activePairs.length;
+  const pairsLabel = pairsCount === 1 ? 'Par' : 'Pares';
 
   return (
     <div className="order-card" onClick={handleCardClick}>
@@ -196,18 +103,17 @@ const OrderCard = ({ order, activeTab, onOrderClick, onStatusChange }) => {
         dateClass={order.dateClass}
       />
 
+      <div className="pairs-count-badge">
+        👟 {pairsCount} {pairsLabel}
+      </div>
+
       <ClientSection
         clientName={order.client}
         phone={order.phone}
       />
 
-      <PairsSummarySection pairs={activePairs} />
-
       <OrderCardFooter
         totalPrice={totalPrice}
-        activeTab={activeTab}
-        onStatusChange={handleStatusChange}
-        onSelectClick={handleSelectClick}
       />
     </div>
   );

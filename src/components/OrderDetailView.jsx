@@ -24,6 +24,13 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   // Usar currentTab que indica en qué pestaña está la orden actualmente
   const [orderStatus, setOrderStatus] = useState(currentTab || 'recibidos');
 
+  // Estado local para gestionar los datos de pago
+  const [paymentData, setPaymentData] = useState({
+    advancePayment: parseFloat(order.advancePayment) || 0,
+    paymentStatus: order.paymentStatus || 'pending',
+    paymentMethod: order.paymentMethod || 'pending'
+  });
+
   // Obtener todos los pares (usando el estado local)
   const shoePairs = localShoePairs;
 
@@ -55,11 +62,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     return order.totalPrice || order.price || 0;
   }, [localShoePairs, order.totalPrice, order.price]);
 
-  const advancePayment = parseFloat(order.advancePayment) || 0;
-  const remainingPayment = totalPrice - advancePayment;
+  const advancePayment = paymentData.advancePayment;
+  // Si el estado de pago es 'paid', el restante es 0, sino calcularlo normalmente
+  const remainingPayment = paymentData.paymentStatus === 'paid' ? 0 : totalPrice - advancePayment;
 
   // Determinar si la orden está completamente pagada
-  const isFullyPaid = remainingPayment <= 0 || order.paymentStatus === 'paid';
+  const isFullyPaid = remainingPayment <= 0 || paymentData.paymentStatus === 'paid';
 
   // Determinar si mostrar botón de Cobrar o Entregar
   const showCobrarButton = currentTab === 'listos' && !isFullyPaid;
@@ -142,6 +150,20 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     // Llamar a onStatusChange para mover la orden entre columnas
     if (onStatusChange) {
       onStatusChange(order, newStatus);
+    }
+  };
+
+  // Handler personalizado para cobrar que actualiza el estado local
+  const handleCobrar = () => {
+    if (onCobrar) {
+      onCobrar(order);
+
+      // Actualizar el estado local inmediatamente después de cobrar
+      setPaymentData({
+        advancePayment: paymentData.advancePayment, // Mantener el anticipo original
+        paymentStatus: 'paid',
+        paymentMethod: 'cash' // Actualizar a efectivo
+      });
     }
   };
 
@@ -261,8 +283,14 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
             )}
             <div className="detail-row">
               <span className="detail-label">Método de Pago:</span>
-              <span className="detail-value">{getPaymentMethodLabel(order.paymentMethod)}</span>
+              <span className="detail-value">{getPaymentMethodLabel(paymentData.paymentMethod)}</span>
             </div>
+            {isFullyPaid && (
+              <div className="detail-row payment-complete">
+                <span className="detail-label">Estado de Pago:</span>
+                <span className="detail-value payment-status-badge">✅ Pagado Completo</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -308,7 +336,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
           {showCobrarButton && (
             <button
               className="btn-close-order btn-cobrar-large"
-              onClick={() => onCobrar && onCobrar(order)}
+              onClick={handleCobrar}
             >
               <span className="btn-close-icon">💳</span>
               <div className="btn-close-content">
