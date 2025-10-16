@@ -513,6 +513,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
                     ref={dateInputRef}
                     type="date"
                     value={localDeliveryDate}
+                    min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => {
                       if (e.target.value) {
                         handleSaveDeliveryDate(e.target.value);

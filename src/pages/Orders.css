@@ -76,10 +76,9 @@
     overflow-x: hidden;
     padding: 20px 30px;
     display: grid;
-    grid-template-columns: repeat(3, 240px);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
     align-content: start;
-    justify-content: space-evenly;
 }
 
 /* Empty State */
@@ -129,9 +128,8 @@
 
     .orders-list {
         padding: 25px 30px;
-        gap: 18px;
-        grid-template-columns: repeat(2, 240px);
-        justify-content: space-evenly;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
 }
 
@@ -158,9 +156,8 @@
 
     .orders-list {
         padding: 20px;
-        gap: 14px;
-        grid-template-columns: 240px;
-        justify-content: center;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
 }
 
