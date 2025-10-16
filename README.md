@@ -1,8 +1,8 @@
 Clean master shoes
 
 // WIP
-- dejar tarjetas con un minimo de altura para que no se hagan chicas
-- en el componente orderDetailView, debo poder editar la fecha de entrega de una orden
+- dejar tarjetas con un minimo de altura para que no se hagan chicas, editar que ver y width
+- actualizar background del header del ipad con las tags meta
 
 // PRIORIDAD ALTA
 
@@ -26,6 +26,7 @@ Clean master shoes
 - [EPIC]actualizar pagina de dashboard
 
 // COMPLETADO
+- en el componente orderDetailView, debo poder editar la fecha de entrega de una orden
 - validar no poder cambiar el estado de la orden a listo hasta que todas los elementos de la orden tengan un estado de completado o de cancelado
 - remover error que se pierde el cambio del estado, cuando actualizas los pares y despues los items
 - en el componente orderCard, al momento que los pares de tenis o los items esten completados, quiero que actualices el color del control span que muestra el total de items, para asi indicar que ya esta completo esa parte
