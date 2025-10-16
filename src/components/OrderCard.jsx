@@ -2,24 +2,55 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import './OrderCard.css';
 
+// Función para formatear fecha de entrega
+const formatDeliveryDate = (dateString) => {
+  // Parsear la fecha como local en lugar de UTC
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Remove time component for comparison
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+
+  if (date.getTime() === today.getTime()) {
+    return { text: 'Hoy', className: 'urgent' };
+  } else if (date.getTime() === tomorrow.getTime()) {
+    return { text: 'Mañana', className: 'soon' };
+  } else {
+    const options = { day: 'numeric', month: 'short' };
+    return {
+      text: date.toLocaleDateString('es-ES', options),
+      className: ''
+    };
+  }
+};
+
 // Componente: Header de la tarjeta
-const OrderCardHeader = ({ orderId, priority, deliveryDate, dateClass }) => (
-  <div className="order-card-header">
-    <div className="order-id-badge">#{orderId}</div>
-    {priority === 'high' && (
-      <div className="order-priority-badge">🔥 Urgente</div>
-    )}
-    <div className={`order-delivery-badge ${dateClass}`}>
-      {deliveryDate}
+const OrderCardHeader = ({ orderId, priority, deliveryDate }) => {
+  const dateInfo = formatDeliveryDate(deliveryDate);
+
+  return (
+    <div className="order-card-header">
+      <div className="order-id-badge">#{orderId}</div>
+      {priority === 'high' && (
+        <div className="order-priority-badge">🔥 Urgente</div>
+      )}
+      <div className={`order-delivery-badge ${dateInfo.className}`}>
+        {dateInfo.text}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 OrderCardHeader.propTypes = {
   orderId: PropTypes.string.isRequired,
   priority: PropTypes.string,
-  deliveryDate: PropTypes.string.isRequired,
-  dateClass: PropTypes.string
+  deliveryDate: PropTypes.string.isRequired
 };
 
 // Componente: Sección de cliente
@@ -74,17 +105,34 @@ const OrderCard = ({ order, activeTab, onOrderClick, onStatusChange }) => {
     return allPairs.filter(pair => pair.status !== 'cancelled');
   }, [allPairs]);
 
+  // Filtrar otros items no cancelados
+  const activeOtherItems = useMemo(() => {
+    if (!order.otherItems || order.otherItems.length === 0) return [];
+    return order.otherItems.filter(item => item.status !== 'cancelled');
+  }, [order.otherItems]);
+
   // Calcular precio total excluyendo pares cancelados
   const totalPrice = useMemo(() => {
     // Si tiene shoePairs, calcular total sumando solo pares no cancelados
+    let total = 0;
     if (order.shoePairs && order.shoePairs.length > 0) {
-      return order.shoePairs
+      total += order.shoePairs
         .filter(pair => pair.status !== 'cancelled')
         .reduce((sum, pair) => sum + (pair.price || 0), 0);
+    } else {
+      // Formato antiguo
+      total += order.totalPrice || order.price || 0;
     }
-    // Formato antiguo
-    return order.totalPrice || order.price || 0;
-  }, [order.shoePairs, order.totalPrice, order.price]);
+
+    // Agregar precio de otros items
+    if (order.otherItems && order.otherItems.length > 0) {
+      total += order.otherItems
+        .filter(item => item.status !== 'cancelled')
+        .reduce((sum, item) => sum + (item.price || 0), 0);
+    }
+
+    return total;
+  }, [order.shoePairs, order.otherItems, order.totalPrice, order.price]);
 
   // Handlers
   const handleCardClick = () => {
@@ -94,17 +142,52 @@ const OrderCard = ({ order, activeTab, onOrderClick, onStatusChange }) => {
   const pairsCount = activePairs.length;
   const pairsLabel = pairsCount === 1 ? 'Par' : 'Pares';
 
+  // Verificar si todos los pares están completados
+  const allPairsCompleted = useMemo(() => {
+    if (activePairs.length === 0) return false;
+    return activePairs.every(pair => pair.status === 'completed');
+  }, [activePairs]);
+
+  // Verificar si todos los otros items están completados
+  const allOtherItemsCompleted = useMemo(() => {
+    if (activeOtherItems.length === 0) return false;
+    return activeOtherItems.every(item => item.status === 'completed');
+  }, [activeOtherItems]);
+
+  // Mapeo de tipos de items a iconos
+  const itemTypeIcons = {
+    bag: '👜',
+    hat: '🧢',
+    backpack: '🎒',
+    jacket: '🧥',
+    other: '📦'
+  };
+
+  // Obtener iconos únicos de los items
+  const otherItemsIcons = useMemo(() => {
+    if (activeOtherItems.length === 0) return '';
+    const uniqueTypes = [...new Set(activeOtherItems.map(item => item.itemType))];
+    return uniqueTypes.map(type => itemTypeIcons[type] || '📦').join(' ');
+  }, [activeOtherItems]);
+
   return (
     <div className="order-card" onClick={handleCardClick}>
       <OrderCardHeader
         orderId={order.id}
         priority={order.priority}
         deliveryDate={order.deliveryDate}
-        dateClass={order.dateClass}
       />
 
-      <div className="pairs-count-badge">
-        👟 {pairsCount} {pairsLabel}
+      <div className="items-badges-container">
+        <div className={`pairs-count-badge ${allPairsCompleted ? 'completed' : ''}`}>
+          👟 {pairsCount} {pairsLabel}
+        </div>
+
+        {activeOtherItems.length > 0 && (
+          <div className={`other-items-count-badge ${allOtherItemsCompleted ? 'completed' : ''}`}>
+            {otherItemsIcons} {activeOtherItems.length} {activeOtherItems.length === 1 ? 'Item' : 'Items'}
+          </div>
+        )}
       </div>
 
       <ClientSection
@@ -135,6 +218,18 @@ OrderCard.propTypes = {
       PropTypes.shape({
         id: PropTypes.string,
         model: PropTypes.string.isRequired,
+        service: PropTypes.string.isRequired,
+        price: PropTypes.number,
+        status: PropTypes.string,
+        images: PropTypes.array,
+        notes: PropTypes.string
+      })
+    ),
+    otherItems: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string,
+        itemType: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
         service: PropTypes.string.isRequired,
         price: PropTypes.number,
         status: PropTypes.string,

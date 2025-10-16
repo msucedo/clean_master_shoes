@@ -244,19 +244,18 @@ const Orders = () => {
   };
 
   const handleSubmitOrder = (formData) => {
-    const deliveryInfo = formatDeliveryDate(formData.deliveryDate);
-
-    // Create new order with new format (shoePairs)
+    // Create new order with new format (shoePairs and otherItems)
+    // Guardar la fecha en formato YYYY-MM-DD
     const newOrder = {
       id: generateOrderId(),
       client: formData.client,
       phone: formData.phone,
       email: formData.email || '',
       shoePairs: formData.shoePairs || [],
+      otherItems: formData.otherItems || [],
       totalPrice: formData.totalPrice || 0,
-      deliveryDate: deliveryInfo.text,
+      deliveryDate: formData.deliveryDate, // Guardar fecha raw en formato YYYY-MM-DD
       priority: formData.priority || '',
-      dateClass: deliveryInfo.className,
       paymentMethod: formData.paymentMethod || 'pending',
       advancePayment: formData.advancePayment || 0,
       generalNotes: formData.generalNotes || ''

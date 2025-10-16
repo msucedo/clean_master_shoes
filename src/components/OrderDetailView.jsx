@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import ImageUpload from './ImageUpload';
 import './OrderDetailView.css';
 
@@ -20,6 +20,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     ]
   );
 
+  // Estado local para gestionar los otros items
+  const [localOtherItems, setLocalOtherItems] = useState(order.otherItems || []);
+
   // Estado local para gestionar el estado general de la orden
   // Usar currentTab que indica en qué pestaña está la orden actualmente
   const [orderStatus, setOrderStatus] = useState(currentTab || 'recibidos');
@@ -31,6 +34,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     paymentMethod: order.paymentMethod || 'pending'
   });
 
+  // Estado local para la fecha de entrega
+  const [localDeliveryDate, setLocalDeliveryDate] = useState(order.deliveryDate);
+
+  // Referencia al input de fecha
+  const dateInputRef = useRef(null);
+
   // Obtener todos los pares (usando el estado local)
   const shoePairs = localShoePairs;
 
@@ -39,7 +48,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     { value: 'pending', label: '⏳ Pendiente', color: '#fbbf24' },
     { value: 'in-progress', label: '🔄 En Proceso', color: '#0096ff' },
     { value: 'completed', label: '✅ Completado', color: '#10b981' },
-    { value: 'delivered', label: '📦 Entregado', color: '#8b5cf6' },
     { value: 'cancelled', label: '❌ Cancelado', color: '#ef4444' }
   ];
 
@@ -50,17 +58,27 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     { value: 'listos', label: '✅ Listos' }
   ];
 
-  // Calcular precio total excluyendo pares cancelados (reactivo)
+  // Calcular precio total excluyendo pares cancelados y sumando otros items (reactivo)
   const totalPrice = useMemo(() => {
-    // Si tiene shoePairs, calcular total sumando solo pares no cancelados
+    let shoesTotal = 0;
+
+    // Calcular total de tenis
     if (localShoePairs && localShoePairs.length > 0 && localShoePairs[0].id !== 'legacy') {
-      return localShoePairs
+      shoesTotal = localShoePairs
         .filter(pair => pair.status !== 'cancelled')
         .reduce((sum, pair) => sum + (pair.price || 0), 0);
+    } else {
+      // Formato antiguo
+      shoesTotal = order.totalPrice || order.price || 0;
     }
-    // Formato antiguo
-    return order.totalPrice || order.price || 0;
-  }, [localShoePairs, order.totalPrice, order.price]);
+
+    // Calcular total de otros items
+    const otherItemsTotal = localOtherItems
+      .filter(item => item.status !== 'cancelled')
+      .reduce((sum, item) => sum + (item.price || 0), 0);
+
+    return shoesTotal + otherItemsTotal;
+  }, [localShoePairs, localOtherItems, order.totalPrice, order.price]);
 
   const advancePayment = paymentData.advancePayment;
   // Si el estado de pago es 'paid', el restante es 0, sino calcularlo normalmente
@@ -94,9 +112,11 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     setSelectedImage(null);
   };
 
-  // Obtener todas las imágenes de todos los pares
+  // Obtener todas las imágenes de todos los pares y otros items
   const getAllImages = () => {
-    return shoePairs.flatMap(pair => pair.images || []);
+    const shoePairsImages = shoePairs.flatMap(pair => pair.images || []);
+    const otherItemsImages = localOtherItems.flatMap(item => item.images || []);
+    return [...shoePairsImages, ...otherItemsImages];
   };
 
   const handleWhatsApp = () => {
@@ -115,7 +135,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
-      shoePairs: updatedPairs
+      shoePairs: updatedPairs,
+      otherItems: localOtherItems // Incluir otros items
     };
 
     // Llamar a onSave si está disponible
@@ -134,7 +155,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
-      shoePairs: updatedPairs
+      shoePairs: updatedPairs,
+      otherItems: localOtherItems // Incluir otros items
     };
 
     // Llamar a onSave si está disponible
@@ -143,13 +165,112 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     }
   };
 
+  // Cambiar estado de un item
+  const handleItemStatusChange = (itemId, newStatus) => {
+    const updatedItems = localOtherItems.map(item =>
+      item.id === itemId ? { ...item, status: newStatus } : item
+    );
+
+    setLocalOtherItems(updatedItems);
+
+    const updatedOrder = {
+      ...order,
+      shoePairs: localShoePairs, // Incluir pares de tenis
+      otherItems: updatedItems
+    };
+
+    // Llamar a onSave si está disponible
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Cambiar imágenes de un item
+  const handleItemImagesChange = (itemId, newImages) => {
+    const updatedItems = localOtherItems.map(item =>
+      item.id === itemId ? { ...item, images: newImages } : item
+    );
+
+    setLocalOtherItems(updatedItems);
+
+    const updatedOrder = {
+      ...order,
+      shoePairs: localShoePairs, // Incluir pares de tenis
+      otherItems: updatedItems
+    };
+
+    // Llamar a onSave si está disponible
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Verificar si todos los items están completados o cancelados
+  const allItemsCompletedOrCancelled = useMemo(() => {
+    const allPairsValid = localShoePairs.every(pair =>
+      pair.status === 'completed' || pair.status === 'cancelled'
+    );
+    const allOtherItemsValid = localOtherItems.every(item =>
+      item.status === 'completed' || item.status === 'cancelled'
+    );
+    return allPairsValid && allOtherItemsValid;
+  }, [localShoePairs, localOtherItems]);
+
   // Cambiar estado general de la orden
   const handleOrderStatusChange = (newStatus) => {
+    // Validar si se intenta cambiar a "listos"
+    if (newStatus === 'listos' && !allItemsCompletedOrCancelled) {
+      alert('No se puede mover a "Listos" hasta que todos los items estén completados o cancelados');
+      return;
+    }
+
     setOrderStatus(newStatus);
 
     // Llamar a onStatusChange para mover la orden entre columnas
     if (onStatusChange) {
       onStatusChange(order, newStatus);
+    }
+  };
+
+  // Handler para guardar la fecha de entrega
+  const handleSaveDeliveryDate = (newDate) => {
+    // Actualizar estado local inmediatamente para refrescar la vista
+    setLocalDeliveryDate(newDate);
+
+    const updatedOrder = {
+      ...order,
+      deliveryDate: newDate, // Guardar en formato YYYY-MM-DD
+      shoePairs: localShoePairs,
+      otherItems: localOtherItems
+    };
+
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Función para formatear fecha de entrega para mostrar
+  const formatDeliveryDateDisplay = (dateString) => {
+    // Parsear la fecha como local en lugar de UTC
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Remove time component for comparison
+    today.setHours(0, 0, 0, 0);
+    tomorrow.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+
+    if (date.getTime() === today.getTime()) {
+      return 'Hoy';
+    } else if (date.getTime() === tomorrow.getTime()) {
+      return 'Mañana';
+    } else {
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      return date.toLocaleDateString('es-ES', options);
     }
   };
 
@@ -259,6 +380,75 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
         </div>
       </div>
 
+      {/* Información de Otros Items */}
+      {localOtherItems.length > 0 && (
+        <div className="order-pairs-section">
+          <h3 className="section-title">📦 Otros Items ({localOtherItems.length})</h3>
+          <div className="pairs-grid">
+            {localOtherItems.map((item, index) => (
+              <div key={item.id || index} className={`pair-detail-card pair-status-${item.status || 'pending'}`}>
+                <div className="pair-card-header">
+                  <div className="pair-header-left">
+                    <span className="pair-number">Item #{index + 1}</span>
+                    <span className={`pair-status-badge status-${item.status || 'pending'}`}>
+                      {getStatusLabel(item.status || 'pending')}
+                    </span>
+                  </div>
+                  <span className="pair-price-badge">${item.price}</span>
+                </div>
+
+                <div className="pair-card-body">
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">Tipo:</span>
+                    <span className="pair-info-value">{item.itemType || '-'}</span>
+                  </div>
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">Descripción:</span>
+                    <span className="pair-info-value">{item.description || '-'}</span>
+                  </div>
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">Servicio:</span>
+                    <span className="pair-info-value">{item.service}</span>
+                  </div>
+
+                  {/* Selector de Estado */}
+                  <div className="pair-status-selector">
+                    <span className="pair-info-label">Estado del Item:</span>
+                    <select
+                      className={`pair-status-select status-${item.status || 'pending'}`}
+                      value={item.status || 'pending'}
+                      onChange={(e) => handleItemStatusChange(item.id, e.target.value)}
+                    >
+                      {pairStatuses.map(status => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Sección de imágenes editable */}
+                  <div className="pair-images-section">
+                    <span className="pair-info-label">📸 Fotos del Item:</span>
+                    <ImageUpload
+                      images={item.images || []}
+                      onChange={(newImages) => handleItemImagesChange(item.id, newImages)}
+                    />
+                  </div>
+
+                  {item.notes && (
+                    <div className="pair-notes">
+                      <span className="pair-info-label">Notas:</span>
+                      <p className="pair-notes-text">{item.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Información de Pago y Entrega */}
       <div className="order-details-grid">
         {/* Pago */}
@@ -300,7 +490,47 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
           <div className="detail-card-content">
             <div className="detail-row">
               <span className="detail-label">Fecha de Entrega:</span>
-              <span className="detail-value">{order.deliveryDate}</span>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', position: 'relative' }}>
+                <span className="detail-value">{formatDeliveryDateDisplay(localDeliveryDate)}</span>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    className="btn-edit-date"
+                    style={{
+                      padding: '4px 8px',
+                      background: 'transparent',
+                      border: '1px solid var(--color-gray-700)',
+                      borderRadius: '4px',
+                      color: 'var(--color-gray-500)',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      position: 'relative',
+                      zIndex: 1
+                    }}
+                  >
+                    📅
+                  </button>
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={localDeliveryDate}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleSaveDeliveryDate(e.target.value);
+                      }
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      opacity: 0,
+                      cursor: 'pointer',
+                      zIndex: 2
+                    }}
+                  />
+                </div>
+              </div>
             </div>
             <div className="detail-row">
               <span className="detail-label">Estado de la Orden:</span>
@@ -316,6 +546,17 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
                 ))}
               </select>
             </div>
+            {!allItemsCompletedOrCancelled && (
+              <div className="detail-row" style={{ marginTop: '8px' }}>
+                <span style={{
+                  fontSize: '12px',
+                  color: '#f59e0b',
+                  fontStyle: 'italic'
+                }}>
+                  ⚠️ Para mover a "Listos", todos los items deben estar completados o cancelados
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

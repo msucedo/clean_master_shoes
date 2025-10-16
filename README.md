@@ -1,11 +1,14 @@
 Clean master shoes
 
-// PRIORIDAD ALTA
-- ademas de tenis, tambien a veces los clientes llevan bolsas o gorras u otros items, quiero poder llevar el registro de eso tambien, en el componente orderForm, quiero un nuevo boton, igual al de "agregar otro par de tenis", y que este boton diga "agregar otro tipo de item", al hacer clic va agregar tambien un nuevo item pero el formulario debe pregunar por que tipo de item es
+// WIP
+- dejar tarjetas con un minimo de altura para que no se hagan chicas
 - en el componente orderDetailView, debo poder editar la fecha de entrega de una orden
+
+// PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
 - fix: acomodar mas aesthetic del header, boton de busqueda y boton de agregar
+- [Val]En las tarjetas, si la fecha de entrega es mañana, hoy o ayer, ponerle colores, asi como ya esta ahorita pero creo sin logica solo como mockup
 
 // PRIORIDAD BAJA
 - nueva funcionalidad: calcula la fecha de entrega de acuerdo a el total de numeros de tenis y los servicios a completar
@@ -23,6 +26,10 @@ Clean master shoes
 - [EPIC]actualizar pagina de dashboard
 
 // COMPLETADO
+- validar no poder cambiar el estado de la orden a listo hasta que todas los elementos de la orden tengan un estado de completado o de cancelado
+- remover error que se pierde el cambio del estado, cuando actualizas los pares y despues los items
+- en el componente orderCard, al momento que los pares de tenis o los items esten completados, quiero que actualices el color del control span que muestra el total de items, para asi indicar que ya esta completo esa parte
+- ademas de tenis, tambien a veces los clientes llevan bolsas o gorras u otros items, quiero poder llevar el registro de eso tambien, en el componente orderForm, quiero un nuevo boton, igual al de "agregar otro par de tenis", y que este boton diga "agregar otro tipo de item", al hacer clic va agregar tambien un nuevo item pero el formulario debe pregunar por que tipo de item es
 - refactorizar tab de ordenes, la ui de cada item de la lista de ordenes, y componentes que si se usan
 - nueva funcionalidad: en la tab de ordenes, me gustaria que al actualizarle el estado a una orden, esta orden se cambie a la columna correcta automaticamente.
 - Orders.jsx, es necesario el state para "editingOrder"? ya ni se puede editar la orden
@@ -37,3 +44,8 @@ Clean master shoes
     - poder actualizarse el estado a la orden, solo se puede leer, y quiero editarlo asi como el estado de los pares que si se pueden editar
 -fix del search bar
 -fix: si a un par de tenis les pongo el status cancelado, remueve ese precio del total y tambien de la fecha de entrega
+
+// GASTOS
+- dominio .com
+- dominio .company
+- membresia claude code

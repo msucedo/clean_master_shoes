@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ClientAutocomplete from './ClientAutocomplete';
 import ShoePairItem from './ShoePairItem';
+import OtherItem from './OtherItem';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -12,7 +13,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showMenu, setShowMenu] = useState(false);
 
-  // Nueva estructura de datos con múltiples pares
+  // Nueva estructura de datos con múltiples pares y otros items
   const [formData, setFormData] = useState({
     client: '',
     phone: '',
@@ -27,6 +28,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         notes: ''
       }
     ],
+    otherItems: [], // Nueva propiedad para otros items
     deliveryDate: '',
     priority: '',
     paymentMethod: 'pending',
@@ -43,9 +45,11 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     { name: 'Restauración Completa', price: 400, duration: '5-7 días', daysToAdd: 6 }
   ];
 
-  // Calcular precio total de todos los pares
+  // Calcular precio total de todos los pares y otros items
   const calculateTotalPrice = () => {
-    return formData.shoePairs.reduce((total, pair) => total + (pair.price || 0), 0);
+    const shoesTotal = formData.shoePairs.reduce((total, pair) => total + (pair.price || 0), 0);
+    const otherItemsTotal = formData.otherItems.reduce((total, item) => total + (item.price || 0), 0);
+    return shoesTotal + otherItemsTotal;
   };
 
   // Cargar datos iniciales (para editar órdenes existentes)
@@ -146,6 +150,43 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
       ...prev,
       shoePairs: prev.shoePairs.map(pair =>
         pair.id === pairId ? updatedPair : pair
+      )
+    }));
+  };
+
+  // Agregar un nuevo item (bolsa, gorra, etc)
+  const handleAddOtherItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      otherItems: [
+        ...prev.otherItems,
+        {
+          id: generateId(),
+          itemType: '',
+          description: '',
+          service: '',
+          price: 0,
+          images: [],
+          notes: ''
+        }
+      ]
+    }));
+  };
+
+  // Eliminar un item
+  const handleRemoveOtherItem = (itemId) => {
+    setFormData(prev => ({
+      ...prev,
+      otherItems: prev.otherItems.filter(item => item.id !== itemId)
+    }));
+  };
+
+  // Actualizar un item
+  const handleUpdateOtherItem = (itemId, updatedItem) => {
+    setFormData(prev => ({
+      ...prev,
+      otherItems: prev.otherItems.map(item =>
+        item.id === itemId ? updatedItem : item
       )
     }));
   };
@@ -307,9 +348,10 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
           <div className="step-content">
             <div className="step-icon-large">👟</div>
             <h3 className="step-title-large">Pares de Tenis</h3>
-            <p className="step-description">Agrega todos los pares de tenis del cliente</p>
+            <p className="step-description">Agrega todos los Pares de Tenis del cliente u otros items (bolsas, gorras, etc.)</p>
 
             <div className="shoe-pairs-container">
+              {/* Pares de Tenis */}
               {formData.shoePairs.map((pair, index) => (
                 <ShoePairItem
                   key={pair.id}
@@ -329,6 +371,29 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
               >
                 <span className="btn-add-icon">➕</span>
                 <span>Agregar otro par de tenis</span>
+              </button>
+
+              {/* Otros Items */}
+              {formData.otherItems.map((item, index) => (
+                <OtherItem
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  onUpdate={handleUpdateOtherItem}
+                  onRemove={handleRemoveOtherItem}
+                  canRemove={true}
+                  services={services}
+                />
+              ))}
+
+              <button
+                type="button"
+                className="btn-add-pair"
+                onClick={handleAddOtherItem}
+                style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' }}
+              >
+                <span className="btn-add-icon">➕</span>
+                <span>Agregar otro tipo de item</span>
               </button>
 
               {errors.shoePairs && <span className="error-message">{errors.shoePairs}</span>}
@@ -497,6 +562,43 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                   </div>
                 ))}
               </div>
+
+              {formData.otherItems.length > 0 && (
+                <div className="summary-section">
+                  <h4 className="summary-section-title">📦 Otros Items ({formData.otherItems.length})</h4>
+                  {formData.otherItems.map((item, index) => (
+                    <div key={item.id} className="summary-pair">
+                      <div className="summary-pair-header">Item #{index + 1}</div>
+                      <div className="summary-row">
+                        <span className="summary-label">Tipo:</span>
+                        <span className="summary-value">{item.itemType || '-'}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span className="summary-label">Descripción:</span>
+                        <span className="summary-value">{item.description || '-'}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span className="summary-label">Servicio:</span>
+                        <span className="summary-value">{item.service || '-'}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span className="summary-label">Precio:</span>
+                        <span className="summary-value price-highlight">${item.price || '0'}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span className="summary-label">Fotos:</span>
+                        <span className="summary-value">{item.images?.length || 0} imagen{(item.images?.length || 0) !== 1 ? 'es' : ''}</span>
+                      </div>
+                      {item.notes && (
+                        <div className="summary-row">
+                          <span className="summary-label">Notas:</span>
+                          <span className="summary-value">{item.notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="summary-section">
                 <h4 className="summary-section-title">💰 Pago</h4>
