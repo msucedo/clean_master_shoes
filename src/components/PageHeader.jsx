@@ -27,6 +27,13 @@ const PageHeader = ({
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      setIsSearchExpanded(false);
+      e.target.blur();
+    }
+  };
+
   return (
     <div className="page-header">
       <div className="header-main-row">
@@ -35,15 +42,15 @@ const PageHeader = ({
         <div className="header-actions">
           {showSearch && (
             <div className={`search-box-compact ${isSearchExpanded ? 'expanded' : ''}`}>
-              <span className="search-icon" onClick={handleSearchToggle}>🔍</span>
               <input
                 type="text"
                 className="search-input-compact"
-                placeholder={searchPlaceholder}
+                placeholder="🔍"
                 value={searchValue}
                 onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
                 onFocus={() => setIsSearchExpanded(true)}
                 onBlur={handleSearchBlur}
+                onKeyDown={handleKeyDown}
               />
             </div>
           )}

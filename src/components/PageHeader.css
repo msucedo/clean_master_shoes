@@ -32,57 +32,57 @@
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
     background: var(--color-gray-900);
     border: 1px solid var(--color-gray-800);
-    border-radius: 10px;
+    border-radius: 21px;
     width: 42px;
     height: 42px;
     overflow: hidden;
-    transition: width 0.3s ease, border-color 0.3s ease;
+    transition: width 0.3s ease, border-color 0.3s ease, border-radius 0.3s ease;
 }
 
 .search-box-compact.expanded {
     width: 280px;
+    border-radius: 10px;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px var(--bg-primary-10);
 }
 
-.search-icon {
-    position: absolute;
-    left: 12px;
-    font-size: 18px;
-    color: var(--color-gray-500);
-    cursor: pointer;
-    z-index: 2;
-    user-select: none;
-}
-
-.search-box-compact.expanded .search-icon {
-    color: var(--color-primary);
-}
-
 .search-input-compact {
     width: 100%;
-    padding: 10px 15px 10px 42px;
+    height: 100%;
+    padding: 0;
     background: transparent;
     border: none;
     font-size: 14px;
     color: var(--color-white);
     font-weight: 500;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.search-box-compact.expanded .search-input-compact {
-    opacity: 1;
-}
 
 .search-input-compact:focus {
     outline: none;
 }
 
 .search-input-compact::placeholder {
+    color: var(--color-gray-600);
+    font-size: 16px;
+    user-select: none;
+}
+
+.search-box-compact.expanded .search-input-compact {
+    padding: 10px 15px 10px 30px;
+    text-align: left;
+    cursor: text;
+}
+
+.search-box-compact.expanded .search-input-compact::placeholder {
     color: var(--color-gray-700);
+    font-size: 14px;
 }
 
 /* Compact Add Button */

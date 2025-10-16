@@ -61,14 +61,22 @@
 .menu-item:hover {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
-    transform: translateX(5px);
 }
 
 .menu-item.active {
     background: var(--gradient-primary) !important;
     color: var(--color-white) !important;
     box-shadow: var(--shadow-primary);
-    transform: translateX(5px);
+}
+
+@media (min-width: 769px) {
+    .menu-item:hover {
+        transform: translateX(5px);
+    }
+
+    .menu-item.active {
+        transform: translateX(5px);
+    }
 }
 
 .menu-icon {
@@ -79,6 +87,10 @@
 @media (max-width: 768px) {
     .sidebar {
         width: 80px;
+    }
+
+    .menu-item {
+        justify-content: center;
     }
 
     .menu-item span:not(.menu-icon) {

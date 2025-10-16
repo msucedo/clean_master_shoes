@@ -2,13 +2,14 @@ Clean master shoes
 
 // WIP
 - dejar tarjetas con un minimo de altura para que no se hagan chicas, editar que ver y width
-- actualizar background del header del ipad con las tags meta
 
 // PRIORIDAD ALTA
+- [UX]ipad, en modo vertical, alinear los iconos del menu izquierdo centrados, porque estan los iconos hacia la derecha en el cuadrito que los rodea
 
 // PRIORIDAD MEDIA
-- fix: acomodar mas aesthetic del header, boton de busqueda y boton de agregar
-- [Val]En las tarjetas, si la fecha de entrega es mañana, hoy o ayer, ponerle colores, asi como ya esta ahorita pero creo sin logica solo como mockup
+- fix: en el header, centrar el icono de la lupa, en el recuadro que lo rodea
+- [VAL]En las tarjetas, si la fecha de entrega es mañana, hoy o ayer, ponerle colores, asi como ya esta ahorita pero creo sin logica solo como mockup
+- [VAL]La fecha de entrega no debe ser anterior a hoy
 
 // PRIORIDAD BAJA
 - nueva funcionalidad: calcula la fecha de entrega de acuerdo a el total de numeros de tenis y los servicios a completar
@@ -26,6 +27,7 @@ Clean master shoes
 - [EPIC]actualizar pagina de dashboard
 
 // COMPLETADO
+- actualizar background del header del ipad con las tags meta
 - en el componente orderDetailView, debo poder editar la fecha de entrega de una orden
 - validar no poder cambiar el estado de la orden a listo hasta que todas los elementos de la orden tengan un estado de completado o de cancelado
 - remover error que se pierde el cambio del estado, cuando actualizas los pares y despues los items
