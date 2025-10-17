@@ -55,7 +55,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   const orderStatuses = [
     { value: 'recibidos', label: '📥 Recibidos' },
     { value: 'proceso', label: '🔧 En Proceso' },
-    { value: 'listos', label: '✅ Listos' }
+    { value: 'listos', label: '✅ Listos' },
+    { value: 'enEntrega', label: '🚚 En Entrega' }
   ];
 
   // Calcular precio total excluyendo pares cancelados y sumando otros items (reactivo)
@@ -88,8 +89,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   const isFullyPaid = remainingPayment <= 0 || paymentData.paymentStatus === 'paid';
 
   // Determinar si mostrar botón de Cobrar o Entregar
-  const showCobrarButton = currentTab === 'listos' && !isFullyPaid;
-  const showEntregarButton = currentTab === 'listos' && isFullyPaid;
+  const showCobrarButton = currentTab === 'enEntrega' && !isFullyPaid;
+  const showEntregarButton = currentTab === 'enEntrega' && isFullyPaid;
 
   // Métodos de pago
   const getPaymentMethodLabel = (method) => {
@@ -218,9 +219,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
   // Cambiar estado general de la orden
   const handleOrderStatusChange = (newStatus) => {
-    // Validar si se intenta cambiar a "listos"
-    if (newStatus === 'listos' && !allItemsCompletedOrCancelled) {
-      alert('No se puede mover a "Listos" hasta que todos los items estén completados o cancelados');
+    // Validar si se intenta cambiar a "enEntrega"
+    if (newStatus === 'enEntrega' && !allItemsCompletedOrCancelled) {
+      alert('No se puede mover a "En Entrega" hasta que todos los items estén completados o cancelados');
       return;
     }
 
@@ -554,7 +555,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
                   color: '#f59e0b',
                   fontStyle: 'italic'
                 }}>
-                  ⚠️ Para mover a "Listos", todos los items deben estar completados o cancelados
+                  ⚠️ Para mover a "En Entrega", todos los items deben estar completados o cancelados
                 </span>
               </div>
             )}

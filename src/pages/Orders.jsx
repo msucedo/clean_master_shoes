@@ -11,6 +11,7 @@ const EMPTY_ORDERS = {
   recibidos: [],
   proceso: [],
   listos: [],
+  enEntrega: [],
   completados: []
 };
 
@@ -97,7 +98,7 @@ const Orders = () => {
 
   const generateOrderId = () => {
     // Get all orders from all columns
-    const allOrders = [...orders.recibidos, ...orders.proceso, ...orders.listos, ...orders.completados];
+    const allOrders = [...orders.recibidos, ...orders.proceso, ...orders.listos, ...orders.enEntrega, ...orders.completados];
 
     // Find the highest ID number
     const maxId = allOrders.reduce((max, order) => {
@@ -160,7 +161,8 @@ const Orders = () => {
     const statusMap = {
       recibidos: { label: 'Recibidos', icon: '📥', color: '#3b82f6' },
       proceso: { label: 'En Proceso', icon: '🔧', color: '#f59e0b' },
-      listos: { label: 'Listos', icon: '✅', color: '#10b981' }
+      listos: { label: 'Listos', icon: '✅', color: '#10b981' },
+      enEntrega: { label: 'En Entrega', icon: '🚚', color: '#8b5cf6' }
     };
     return statusMap[status] || statusMap.recibidos;
   };
@@ -273,7 +275,8 @@ const Orders = () => {
   const tabs = [
     { key: 'recibidos', label: 'Recibidos', icon: '📥', color: '#3b82f6' },
     { key: 'proceso', label: 'En Proceso', icon: '🔧', color: '#f59e0b' },
-    { key: 'listos', label: 'Listos', icon: '✅', color: '#10b981' }
+    { key: 'listos', label: 'Listos', icon: '✅', color: '#10b981' },
+    { key: 'enEntrega', label: 'En Entrega', icon: '🚚', color: '#8b5cf6' }
   ];
 
   const currentOrders = filterOrders(orders[activeTab]);
