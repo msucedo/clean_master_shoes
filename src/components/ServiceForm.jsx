@@ -131,7 +131,7 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
       )}
 
       <div className="service-form-header">
-        <div className="form-icon">⚙️</div>
+        <div className="form-icon">{formData.emoji}</div>
         <h2 className="form-title">{initialData ? 'Editar Servicio' : 'Nuevo Servicio'}</h2>
         <p className="form-description">
           {initialData ? 'Actualiza la información del servicio' : 'Registra un nuevo servicio en el catálogo'}

@@ -18,6 +18,7 @@ Clean master shoes
 - [EPIC]Pantalla catalogo
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
+- [VAL]En la nueva orden, al momento de pago, viene prioridad, si dice normal, que no pase nada, pero si se elige express, que se carguen $50 extras a la orden y se indique en la tarjeta de la orden que es una orden express
 
 // COMPLETADO
 - [EPIC]Tab servicios, Agregar funcionalidad al boton de agregar servicio, remover data de prueba y establer servicios verdaderos
