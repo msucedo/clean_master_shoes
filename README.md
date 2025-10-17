@@ -1,29 +1,33 @@
 Clean master shoes
 
 // WIP
-- dejar tarjetas con un minimo de altura para que no se hagan chicas, editar que ver y width
+- [FEATURE]En la tab ordenes, agregar una 4ta columna "En entrega"
+
 
 // PRIORIDAD ALTA
+- [FIX]En lugar que en la columna "listos" aparezca el boton de cobrar y de entregar en los detalles de la orden, mejor quiero que eso salga en la nueva 4ta columna "En entrega", tambien cambia la validacion que no deja avanzar a "listos" hasta completar todos los items por no dejar avanzar a la nueva 4ta columna "En entrega"
+- Tomar una EPIC
 
 // PRIORIDAD MEDIA
-- [VAL]La fecha de entrega no debe ser anterior a hoy
+- [FIX]Fecha de entrega por default que sea 2 dias, pero que en la orden siga pudiendo ser editable
+- [FEATURE]Agregar campo autor a cada orden
 
 // PRIORIDAD BAJA
-- nueva funcionalidad: calcula la fecha de entrega de acuerdo a el total de numeros de tenis y los servicios a completar
-- nueva funcionalidad: en la pantalla detalle de orden, en la parte de informacion de pago, agregar un desglose antes del total, para saber que items lograron ese costo total por favor y tambien asegurate de agregar el impuesto acorde a mexico
-- nueva funcionalidad: en la tab clientes, los botones del filtro hacerlos mas amigables para el usuario UX
-- nueva funcionalidad: no poder actualizar a listo el estado de la orden hasta que todos los items de la orden tengan el estado en completado
-
-
-// FIXES
-
+- [FEATURE]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 
 // EPICS
-- [EPIC]nueva funcionalidad: aparte de tenis, poder aceptar ordenes de gorras y bolsas
-- [EPIC]agregar pantalla de login, creacion de usuarios
-- [EPIC]actualizar pagina de dashboard
+- [EPIC]Tab servicios, Agregar funcionalidad al boton de agregar servicio, remover data de prueba y establer servicios verdaderos
+- [EPIC]Refactorizar tarjeta de orden, unificar servicios y listas de items, crear nueva ux
+- [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
+- [EPIC]Pantalla empleado
+- [EPIC]Pantalla catalogo
+- [EPIC]Pantalla promociones
+- [EPIC]Agregar pantalla de login, creacion de usuarios
 
 // COMPLETADO
+- [UX]Nuevas tab para el sidebar: empleados, catalogo y promociones
+- [EPIC]nueva funcionalidad: aparte de tenis, poder aceptar ordenes de gorras y bolsas
+- [VAL]La fecha de entrega no debe ser anterior a hoy
 - fix: en el header, centrar el icono de la lupa, en el recuadro que lo rodea
 - [VAL]En las tarjetas, si la fecha de entrega es mañana, hoy o ayer, ponerle colores, asi como ya esta ahorita pero creo sin logica solo como mockup
 - [UX]ipad, en modo vertical, alinear los iconos del menu izquierdo centrados, porque estan los iconos hacia la derecha en el cuadrito que los rodea
