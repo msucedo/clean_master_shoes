@@ -38,12 +38,24 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   const [errors, setErrors] = useState({});
 
-  const services = [
-    { name: 'Lavado Básico', price: 150, duration: '2-3 días', daysToAdd: 2 },
-    { name: 'Lavado Profundo', price: 250, duration: '3-5 días', daysToAdd: 4 },
-    { name: 'Lavado Express', price: 100, duration: '1 día', daysToAdd: 1 },
-    { name: 'Restauración Completa', price: 400, duration: '5-7 días', daysToAdd: 6 }
-  ];
+  // Cargar servicios desde localStorage
+  const [services, setServices] = useState(() => {
+    const savedServices = localStorage.getItem('cleanmaster_services');
+    if (savedServices) {
+      const parsedServices = JSON.parse(savedServices);
+      // Agregar daysToAdd automáticamente basado en la duración
+      return parsedServices.map(service => {
+        // Extraer números de la duración (ej: "2-3 días" -> 3, "1 día" -> 1)
+        const durationMatch = service.duration.match(/(\d+)(?:-(\d+))?/);
+        const daysToAdd = durationMatch ? parseInt(durationMatch[2] || durationMatch[1]) : 2;
+        return {
+          ...service,
+          daysToAdd
+        };
+      });
+    }
+    return [];
+  });
 
   // Calcular precio total de todos los pares y otros items
   const calculateTotalPrice = () => {
