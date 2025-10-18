@@ -13,6 +13,7 @@ Clean master shoes
 - [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 
 // BACKLOG
+- []trabajar en la tab clientes, logica para datos de cada cliente, lo que debe y como hacer un cliente vip
 - [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
 - [EPIC]Pantalla empleado
 - [EPIC]Pantalla catalogo

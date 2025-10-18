@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import ClientItem from '../components/ClientItem';
 import Modal from '../components/Modal';
 import ClientForm from '../components/ClientForm';
@@ -6,11 +6,36 @@ import PageHeader from '../components/PageHeader';
 import { mockClients } from '../data/mockData';
 import './Clients.css';
 
+// Clave para localStorage de órdenes
+const ORDERS_STORAGE_KEY = 'cleanmaster_orders';
+
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+
+  // Obtener clientes con órdenes activas
+  // Se actualiza cada vez que entras a la pestaña de clientes
+  // En el futuro, esto hará una consulta a la base de datos
+  const activeClientNames = useMemo(() => {
+    const savedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
+    if (!savedOrders) return new Set();
+
+    const orders = JSON.parse(savedOrders);
+    const activeClients = new Set();
+
+    // Recorrer órdenes activas (no completadas)
+    ['recibidos', 'proceso', 'listos', 'enEntrega'].forEach(status => {
+      if (orders[status]) {
+        orders[status].forEach(order => {
+          activeClients.add(order.client.toLowerCase());
+        });
+      }
+    });
+
+    return activeClients;
+  }, []);
 
   const [clients, setClients] = useState([
     {
@@ -131,6 +156,10 @@ const Clients = () => {
       filtered = filtered.filter(client => client.debt > 0);
     } else if (activeFilter === 'vip') {
       filtered = filtered.filter(client => client.isVip);
+    } else if (activeFilter === 'active') {
+      filtered = filtered.filter(client =>
+        activeClientNames.has(client.name.toLowerCase())
+      );
     }
 
     return filtered;
@@ -202,6 +231,11 @@ const Clients = () => {
             label: 'Todos',
             onClick: () => setActiveFilter('all'),
             active: activeFilter === 'all'
+          },
+          {
+            label: '🔥 Clientes Activos',
+            onClick: () => setActiveFilter('active'),
+            active: activeFilter === 'active'
           },
           {
             label: 'Con Deuda',

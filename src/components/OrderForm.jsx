@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ClientAutocomplete from './ClientAutocomplete';
 import ShoePairItem from './ShoePairItem';
 import OtherItem from './OtherItem';
+import ImageUpload from './ImageUpload';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -14,7 +15,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPayment, setShowPayment] = useState(false); // Controla si se muestra el carrito o el pago
   const [isSubmitting, setIsSubmitting] = useState(false); // Estado de envío con animación
-  const [uploadedImages, setUploadedImages] = useState([]); // Imágenes subidas para la orden
+  const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden (array de URLs base64)
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -195,28 +196,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     }
   };
 
-  // Handler para subir imágenes
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const newImages = files.map(file => ({
-      id: generateId(),
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-    setUploadedImages(prev => [...prev, ...newImages]);
-  };
-
-  // Handler para eliminar imagen
-  const handleRemoveImage = (imageId) => {
-    setUploadedImages(prev => {
-      const image = prev.find(img => img.id === imageId);
-      if (image) {
-        URL.revokeObjectURL(image.preview);
-      }
-      return prev.filter(img => img.id !== imageId);
-    });
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
@@ -231,7 +210,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
             serviceName: item.serviceName,
             price: item.price,
             icon: item.icon,
-            images: [],
+            images: [], // Servicios sin imágenes individuales
             notes: '',
             status: 'pending'
           });
@@ -242,6 +221,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
       const orderData = {
         ...formData,
         services,
+        orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
         totalPrice: calculateTotalPrice()
       };
 
@@ -430,44 +410,10 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
               </div>
 
               <div className="photo-upload-section">
-                <label className="photo-upload-button">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    style={{ display: 'none' }}
-                  />
-                  <div className="upload-button-content">
-                    <span className="upload-icon">📷</span>
-                    <span className="upload-text">Agregar Fotos</span>
-                    <span className="upload-hint">Click para seleccionar imágenes</span>
-                  </div>
-                </label>
-
-                <div className="photo-preview-grid">
-                  {uploadedImages.length === 0 ? (
-                    <div className="photo-empty">
-                      <span className="empty-photo-icon">🖼️</span>
-                      <p>No hay fotos agregadas</p>
-                      <p className="empty-hint">Las fotos ayudan a documentar el estado inicial</p>
-                    </div>
-                  ) : (
-                    uploadedImages.map((image) => (
-                      <div key={image.id} className="photo-preview-item">
-                        <img src={image.preview} alt="Preview" className="photo-preview-image" />
-                        <button
-                          type="button"
-                          className="photo-remove-btn"
-                          onClick={() => handleRemoveImage(image.id)}
-                          title="Eliminar foto"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
+                <ImageUpload
+                  images={orderImages}
+                  onChange={setOrderImages}
+                />
               </div>
             </div>
           </div>

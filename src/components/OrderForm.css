@@ -613,7 +613,7 @@ select.form-input {
 }
 
 .cart-flip-container.flipped {
-    transform: rotateY(180deg);
+    transform: rotateY(-180deg);
 }
 
 /* Flip Sides */
@@ -632,7 +632,7 @@ select.form-input {
 }
 
 .cart-flip-back {
-    transform: rotateY(180deg);
+    transform: rotateY(-180deg);
 }
 
 .cart-header {

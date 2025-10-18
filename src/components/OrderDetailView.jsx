@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import ImageUpload from './ImageUpload';
 import './OrderDetailView.css';
 
@@ -7,6 +7,14 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
   // Estado local para gestionar los servicios
   const [localServices, setLocalServices] = useState(order.services || []);
+
+  // Estado local para las imágenes de la orden
+  const [orderImages, setOrderImages] = useState(order.orderImages || []);
+
+  // Sincronizar orderImages cuando cambie la orden
+  useEffect(() => {
+    setOrderImages(order.orderImages || []);
+  }, [order.orderImages]);
 
   // Estado local para gestionar el estado general de la orden
   // Usar currentTab que indica en qué pestaña está la orden actualmente
@@ -21,6 +29,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
   // Estado local para la fecha de entrega
   const [localDeliveryDate, setLocalDeliveryDate] = useState(order.deliveryDate);
+
+  // Estado local para las notas generales
+  const [generalNotes, setGeneralNotes] = useState(order.generalNotes || '');
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -80,10 +91,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     setSelectedImage(null);
   };
 
-  // Obtener todas las imágenes de todos los servicios
-  const getAllImages = () => {
-    return localServices.flatMap(service => service.images || []);
-  };
 
   const handleWhatsApp = () => {
     const phone = order.phone.replace(/\D/g, '');
@@ -101,7 +108,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
-      services: updatedServices
+      services: updatedServices,
+      generalNotes: generalNotes,
+      orderImages: orderImages
     };
 
     // Llamar a onSave si está disponible
@@ -110,17 +119,16 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     }
   };
 
-  // Cambiar imágenes de un servicio
-  const handleServiceImagesChange = (serviceId, newImages) => {
-    const updatedServices = localServices.map(service =>
-      service.id === serviceId ? { ...service, images: newImages } : service
-    );
-
-    setLocalServices(updatedServices);
+  // Cambiar imágenes de la orden (a nivel de orden, no de servicio)
+  const handleOrderImagesChange = (newImages) => {
+    // Actualizar estado local
+    setOrderImages(newImages);
 
     const updatedOrder = {
       ...order,
-      services: updatedServices
+      orderImages: newImages,
+      services: localServices,
+      generalNotes: generalNotes
     };
 
     // Llamar a onSave si está disponible
@@ -160,7 +168,26 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     const updatedOrder = {
       ...order,
       deliveryDate: newDate, // Guardar en formato YYYY-MM-DD
-      services: localServices
+      services: localServices,
+      generalNotes: generalNotes,
+      orderImages: orderImages
+    };
+
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Handler para actualizar las notas generales
+  const handleGeneralNotesChange = (e) => {
+    const newNotes = e.target.value;
+    setGeneralNotes(newNotes);
+
+    const updatedOrder = {
+      ...order,
+      generalNotes: newNotes,
+      services: localServices,
+      orderImages: orderImages
     };
 
     if (onSave) {
@@ -215,26 +242,14 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
   return (
     <div className="order-detail-view">
-      {/* Galería de Imágenes Principal */}
-      {getAllImages().length > 0 && (
-        <div className="order-gallery-section">
-          <h3 className="section-title">📸 Galería de Imágenes</h3>
-          <div className="order-main-gallery">
-            {getAllImages().map((image, index) => (
-              <div
-                key={index}
-                className="gallery-image-card"
-                onClick={() => openImageModal(image)}
-              >
-                <img src={image} alt={`Imagen ${index + 1}`} className="gallery-image" />
-                <div className="gallery-image-overlay">
-                  <span className="gallery-icon">🔍</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Galería de Imágenes de la Orden */}
+      <div className="order-gallery-section">
+        <h3 className="section-title">📸 Galería de Imágenes de la Orden</h3>
+        <ImageUpload
+          images={orderImages}
+          onChange={handleOrderImagesChange}
+        />
+      </div>
 
       {/* Información de Servicios */}
       <div className="order-pairs-section">
@@ -272,15 +287,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
                       </option>
                     ))}
                   </select>
-                </div>
-
-                {/* Sección de imágenes editable */}
-                <div className="pair-images-section">
-                  <span className="pair-info-label">📸 Fotos del Servicio:</span>
-                  <ImageUpload
-                    images={service.images || []}
-                    onChange={(newImages) => handleServiceImagesChange(service.id, newImages)}
-                  />
                 </div>
 
                 {service.notes && (
@@ -409,14 +415,23 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       </div>
 
       {/* Notas Generales */}
-      {order.generalNotes && (
-        <div className="general-notes-section">
-          <h3 className="section-title">📝 Notas Generales</h3>
-          <div className="notes-card">
-            <p>{order.generalNotes}</p>
-          </div>
+      <div className="general-notes-section">
+        <h3 className="section-title">📝 Notas Generales</h3>
+        <div className="notes-card">
+          <textarea
+            className="form-input form-textarea"
+            placeholder="Escribe notas generales de la orden..."
+            rows="3"
+            value={generalNotes}
+            onChange={handleGeneralNotesChange}
+            style={{
+              width: '100%',
+              resize: 'vertical',
+              fontFamily: 'inherit'
+            }}
+          />
         </div>
-      )}
+      </div>
 
       {/* Botones de Cierre de Orden */}
       {(showCobrarButton || showEntregarButton) && (

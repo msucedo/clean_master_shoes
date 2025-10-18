@@ -246,21 +246,22 @@ const Orders = () => {
   };
 
   const handleSubmitOrder = (formData) => {
-    // Create new order with new format (shoePairs and otherItems)
+    // Create new order with services format
     // Guardar la fecha en formato YYYY-MM-DD
     const newOrder = {
       id: generateOrderId(),
       client: formData.client,
       phone: formData.phone,
       email: formData.email || '',
-      shoePairs: formData.shoePairs || [],
-      otherItems: formData.otherItems || [],
+      services: formData.services || [],
+      orderImages: formData.orderImages || [],
       totalPrice: formData.totalPrice || 0,
       deliveryDate: formData.deliveryDate, // Guardar fecha raw en formato YYYY-MM-DD
       priority: formData.priority || '',
       paymentMethod: formData.paymentMethod || 'pending',
       advancePayment: formData.advancePayment || 0,
-      generalNotes: formData.generalNotes || ''
+      generalNotes: formData.generalNotes || '',
+      paymentStatus: formData.paymentMethod === 'pending' ? 'pending' : 'partial'
     };
 
     // Add to "Recibidos" column
