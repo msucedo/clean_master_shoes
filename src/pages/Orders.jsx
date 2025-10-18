@@ -42,6 +42,7 @@ const Orders = () => {
       let currentOrder = null;
 
       for (const [key, ordersList] of Object.entries(prev)) {
+        if (!ordersList || !Array.isArray(ordersList)) continue;
         const foundOrder = ordersList.find(o => o.id === order.id);
         if (foundOrder) {
           sourceColumn = key;
@@ -55,13 +56,16 @@ const Orders = () => {
       // Remove from source column and add to target column with the current order data
       return {
         ...prev,
-        [sourceColumn]: prev[sourceColumn].filter(o => o.id !== order.id),
-        [newStatus]: [...prev[newStatus], currentOrder]
+        [sourceColumn]: (prev[sourceColumn] || []).filter(o => o.id !== order.id),
+        [newStatus]: [...(prev[newStatus] || []), currentOrder]
       };
     });
   };
 
   const filterOrders = (ordersList) => {
+    // Validar que ordersList existe y es un array
+    if (!ordersList || !Array.isArray(ordersList)) return [];
+
     if (!searchTerm) return ordersList;
 
     return ordersList.filter(order => {
@@ -98,7 +102,13 @@ const Orders = () => {
 
   const generateOrderId = () => {
     // Get all orders from all columns
-    const allOrders = [...orders.recibidos, ...orders.proceso, ...orders.listos, ...orders.enEntrega, ...orders.completados];
+    const allOrders = [
+      ...(orders.recibidos || []),
+      ...(orders.proceso || []),
+      ...(orders.listos || []),
+      ...(orders.enEntrega || []),
+      ...(orders.completados || [])
+    ];
 
     // Find the highest ID number
     const maxId = allOrders.reduce((max, order) => {
