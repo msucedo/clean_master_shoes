@@ -134,6 +134,37 @@
     background: rgba(0, 255, 136, 0.1);
 }
 
+.btn-action.active-order {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--bg-primary-10);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.btn-action.active-order:hover {
+    border-color: #4d9fff;
+    color: #4d9fff;
+    background: rgba(0, 123, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.btn-action.active-order.invisible {
+    opacity: 0;
+    pointer-events: none;
+    animation: none;
+    border-color: transparent;
+    background: transparent;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+    }
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .client-meta {

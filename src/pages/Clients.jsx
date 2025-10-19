@@ -48,21 +48,72 @@ const Clients = () => {
     return () => unsubscribe();
   }, []);
 
-  // Obtener clientes con órdenes activas
-  const activeClientNames = useMemo(() => {
-    const activeClients = new Set();
+  // Calcular métricas de clientes basadas en órdenes
+  const clientMetrics = useMemo(() => {
+    const metrics = new Map();
 
-    // Recorrer órdenes activas (no completadas)
-    ['recibidos', 'proceso', 'listos', 'enEntrega'].forEach(status => {
+    // Inicializar métricas para todos los clientes
+    clients.forEach(client => {
+      metrics.set(client.id, {
+        orders: 0,
+        debt: 0,
+        totalSpent: 0,
+        isVip: false,
+        isActive: false
+      });
+    });
+
+    // Calcular desde todas las órdenes
+    const allOrderStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega', 'completados'];
+
+    allOrderStatuses.forEach(status => {
       if (orders[status]) {
         orders[status].forEach(order => {
-          activeClients.add(order.client.toLowerCase());
+          // Encontrar el cliente por nombre
+          const client = clients.find(c =>
+            c.name.toLowerCase() === order.client.toLowerCase()
+          );
+
+          if (client && metrics.has(client.id)) {
+            const metric = metrics.get(client.id);
+
+            // Incrementar contador de órdenes
+            metric.orders += 1;
+
+            // Si es orden activa (no completada)
+            if (status !== 'completados') {
+              metric.isActive = true;
+
+              // Calcular deuda (solo órdenes activas con pago pendiente o parcial)
+              if (order.paymentStatus === 'pending') {
+                metric.debt += (order.totalPrice || 0);
+              } else if (order.paymentStatus === 'partial') {
+                const remaining = (order.totalPrice || 0) - (order.advancePayment || 0);
+                metric.debt += remaining;
+              }
+            }
+
+            // Sumar al total gastado (órdenes completadas y pagadas)
+            if (status === 'completados' && order.paymentStatus === 'paid') {
+              metric.totalSpent += (order.totalPrice || 0);
+            }
+          }
         });
       }
     });
 
-    return activeClients;
-  }, [orders]);
+    // Determinar clientes VIP basado en criterios
+    metrics.forEach((metric, clientId) => {
+      // Criterios para ser VIP:
+      // - 10 o más órdenes completadas, O
+      // - $5000 o más en gasto total, O
+      // - 15 o más órdenes en total
+      metric.isVip = metric.orders >= 10 || metric.totalSpent >= 5000 || metric.orders >= 15;
+    });
+
+    return metrics;
+  }, [clients, orders]);
+
 
   const filterClients = (clientsList) => {
     let filtered = clientsList;
@@ -75,15 +126,17 @@ const Clients = () => {
       );
     }
 
-    // Apply type filter
+    // Apply type filter usando métricas calculadas
     if (activeFilter === 'debt') {
-      filtered = filtered.filter(client => client.debt > 0);
+      filtered = filtered.filter(client => {
+        const metrics = clientMetrics.get(client.id);
+        return metrics && metrics.debt > 0;
+      });
     } else if (activeFilter === 'vip') {
-      filtered = filtered.filter(client => client.isVip);
-    } else if (activeFilter === 'active') {
-      filtered = filtered.filter(client =>
-        activeClientNames.has(client.name.toLowerCase())
-      );
+      filtered = filtered.filter(client => {
+        const metrics = clientMetrics.get(client.id);
+        return metrics && metrics.isVip;
+      });
     }
 
     return filtered;
@@ -157,11 +210,6 @@ const Clients = () => {
             active: activeFilter === 'all'
           },
           {
-            label: '🔥 Clientes Activos',
-            onClick: () => setActiveFilter('active'),
-            active: activeFilter === 'active'
-          },
-          {
             label: 'Con Deuda',
             onClick: () => setActiveFilter('debt'),
             active: activeFilter === 'debt'
@@ -182,16 +230,35 @@ const Clients = () => {
             <div className="empty-text">Cargando clientes...</div>
           </div>
         ) : filteredClients.length > 0 ? (
-          filteredClients.map((client) => (
-            <ClientItem
-              key={client.id}
-              client={client}
-              onClick={(client) => {
-                setEditingClient(client);
-                setIsModalOpen(true);
-              }}
-            />
-          ))
+          filteredClients.map((client) => {
+            const metrics = clientMetrics.get(client.id) || {
+              orders: 0,
+              debt: 0,
+              totalSpent: 0,
+              isVip: false,
+              isActive: false
+            };
+
+            // Enriquecer cliente con métricas calculadas
+            const enrichedClient = {
+              ...client,
+              orders: metrics.orders,
+              debt: metrics.debt,
+              isVip: metrics.isVip,
+              isActive: metrics.isActive
+            };
+
+            return (
+              <ClientItem
+                key={client.id}
+                client={enrichedClient}
+                onClick={(client) => {
+                  setEditingClient(client);
+                  setIsModalOpen(true);
+                }}
+              />
+            );
+          })
         ) : (
           <div className="empty-state">
             <div className="empty-icon">😕</div>

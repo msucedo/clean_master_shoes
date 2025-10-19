@@ -96,11 +96,51 @@ const Dashboard = () => {
     setSelectedOrder(null);
   };
 
+  // Calcular pagos pendientes (órdenes con pago pendiente o parcial)
+  const getPendingPayments = () => {
+    const allActiveOrders = [
+      ...(orders.recibidos || []),
+      ...(orders.proceso || []),
+      ...(orders.listos || []),
+      ...(orders.enEntrega || [])
+    ];
+
+    return allActiveOrders.filter(order =>
+      order.paymentStatus === 'pending' || order.paymentStatus === 'partial'
+    ).length;
+  };
+
+  // Calcular ingresos de hoy (órdenes completadas hoy)
+  const getTodayIncome = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const completedOrders = orders.completados || [];
+
+    const todayCompletedOrders = completedOrders.filter(order => {
+      if (!order.completedDate) return false;
+
+      const completedDate = new Date(order.completedDate);
+      completedDate.setHours(0, 0, 0, 0);
+
+      return completedDate.getTime() === today.getTime();
+    });
+
+    const totalIncome = todayCompletedOrders.reduce((total, order) => {
+      return total + (order.totalPrice || 0);
+    }, 0);
+
+    return totalIncome;
+  };
+
+  const pendingPayments = getPendingPayments();
+  const todayIncome = getTodayIncome();
+
   const stats = [
     { icon: '📦', label: 'Para Entregar', value: (orders.enEntrega?.length || 0).toString(), type: 'entregas' },
     { icon: '🔄', label: 'En Proceso', value: (orders.proceso?.length || 0).toString(), type: 'proceso' },
-    { icon: '💰', label: 'Pagos Pendientes', value: '2', type: 'pagos' },
-    { icon: '💵', label: 'Ingresos Hoy', value: '$500', type: 'ingresos' },
+    { icon: '💰', label: 'Pagos Pendientes', value: pendingPayments.toString(), type: 'pagos' },
+    { icon: '💵', label: 'Ingresos Hoy', value: `$${todayIncome}`, type: 'ingresos' },
   ];
 
   return (

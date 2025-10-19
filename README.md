@@ -1,8 +1,6 @@
 Clean master shoes
 
 // WIP
-- [EPIC]Refactorizar localStorge para implementar firebase como base de datos
-- [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
 
 // PRIORIDAD ALTA
 
@@ -24,6 +22,8 @@ Clean master shoes
 - [FIX]Habilitar nueva orden en iphone, ux no se ve
 
 // COMPLETADO
+- [EPIC]Refactorizar localStorge para implementar firebase como base de datos
+- [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
 - [EPIC]Refactorizar tarjeta de orden, unificar servicios y listas de items, crear nueva ux, usar emojis representando a los servicios
 - [EPIC]Tab servicios, Agregar funcionalidad al boton de agregar servicio, remover data de prueba y establer servicios verdaderos
 - [FIX]En lugar que en la columna "listos" aparezca el boton de cobrar y de entregar en los detalles de la orden, mejor quiero que eso salga en la nueva 4ta columna "En entrega", tambien cambia la validacion que no deja avanzar a "listos" hasta completar todos los items por no dejar avanzar a la nueva 4ta columna "En entrega"

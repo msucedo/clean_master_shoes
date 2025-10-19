@@ -6,6 +6,24 @@ const ClientItem = ({ client, onClick }) => {
     return names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
+  const getRelativeTime = (dateString) => {
+    if (!dateString) return 'Nunca';
+
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) return 'Hoy';
+    if (diffInDays === 1) return 'Hace 1 día';
+    if (diffInDays < 7) return `Hace ${diffInDays} días`;
+    if (diffInDays < 14) return 'Hace 1 semana';
+    if (diffInDays < 30) return `Hace ${Math.floor(diffInDays / 7)} semanas`;
+    if (diffInDays < 60) return 'Hace 1 mes';
+    if (diffInDays < 365) return `Hace ${Math.floor(diffInDays / 30)} meses`;
+    return `Hace ${Math.floor(diffInDays / 365)} años`;
+  };
+
   const hasDebt = client.debt > 0;
 
   return (
@@ -29,10 +47,16 @@ const ClientItem = ({ client, onClick }) => {
           <div className="client-meta-label">Debe</div>
         </div>
       </div>
-      <div className="client-last-visit">{client.lastVisit}</div>
+      <div className="client-last-visit">{getRelativeTime(client.lastVisit)}</div>
       <div className="client-actions">
-        <button className="btn-action" title="Llamar">📞</button>
-        <button className="btn-action whatsapp" title="WhatsApp">💬</button>
+        <button
+          className={`btn-action active-order ${!client.isActive ? 'invisible' : ''}`}
+          title={client.isActive ? "Tiene zapatos en el negocio" : ""}
+          disabled={!client.isActive}
+        >
+          👟
+        </button>
+        <button className="btn-action whatsapp" title="WhatsApp (próximamente)">💬</button>
       </div>
     </div>
   );
