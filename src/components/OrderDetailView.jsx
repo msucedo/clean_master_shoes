@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import ImageUpload from './ImageUpload';
+import { subscribeToEmployees } from '../services/firebaseService';
 import './OrderDetailView.css';
 
 const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, onCancel, onEmail, onWhatsApp, onInvoice, onCobrar, onEntregar }) => {
@@ -11,10 +12,26 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   // Estado local para las imágenes de la orden
   const [orderImages, setOrderImages] = useState(order.orderImages || []);
 
+  // Estado para empleados activos
+  const [activeEmployees, setActiveEmployees] = useState([]);
+
+  // Estado para el autor de la orden
+  const [orderAuthor, setOrderAuthor] = useState(order.author || '');
+
   // Sincronizar orderImages cuando cambie la orden
   useEffect(() => {
     setOrderImages(order.orderImages || []);
   }, [order.orderImages]);
+
+  // Cargar empleados activos
+  useEffect(() => {
+    const unsubscribe = subscribeToEmployees((employees) => {
+      const active = employees.filter(emp => emp.status === 'active');
+      setActiveEmployees(active);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Estado local para gestionar el estado general de la orden
   // Usar currentTab que indica en qué pestaña está la orden actualmente
@@ -110,7 +127,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       ...order,
       services: updatedServices,
       generalNotes: generalNotes,
-      orderImages: orderImages
+      orderImages: orderImages,
+      author: orderAuthor
     };
 
     // Llamar a onSave si está disponible
@@ -128,7 +146,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       ...order,
       orderImages: newImages,
       services: localServices,
-      generalNotes: generalNotes
+      generalNotes: generalNotes,
+      author: orderAuthor
     };
 
     // Llamar a onSave si está disponible
@@ -170,7 +189,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       deliveryDate: newDate, // Guardar en formato YYYY-MM-DD
       services: localServices,
       generalNotes: generalNotes,
-      orderImages: orderImages
+      orderImages: orderImages,
+      author: orderAuthor
     };
 
     if (onSave) {
@@ -187,7 +207,26 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       ...order,
       generalNotes: newNotes,
       services: localServices,
-      orderImages: orderImages
+      orderImages: orderImages,
+      author: orderAuthor
+    };
+
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+  };
+
+  // Handler para cambiar el autor de la orden
+  const handleAuthorChange = (e) => {
+    const newAuthor = e.target.value;
+    setOrderAuthor(newAuthor);
+
+    const updatedOrder = {
+      ...order,
+      author: newAuthor,
+      services: localServices,
+      orderImages: orderImages,
+      generalNotes: generalNotes
     };
 
     if (onSave) {
@@ -414,22 +453,71 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
         </div>
       </div>
 
+      {/* Información de la Orden */}
+      <div className="order-details-grid">
+        <div className="detail-card">
+          <h3 className="detail-card-title">📋 Información de la Orden</h3>
+          <div className="detail-card-content">
+            <div className="detail-row">
+              <span className="detail-label">Fecha de Recepción:</span>
+              <span className="detail-value">
+                {order.createdAt ? new Date(order.createdAt).toLocaleDateString('es-ES', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : 'No disponible'}
+              </span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Número de Orden:</span>
+              <span className="detail-value">#{order.orderNumber || order.id}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Autor de la Orden:</span>
+              <select
+                className="author-select"
+                value={orderAuthor}
+                onChange={handleAuthorChange}
+              >
+                <option value="">Sin asignar</option>
+                {activeEmployees.map(employee => (
+                  <option key={employee.id} value={employee.name}>
+                    {employee.name} - {employee.role}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Notas Generales */}
-      <div className="general-notes-section">
-        <h3 className="section-title">📝 Notas Generales</h3>
-        <div className="notes-card">
-          <textarea
-            className="form-input form-textarea"
-            placeholder="Escribe notas generales de la orden..."
-            rows="3"
-            value={generalNotes}
-            onChange={handleGeneralNotesChange}
-            style={{
-              width: '100%',
-              resize: 'vertical',
-              fontFamily: 'inherit'
-            }}
-          />
+      <div className="order-details-grid">
+        <div className="detail-card">
+          <h3 className="detail-card-title">📝 Notas Generales</h3>
+          <div className="detail-card-content">
+            <textarea
+              className="form-input form-textarea"
+              placeholder="Escribe notas generales de la orden..."
+              rows="4"
+              value={generalNotes}
+              onChange={handleGeneralNotesChange}
+              style={{
+                width: '100%',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                padding: '12px 16px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--color-gray-800)',
+                borderRadius: '10px',
+                color: 'var(--color-white)',
+                fontSize: '15px',
+                lineHeight: '1.6'
+              }}
+            />
+          </div>
         </div>
       </div>
 

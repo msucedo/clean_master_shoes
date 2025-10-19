@@ -1,0 +1,147 @@
+.empleado-item {
+    padding: 25px 30px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.empleado-item:last-child {
+    border-bottom: none;
+}
+
+.empleado-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.empleado-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 900;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-primary-sm);
+}
+
+.empleado-avatar.inactive {
+    background: linear-gradient(135deg, #666 0%, #444 100%);
+    box-shadow: 0 6px 18px rgba(100, 100, 100, 0.3);
+}
+
+.empleado-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.empleado-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+}
+
+.empleado-role {
+    font-size: 15px;
+    color: #999;
+    font-weight: 500;
+}
+
+.empleado-meta {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-right: 20px;
+}
+
+.empleado-meta-item {
+    text-align: center;
+}
+
+.empleado-meta-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.empleado-meta-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.empleado-hire-date {
+    font-size: 13px;
+    color: #666;
+    text-align: right;
+    min-width: 120px;
+}
+
+.empleado-status {
+    min-width: 80px;
+    text-align: center;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.status-badge.inactive {
+    background: rgba(255, 255, 255, 0.05);
+    color: #666;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .empleado-meta {
+        gap: 15px;
+    }
+
+    .empleado-hire-date {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .empleado-item {
+        flex-wrap: wrap;
+        padding: 20px;
+    }
+
+    .empleado-meta {
+        width: 100%;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #2a2a2a;
+    }
+
+    .empleado-status {
+        width: 100%;
+        margin-top: 15px;
+        text-align: left;
+    }
+}

@@ -1,6 +1,9 @@
 Clean master shoes
 
 // WIP
+- [EPIC]Pantalla empleado
+    - [FIX]Remover campo salario del empleado
+    - [FEATURE]Agregar al empleado, un boton que diga ver ordenes activas y que se desplique una sección por debajo con las ordenes
 
 // PRIORIDAD ALTA
 
@@ -12,9 +15,6 @@ Clean master shoes
 - [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 
 // BACKLOG
-- []trabajar en la tab clientes, logica para datos de cada cliente, lo que debe y como hacer un cliente vip
-- [EPIC]Pantalla empleado
-- [FEATURE]Agregar campo autor a cada orden, este campo se debe llenar automatico de la tab de empleados
 - [EPIC]Pantalla catalogo
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
@@ -22,6 +22,8 @@ Clean master shoes
 - [FIX]Habilitar nueva orden en iphone, ux no se ve
 
 // COMPLETADO
+- [FEATURE]Agregar campo autor a cada orden, este campo se debe llenar automatico de la tab de empleados
+- [FEATURE]trabajar en la tab clientes, logica para datos de cada cliente, lo que debe y como hacer un cliente vip
 - [EPIC]Refactorizar localStorge para implementar firebase como base de datos
 - [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
 - [EPIC]Refactorizar tarjeta de orden, unificar servicios y listas de items, crear nueva ux, usar emojis representando a los servicios

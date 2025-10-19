@@ -47,6 +47,26 @@
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
 }
 
+.stat-card.recibidas .stat-icon {
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+}
+
+.stat-card.listos .stat-icon {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.stat-card.activas .stat-icon {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.3);
+}
+
+.stat-card.completadas .stat-icon {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
 .stat-info {
     flex: 1;
 }

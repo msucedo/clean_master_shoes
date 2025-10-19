@@ -141,6 +141,10 @@ const Dashboard = () => {
     { icon: '🔄', label: 'En Proceso', value: (orders.proceso?.length || 0).toString(), type: 'proceso' },
     { icon: '💰', label: 'Pagos Pendientes', value: pendingPayments.toString(), type: 'pagos' },
     { icon: '💵', label: 'Ingresos Hoy', value: `$${todayIncome}`, type: 'ingresos' },
+    { icon: '📥', label: 'Órdenes Recibidas Hoy', value: '0', type: 'recibidas' },
+    { icon: '✅', label: 'Órdenes Listas', value: (orders.listos?.length || 0).toString(), type: 'listos' },
+    { icon: '📊', label: 'Total Órdenes Activas', value: '0', type: 'activas' },
+    { icon: '🎯', label: 'Completadas Esta Semana', value: '0', type: 'completadas' },
   ];
 
   return (

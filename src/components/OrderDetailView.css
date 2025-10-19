@@ -674,26 +674,42 @@
   transform: translateY(-2px);
 }
 
-/* General Notes */
-.general-notes-section {
-  padding: 24px;
-  background: linear-gradient(135deg, var(--color-gray-900) 0%, var(--color-black) 100%);
+/* Author Select (used in Order Information) */
+.author-select {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--color-gray-800);
-  border-radius: 16px;
-}
-
-.notes-card {
-  padding: 16px 20px;
-  background: var(--color-black);
-  border: 1px solid var(--color-gray-800);
-  border-radius: 12px;
-}
-
-.notes-card p {
-  margin: 0;
+  border-radius: 8px;
+  color: var(--color-white);
   font-size: 15px;
-  color: var(--color-gray-500);
-  line-height: 1.8;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.author-select:hover {
+  border-color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.author-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--bg-primary-10);
+}
+
+.author-select option {
+  background: var(--color-gray-900);
+  color: var(--color-white);
+  padding: 10px;
+}
+
+/* Textarea for General Notes */
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--bg-primary-10);
 }
 
 /* Action Buttons */

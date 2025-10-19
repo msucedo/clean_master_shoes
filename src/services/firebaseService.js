@@ -360,6 +360,106 @@ export const deleteClient = async (clientId) => {
   }
 };
 
+// ==================== EMPLOYEES ====================
+
+/**
+ * Get all employees
+ * @returns {Promise<Array>} Array of employees
+ */
+export const getAllEmployees = async () => {
+  try {
+    const employeesRef = collection(db, 'employees');
+    const querySnapshot = await getDocs(employeesRef);
+
+    const employees = [];
+    querySnapshot.forEach((doc) => {
+      employees.push({ id: doc.id, ...doc.data() });
+    });
+
+    return employees;
+  } catch (error) {
+    console.error('Error getting employees:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to real-time employees updates
+ * @param {Function} callback - Function to call when employees change
+ * @returns {Function} Unsubscribe function
+ */
+export const subscribeToEmployees = (callback) => {
+  try {
+    const employeesRef = collection(db, 'employees');
+
+    return onSnapshot(employeesRef, (snapshot) => {
+      const employees = [];
+      snapshot.forEach((doc) => {
+        employees.push({ id: doc.id, ...doc.data() });
+      });
+      callback(employees);
+    }, (error) => {
+      console.error('Error in employees subscription:', error);
+    });
+  } catch (error) {
+    console.error('Error subscribing to employees:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add a new employee
+ * @param {Object} employeeData - Employee data
+ * @returns {Promise<string>} Document ID of the created employee
+ */
+export const addEmployee = async (employeeData) => {
+  try {
+    const employeesRef = collection(db, 'employees');
+    const docRef = await addDoc(employeesRef, {
+      ...employeeData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding employee:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing employee
+ * @param {string} employeeId - Employee document ID
+ * @param {Object} employeeData - Updated employee data
+ */
+export const updateEmployee = async (employeeId, employeeData) => {
+  try {
+    const employeeRef = doc(db, 'employees', employeeId);
+    await updateDoc(employeeRef, {
+      ...employeeData,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating employee:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an employee
+ * @param {string} employeeId - Employee document ID
+ */
+export const deleteEmployee = async (employeeId) => {
+  try {
+    const employeeRef = doc(db, 'employees', employeeId);
+    await deleteDoc(employeeRef);
+  } catch (error) {
+    console.error('Error deleting employee:', error);
+    throw error;
+  }
+};
+
 // ==================== BACKUP ====================
 
 /**
@@ -368,16 +468,18 @@ export const deleteClient = async (clientId) => {
  */
 export const exportAllData = async () => {
   try {
-    const [orders, services, clients] = await Promise.all([
+    const [orders, services, clients, employees] = await Promise.all([
       getAllOrders(),
       getAllServices(),
-      getAllClients()
+      getAllClients(),
+      getAllEmployees()
     ]);
 
     return {
       orders,
       services,
       clients,
+      employees,
       exportedAt: new Date().toISOString(),
       version: '1.0'
     };
