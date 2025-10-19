@@ -11,6 +11,7 @@ Clean master shoes
 
 // PRIORIDAD BAJA
 - [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
+- [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
 - [EPIC]Pantalla catalogo

@@ -76,6 +76,7 @@ export const getBackupInfo = async () => {
       ordersCount,
       servicesCount: data.services?.length || 0,
       clientsCount: data.clients?.length || 0,
+      employeesCount: data.employees?.length || 0,
       exportedAt: data.exportedAt
     };
   } catch (error) {

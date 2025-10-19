@@ -394,6 +394,10 @@ const Settings = () => {
                   <div className="stat-value">{backupInfo.clientsCount}</div>
                 </div>
                 <div className="stat-item">
+                  <div className="stat-label">Empleados:</div>
+                  <div className="stat-value">{backupInfo.employeesCount}</div>
+                </div>
+                <div className="stat-item">
                   <div className="stat-label">Tamaño:</div>
                   <div className="stat-value">{backupInfo.size}</div>
                 </div>
