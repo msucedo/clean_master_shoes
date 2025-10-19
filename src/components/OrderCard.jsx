@@ -69,7 +69,7 @@ const OrderCard = ({ order, onOrderClick }) => {
     <div className="order-card" onClick={() => onOrderClick(order)}>
       {/* Header */}
       <div className="order-card-header">
-        <div className="order-id-badge">#{order.id}</div>
+        <div className="order-id-badge">#{order.orderNumber || order.id}</div>
         {order.priority === 'high' && (
           <div className="order-priority-badge">🔥 Urgente</div>
         )}
@@ -105,7 +105,7 @@ const OrderCard = ({ order, onOrderClick }) => {
       {/* Imagen de la orden */}
       {firstImage && (
         <div className="order-card-image">
-          <img src={firstImage} alt={`Orden ${order.id}`} />
+          <img src={firstImage} alt={`Orden ${order.orderNumber || order.id}`} />
         </div>
       )}
     </div>

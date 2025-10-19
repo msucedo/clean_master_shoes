@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PageHeader from '../components/PageHeader';
+import { downloadBackup, getBackupInfo } from '../utils/backup';
 import './Settings.css';
 
 const Settings = () => {
@@ -23,6 +24,9 @@ const Settings = () => {
     autoBackup: true,
     googleAnalytics: false
   });
+
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [backupInfo, setBackupInfo] = useState(null);
 
   const handleToggle = (category, key) => {
     if (category === 'notifications') {
@@ -57,6 +61,32 @@ const Settings = () => {
     if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
       console.log('Logging out...');
       // Here you would handle logout
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    setBackupLoading(true);
+    try {
+      const result = await downloadBackup();
+      alert(`Backup descargado exitosamente: ${result.filename}`);
+
+      // Get updated backup info
+      const info = await getBackupInfo();
+      setBackupInfo(info);
+    } catch (error) {
+      console.error('Error downloading backup:', error);
+      alert('Error al descargar el backup. Por favor intenta nuevamente.');
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const handleGetBackupInfo = async () => {
+    try {
+      const info = await getBackupInfo();
+      setBackupInfo(info);
+    } catch (error) {
+      console.error('Error getting backup info:', error);
     }
   };
 
@@ -330,6 +360,67 @@ const Settings = () => {
             >
               {integrations.googleAnalytics ? 'Desconectar' : 'Conectar'}
             </button>
+          </div>
+        </div>
+
+        {/* Backup de Datos */}
+        <div className="settings-section">
+          <div className="section-header">
+            <div className="section-icon backup">💾</div>
+            <div>
+              <div className="section-title">Backup de Datos</div>
+              <div className="section-subtitle">Respalda tu información</div>
+            </div>
+          </div>
+
+          <div className="backup-info">
+            <p className="backup-description">
+              Descarga una copia de seguridad de todas tus órdenes y servicios en formato JSON.
+              Puedes usar este archivo para restaurar tu información si algo sale mal.
+            </p>
+
+            {backupInfo && (
+              <div className="backup-stats">
+                <div className="stat-item">
+                  <div className="stat-label">Órdenes:</div>
+                  <div className="stat-value">{backupInfo.ordersCount}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Servicios:</div>
+                  <div className="stat-value">{backupInfo.servicesCount}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Clientes:</div>
+                  <div className="stat-value">{backupInfo.clientsCount}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Tamaño:</div>
+                  <div className="stat-value">{backupInfo.size}</div>
+                </div>
+              </div>
+            )}
+
+            <div className="btn-group">
+              <button
+                className="btn-primary"
+                onClick={handleDownloadBackup}
+                disabled={backupLoading}
+              >
+                {backupLoading ? '⏳ Generando...' : '💾 Descargar Backup'}
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={handleGetBackupInfo}
+                disabled={backupLoading}
+              >
+                📊 Ver Info
+              </button>
+            </div>
+
+            <div className="backup-note">
+              <strong>Nota:</strong> Tus datos también están respaldados automáticamente en Firebase.
+              Este backup manual es una copia adicional de seguridad.
+            </div>
           </div>
         </div>
       </div>

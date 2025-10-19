@@ -10,21 +10,35 @@ const ImageUpload = ({ images = [], onChange }) => {
     setPreviewUrls(images);
   }, [images]);
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files);
 
     if (files.length === 0) return;
 
-    // Create preview URLs
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+    // Convert files to base64
+    const base64Promises = files.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
 
-    // Update state
-    const updatedUrls = [...previewUrls, ...newPreviewUrls];
-    setPreviewUrls(updatedUrls);
+    try {
+      const newBase64Images = await Promise.all(base64Promises);
 
-    // Notify parent component
-    if (onChange) {
-      onChange(updatedUrls);
+      // Update state
+      const updatedUrls = [...previewUrls, ...newBase64Images];
+      setPreviewUrls(updatedUrls);
+
+      // Notify parent component
+      if (onChange) {
+        onChange(updatedUrls);
+      }
+    } catch (error) {
+      console.error('Error converting images to base64:', error);
+      alert('Error al cargar las imágenes. Por favor intenta de nuevo.');
     }
   };
 

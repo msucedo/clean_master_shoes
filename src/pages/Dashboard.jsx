@@ -1,10 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StatCard from '../components/StatCard';
-import TaskCard from '../components/TaskCard';
+import OrderCard from '../components/OrderCard';
+import Modal from '../components/Modal';
+import OrderDetailView from '../components/OrderDetailView';
+import { subscribeToOrders } from '../services/firebaseService';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [orders, setOrders] = useState({
+    recibidos: [],
+    proceso: [],
+    listos: [],
+    enEntrega: [],
+    completados: []
+  });
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Subscribe to real-time orders updates
+  useEffect(() => {
+    setLoading(true);
+
+    const unsubscribe = subscribeToOrders((ordersData) => {
+      setOrders(ordersData);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
   // Obtener fecha dinámica
   const getCurrentDate = () => {
@@ -25,47 +51,56 @@ const Dashboard = () => {
     console.log('Open new order form');
   };
 
+  // Filtrar órdenes para entregar hoy (de todas las columnas)
+  const getTodayDeliveries = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayOrders = [];
+
+    // Recorrer todas las columnas y agregar el status a cada orden
+    const columns = {
+      recibidos: orders.recibidos || [],
+      proceso: orders.proceso || [],
+      listos: orders.listos || [],
+      enEntrega: orders.enEntrega || []
+    };
+
+    for (const [status, ordersList] of Object.entries(columns)) {
+      ordersList.forEach(order => {
+        if (!order.deliveryDate) return;
+
+        const [year, month, day] = order.deliveryDate.split('-').map(Number);
+        const deliveryDate = new Date(year, month - 1, day);
+        deliveryDate.setHours(0, 0, 0, 0);
+
+        if (deliveryDate.getTime() === today.getTime()) {
+          // Agregar el status actual de la orden
+          todayOrders.push({ ...order, currentStatus: status });
+        }
+      });
+    }
+
+    return todayOrders;
+  };
+
+  const todayDeliveries = getTodayDeliveries();
+
+  const handleOrderClick = (order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrder(null);
+  };
+
   const stats = [
-    { icon: '📦', label: 'Para Entregar', value: '3', type: 'entregas' },
-    { icon: '🔄', label: 'En Proceso', value: '8', type: 'proceso' },
+    { icon: '📦', label: 'Para Entregar', value: (orders.enEntrega?.length || 0).toString(), type: 'entregas' },
+    { icon: '🔄', label: 'En Proceso', value: (orders.proceso?.length || 0).toString(), type: 'proceso' },
     { icon: '💰', label: 'Pagos Pendientes', value: '2', type: 'pagos' },
     { icon: '💵', label: 'Ingresos Hoy', value: '$500', type: 'ingresos' },
-  ];
-
-  const deliveryTasks = [
-    {
-      id: '00123',
-      badge: 'HOY',
-      badgeType: 'today',
-      client: 'Juan Pérez',
-      model: 'Nike Air Max 90',
-      service: 'Lavado Profundo',
-      price: '250',
-      action: 'Entregar',
-      actionType: 'success'
-    },
-    {
-      id: '00126',
-      badge: 'HOY',
-      badgeType: 'today',
-      client: 'Ana Martínez',
-      model: 'Puma RS-X',
-      service: 'Lavado Express',
-      price: '100',
-      action: 'Entregar',
-      actionType: 'success'
-    },
-    {
-      id: '00128',
-      badge: 'URGENTE',
-      badgeType: 'urgent',
-      client: 'Patricia Sánchez',
-      model: 'Converse Chuck Taylor',
-      service: 'Lavado Básico',
-      price: '150',
-      action: 'Cobrar',
-      actionType: ''
-    }
   ];
 
   return (
@@ -93,17 +128,43 @@ const Dashboard = () => {
           <div className="task-group-header">
             <div className="task-group-icon entregas">📦</div>
             <div className="task-group-title-wrapper">
-              <div className="task-group-name">Para Entregar Hoy</div>
-              <div className="task-group-count">3 clientes esperando</div>
+              <div className="task-group-name">Entregas Programadas para Hoy</div>
+              <div className="task-group-count">{todayDeliveries.length} {todayDeliveries.length === 1 ? 'cliente esperando' : 'clientes esperando'}</div>
             </div>
           </div>
           <div className="task-cards">
-            {deliveryTasks.map((task) => (
-              <TaskCard key={task.id} {...task} />
-            ))}
+            {todayDeliveries.length === 0 ? (
+              <div className="empty-state">
+                <p>No hay entregas programadas para hoy</p>
+              </div>
+            ) : (
+              todayDeliveries.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onOrderClick={handleOrderClick}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      {/* Modal para ver detalle de orden */}
+      {selectedOrder && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title={`Orden #${selectedOrder.orderNumber || selectedOrder.id}`}
+          size="large"
+        >
+          <OrderDetailView
+            order={selectedOrder}
+            currentTab={selectedOrder.currentStatus}
+            onClose={handleCloseModal}
+          />
+        </Modal>
+      )}
     </div>
   );
 };

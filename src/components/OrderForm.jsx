@@ -31,24 +31,35 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   const [errors, setErrors] = useState({});
 
-  // Cargar servicios desde localStorage
-  const [services, setServices] = useState(() => {
-    const savedServices = localStorage.getItem('cleanmaster_services');
-    if (savedServices) {
-      const parsedServices = JSON.parse(savedServices);
-      // Agregar daysToAdd automáticamente basado en la duración
-      return parsedServices.map(service => {
-        // Extraer números de la duración (ej: "2-3 días" -> 3, "1 día" -> 1)
-        const durationMatch = service.duration.match(/(\d+)(?:-(\d+))?/);
-        const daysToAdd = durationMatch ? parseInt(durationMatch[2] || durationMatch[1]) : 2;
-        return {
-          ...service,
-          daysToAdd
-        };
-      });
-    }
-    return [];
-  });
+  // Cargar servicios desde Firebase
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const { subscribeToServices } = await import('../services/firebaseService');
+        const unsubscribe = subscribeToServices((servicesData) => {
+          // Agregar daysToAdd automáticamente basado en la duración
+          const processedServices = servicesData.map(service => {
+            // Extraer números de la duración (ej: "2-3 días" -> 3, "1 día" -> 1)
+            const durationMatch = service.duration?.match(/(\d+)(?:-(\d+))?/);
+            const daysToAdd = durationMatch ? parseInt(durationMatch[2] || durationMatch[1]) : 2;
+            return {
+              ...service,
+              daysToAdd
+            };
+          });
+          setServices(processedServices);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Error loading services:', error);
+      }
+    };
+
+    loadServices();
+  }, []);
 
   // Calcular precio total del carrito
   const calculateTotalPrice = () => {

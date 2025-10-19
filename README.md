@@ -1,27 +1,30 @@
 Clean master shoes
 
 // WIP
-- [EPIC]Refactorizar tarjeta de orden, unificar servicios y listas de items, crear nueva ux, usar emojis representando a los servicios
+- [EPIC]Refactorizar localStorge para implementar firebase como base de datos
+- [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
 
 // PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
 - [FIX]Fecha de entrega por default que sea 2 dias, pero que en la orden siga pudiendo ser editable
-- [FEATURE]Agregar campo autor a cada orden
+
 
 // PRIORIDAD BAJA
 - [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 
 // BACKLOG
 - []trabajar en la tab clientes, logica para datos de cada cliente, lo que debe y como hacer un cliente vip
-- [EPIC]Refactorizar dashboard, asegurarse que la primer sección funcione, y en la 2da mejor poner las tarjetas de la 4ta columna "En entrega"
 - [EPIC]Pantalla empleado
+- [FEATURE]Agregar campo autor a cada orden, este campo se debe llenar automatico de la tab de empleados
 - [EPIC]Pantalla catalogo
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
-- [VAL]En la nueva orden, al momento de pago, viene prioridad, si dice normal, que no pase nada, pero si se elige express, que se carguen $50 extras a la orden y se indique en la tarjeta de la orden que es una orden express
+- [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
+- [FIX]Habilitar nueva orden en iphone, ux no se ve
 
 // COMPLETADO
+- [EPIC]Refactorizar tarjeta de orden, unificar servicios y listas de items, crear nueva ux, usar emojis representando a los servicios
 - [EPIC]Tab servicios, Agregar funcionalidad al boton de agregar servicio, remover data de prueba y establer servicios verdaderos
 - [FIX]En lugar que en la columna "listos" aparezca el boton de cobrar y de entregar en los detalles de la orden, mejor quiero que eso salga en la nueva 4ta columna "En entrega", tambien cambia la validacion que no deja avanzar a "listos" hasta completar todos los items por no dejar avanzar a la nueva 4ta columna "En entrega"
 - [FEATURE]En la tab ordenes, agregar una 4ta columna "En entrega"

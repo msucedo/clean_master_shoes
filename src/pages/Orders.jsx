@@ -4,6 +4,12 @@ import OrderForm from '../components/OrderForm';
 import OrderDetailView from '../components/OrderDetailView';
 import OrderCard from '../components/OrderCard';
 import PageHeader from '../components/PageHeader';
+import {
+  subscribeToOrders,
+  updateOrder,
+  updateOrderStatus,
+  deleteOrder
+} from '../services/firebaseService';
 import './Orders.css';
 
 // Estructura inicial vacía para las órdenes
@@ -15,51 +21,37 @@ const EMPTY_ORDERS = {
   completados: []
 };
 
-// Clave para localStorage
-const ORDERS_STORAGE_KEY = 'cleanmaster_orders';
-
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('recibidos');
+  const [orders, setOrders] = useState(EMPTY_ORDERS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Cargar órdenes desde localStorage al iniciar
-  const [orders, setOrders] = useState(() => {
-    const savedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
-    return savedOrders ? JSON.parse(savedOrders) : EMPTY_ORDERS;
-  });
-
-  // Guardar órdenes en localStorage cada vez que cambien
+  // Subscribe to real-time orders updates
   useEffect(() => {
-    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
-  }, [orders]);
+    setLoading(true);
 
-  const handleStatusChange = (order, newStatus) => {
-    setOrders(prev => {
-      // Find which column the order is currently in
-      let sourceColumn = null;
-      let currentOrder = null;
-
-      for (const [key, ordersList] of Object.entries(prev)) {
-        if (!ordersList || !Array.isArray(ordersList)) continue;
-        const foundOrder = ordersList.find(o => o.id === order.id);
-        if (foundOrder) {
-          sourceColumn = key;
-          currentOrder = foundOrder; // Get the actual order from state (with latest changes)
-          break;
-        }
-      }
-
-      if (!sourceColumn || sourceColumn === newStatus) return prev;
-
-      // Remove from source column and add to target column with the current order data
-      return {
-        ...prev,
-        [sourceColumn]: (prev[sourceColumn] || []).filter(o => o.id !== order.id),
-        [newStatus]: [...(prev[newStatus] || []), currentOrder]
-      };
+    const unsubscribe = subscribeToOrders((ordersData) => {
+      setOrders(ordersData);
+      setLoading(false);
+      setError(null);
     });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  const handleStatusChange = async (order, newStatus) => {
+    try {
+      await updateOrderStatus(order.id, newStatus);
+      // Real-time listener will update the UI automatically
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Error al actualizar el estado de la orden');
+    }
   };
 
   const filterOrders = (ordersList) => {
@@ -75,7 +67,7 @@ const Orders = () => {
       const basicMatch =
         order.client.toLowerCase().includes(searchLower) ||
         order.phone.includes(searchLower) ||
-        order.id.includes(searchLower);
+        (order.orderNumber && order.orderNumber.includes(searchLower));
 
       // Buscar en modelo (formato antiguo)
       const modelMatch = order.model?.toLowerCase().includes(searchLower);
@@ -110,9 +102,9 @@ const Orders = () => {
       ...(orders.completados || [])
     ];
 
-    // Find the highest ID number
+    // Find the highest order number
     const maxId = allOrders.reduce((max, order) => {
-      const idNum = parseInt(order.id);
+      const idNum = parseInt(order.orderNumber || '0');
       return idNum > max ? idNum : max;
     }, 0);
 
@@ -149,22 +141,14 @@ const Orders = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveOrder = (updatedOrder) => {
-    setOrders(prev => {
-      const newOrders = { ...prev };
-      for (const [key, ordersList] of Object.entries(newOrders)) {
-        const index = ordersList.findIndex(o => o.id === updatedOrder.id);
-        if (index !== -1) {
-          newOrders[key] = [
-            ...ordersList.slice(0, index),
-            updatedOrder,
-            ...ordersList.slice(index + 1)
-          ];
-          break;
-        }
-      }
-      return newOrders;
-    });
+  const handleSaveOrder = async (updatedOrder) => {
+    try {
+      await updateOrder(updatedOrder.id, updatedOrder);
+      // Real-time listener will update the UI automatically
+    } catch (error) {
+      console.error('Error saving order:', error);
+      alert('Error al guardar la orden');
+    }
   };
 
   const getStatusInfo = (status) => {
@@ -177,17 +161,16 @@ const Orders = () => {
     return statusMap[status] || statusMap.recibidos;
   };
 
-  const handleCancelOrder = (order) => {
-    if (confirm(`¿Estás seguro de cancelar la orden #${order.id}?`)) {
-      // Remove order from all columns
-      setOrders(prev => {
-        const newOrders = { ...prev };
-        for (const key of Object.keys(newOrders)) {
-          newOrders[key] = newOrders[key].filter(o => o.id !== order.id);
-        }
-        return newOrders;
-      });
-      handleCloseModal();
+  const handleCancelOrder = async (order) => {
+    if (confirm(`¿Estás seguro de cancelar la orden #${order.orderNumber || order.id}?`)) {
+      try {
+        await deleteOrder(order.id);
+        handleCloseModal();
+        // Real-time listener will update the UI automatically
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('Error al eliminar la orden');
+      }
     }
   };
 
@@ -198,89 +181,88 @@ const Orders = () => {
 
   const handleWhatsApp = (order) => {
     const phone = order.phone.replace(/\D/g, '');
-    const message = `Hola ${order.client}, tu orden #${order.id} está lista!`;
+    const message = `Hola ${order.client}, tu orden #${order.orderNumber || order.id} está lista!`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleInvoice = (order) => {
     // TODO: Implementar generación de factura
-    alert(`Generar factura para orden #${order.id}\nCliente: ${order.client}\nTotal: $${order.price}`);
+    alert(`Generar factura para orden #${order.orderNumber || order.id}\nCliente: ${order.client}\nTotal: $${order.price}`);
   };
 
-  const handleCobrar = (order) => {
+  const handleCobrar = async (order) => {
     // TODO: Integrar con Clip para procesar pago
     const totalPrice = order.totalPrice || 0;
     const advancePayment = parseFloat(order.advancePayment) || 0;
     const remainingPayment = totalPrice - advancePayment;
 
     if (confirm(`¿Cobrar $${remainingPayment} a ${order.client}?`)) {
-      // Marcar como pagado completamente
-      const updatedOrder = {
-        ...order,
-        paymentStatus: 'paid',
-        paymentMethod: 'cash' // Actualizar método de pago a efectivo
-      };
+      try {
+        // Marcar como pagado completamente
+        const updatedOrder = {
+          ...order,
+          paymentStatus: 'paid',
+          paymentMethod: 'cash' // Actualizar método de pago a efectivo
+        };
 
-      handleSaveOrder(updatedOrder);
-      alert('Pago registrado exitosamente');
+        await handleSaveOrder(updatedOrder);
+        alert('Pago registrado exitosamente');
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        alert('Error al procesar el pago');
+      }
     }
   };
 
-  const handleEntregar = (order) => {
-    if (confirm(`¿Marcar orden #${order.id} como entregada?`)) {
-      // Mover a completados
-      setOrders(prev => {
-        const newOrders = { ...prev };
-
-        // Buscar y remover de la columna actual
-        for (const key of Object.keys(newOrders)) {
-          newOrders[key] = newOrders[key].filter(o => o.id !== order.id);
-        }
-
-        // Agregar a completados con estado completado
+  const handleEntregar = async (order) => {
+    if (confirm(`¿Marcar orden #${order.orderNumber || order.id} como entregada?`)) {
+      try {
+        // Actualizar orden con estado completado
         const completedOrder = {
           ...order,
           orderStatus: 'completados',
           completedDate: new Date().toISOString()
         };
 
-        // Asegurar que completados existe como array
-        newOrders.completados = [completedOrder, ...(newOrders.completados || [])];
-
-        return newOrders;
-      });
-
-      handleCloseModal();
-      alert(`Orden #${order.id} entregada exitosamente`);
+        await updateOrder(order.id, completedOrder);
+        handleCloseModal();
+        alert(`Orden #${order.orderNumber || order.id} entregada exitosamente`);
+        // Real-time listener will update the UI automatically
+      } catch (error) {
+        console.error('Error marking order as delivered:', error);
+        alert('Error al marcar la orden como entregada');
+      }
     }
   };
 
-  const handleSubmitOrder = (formData) => {
-    // Create new order with services format
-    // Guardar la fecha en formato YYYY-MM-DD
-    const newOrder = {
-      id: generateOrderId(),
-      client: formData.client,
-      phone: formData.phone,
-      email: formData.email || '',
-      services: formData.services || [],
-      orderImages: formData.orderImages || [],
-      totalPrice: formData.totalPrice || 0,
-      deliveryDate: formData.deliveryDate, // Guardar fecha raw en formato YYYY-MM-DD
-      priority: formData.priority || '',
-      paymentMethod: formData.paymentMethod || 'pending',
-      advancePayment: formData.advancePayment || 0,
-      generalNotes: formData.generalNotes || '',
-      paymentStatus: formData.paymentMethod === 'pending' ? 'pending' : 'partial'
-    };
+  const handleSubmitOrder = async (formData) => {
+    try {
+      // Create new order with services format
+      const newOrder = {
+        orderNumber: generateOrderId(), // Número de orden visible para el usuario
+        client: formData.client,
+        phone: formData.phone,
+        email: formData.email || '',
+        services: formData.services || [],
+        orderImages: formData.orderImages || [],
+        totalPrice: formData.totalPrice || 0,
+        deliveryDate: formData.deliveryDate,
+        priority: formData.priority || '',
+        paymentMethod: formData.paymentMethod || 'pending',
+        advancePayment: formData.advancePayment || 0,
+        generalNotes: formData.generalNotes || '',
+        paymentStatus: formData.paymentMethod === 'pending' ? 'pending' : 'partial',
+        orderStatus: 'recibidos'
+      };
 
-    // Add to "Recibidos" column
-    setOrders(prev => ({
-      ...prev,
-      recibidos: [newOrder, ...prev.recibidos]
-    }));
-
-    handleCloseModal();
+      const { addOrder } = await import('../services/firebaseService');
+      await addOrder(newOrder);
+      handleCloseModal();
+      // Real-time listener will update the UI automatically
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('Error al crear la orden');
+    }
   };
 
   const tabs = [
@@ -326,7 +308,18 @@ const Orders = () => {
 
       {/* Orders List */}
       <div className="orders-list">
-        {currentOrders.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <div className="empty-icon">⏳</div>
+            <h3>Cargando órdenes...</h3>
+          </div>
+        ) : error ? (
+          <div className="empty-state">
+            <div className="empty-icon">⚠️</div>
+            <h3>Error al cargar órdenes</h3>
+            <p>{error}</p>
+          </div>
+        ) : currentOrders.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📦</div>
             <h3>No hay órdenes</h3>
@@ -349,7 +342,7 @@ const Orders = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedOrder ? `Orden #${selectedOrder.id}` : 'Nueva Orden'}
+        title={selectedOrder ? `Orden #${selectedOrder.orderNumber || selectedOrder.id}` : 'Nueva Orden'}
         size="large"
       >
         {selectedOrder ? (

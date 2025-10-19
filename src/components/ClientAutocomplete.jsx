@@ -1,24 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
+import { subscribeToClients } from '../services/firebaseService';
 import './ClientAutocomplete.css';
 
 const ClientAutocomplete = ({ value, onChange, onSelectClient, error }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredClients, setFilteredClients] = useState([]);
+  const [clients, setClients] = useState([]);
   const wrapperRef = useRef(null);
 
-  // Mock data de clientes - en producción esto vendría de tu API/estado global
-  const clients = [
-    { id: 1, name: 'Jorge Hernández', phone: '555-123-4567', email: 'jorge.hernandez@email.com', isVip: true },
-    { id: 2, name: 'Juan Pérez', phone: '123-456-7890', email: '', isVip: false },
-    { id: 3, name: 'María García', phone: '098-765-4321', email: 'maria.garcia@email.com', isVip: false },
-    { id: 4, name: 'Ana Martínez', phone: '555-987-6543', email: 'ana.martinez@email.com', isVip: true },
-    { id: 5, name: 'Carlos López', phone: '555-123-4567', email: '', isVip: false },
-    { id: 6, name: 'Patricia Sánchez', phone: '555-369-2580', email: 'patricia.sanchez@email.com', isVip: true },
-    { id: 7, name: 'Luis Ramírez', phone: '555-246-8135', email: '', isVip: false },
-    { id: 8, name: 'Fernando Cruz', phone: '555-147-8520', email: 'fernando.cruz@email.com', isVip: false },
-    { id: 9, name: 'Isabel Ramos', phone: '555-753-9510', email: 'isabel.ramos@email.com', isVip: true },
-    { id: 10, name: 'Sofía Torres', phone: '555-159-7530', email: '', isVip: false }
-  ];
+  // Subscribe to real-time clients updates
+  useEffect(() => {
+    const unsubscribe = subscribeToClients((clientsData) => {
+      setClients(clientsData);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
