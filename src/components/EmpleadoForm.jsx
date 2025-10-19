@@ -8,7 +8,6 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     email: '',
     role: '',
     hireDate: '',
-    salary: '',
     status: 'active',
     notes: ''
   });
@@ -23,7 +22,6 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         email: initialData.email || '',
         role: initialData.role || '',
         hireDate: initialData.hireDate || '',
-        salary: initialData.salary || '',
         status: initialData.status || 'active',
         notes: initialData.notes || ''
       });
@@ -157,20 +155,6 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
             className={errors.hireDate ? 'error' : ''}
           />
           {errors.hireDate && <span className="error-message">{errors.hireDate}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="salary">Salario (opcional)</label>
-          <input
-            type="number"
-            id="salary"
-            name="salary"
-            value={formData.salary}
-            onChange={handleChange}
-            placeholder="0"
-            min="0"
-            step="100"
-          />
         </div>
 
         <div className="form-group">

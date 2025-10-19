@@ -217,11 +217,13 @@ const Orders = () => {
   const handleEntregar = async (order) => {
     if (confirm(`¿Marcar orden #${order.orderNumber || order.id} como entregada?`)) {
       try {
-        // Actualizar orden con estado completado
+        // Actualizar orden con estado completado y asegurar que el pago esté marcado como completado
         const completedOrder = {
           ...order,
           orderStatus: 'completados',
-          completedDate: new Date().toISOString()
+          completedDate: new Date().toISOString(),
+          paymentStatus: 'paid',
+          paymentMethod: order.paymentMethod === 'pending' ? 'cash' : order.paymentMethod
         };
 
         await updateOrder(order.id, completedOrder);

@@ -1,9 +1,7 @@
 Clean master shoes
 
 // WIP
-- [EPIC]Pantalla empleado
-    - [FIX]Remover campo salario del empleado
-    - [FEATURE]Agregar al empleado, un boton que diga ver ordenes activas y que se desplique una sección por debajo con las ordenes
+
 
 // PRIORIDAD ALTA
 
@@ -22,6 +20,11 @@ Clean master shoes
 - [FIX]Habilitar nueva orden en iphone, ux no se ve
 
 // COMPLETADO
+- [FEATURE]Agregar logica a nuevas etiquetas del dashboard, validar las que faltan de logica
+- [FEATURE]Agregar al empleado, aun lado de la etiqueta del estatus del empelado, un boton que diga ver ordenes activas y que se desplique una sección por debajo con las ordenes que tenga de autor ese empleado
+- [EPIC]Pantalla empleado
+- [FIX]Remover campo salario del empleado
+- [FEATURE]Agregar nuevas etiquetas de informacion en el dashboard
 - [FEATURE]Agregar campo autor a cada orden, este campo se debe llenar automatico de la tab de empleados
 - [FEATURE]trabajar en la tab clientes, logica para datos de cada cliente, lo que debe y como hacer un cliente vip
 - [EPIC]Refactorizar localStorge para implementar firebase como base de datos

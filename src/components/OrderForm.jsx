@@ -526,7 +526,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                     className={`form-input ${errors.deliveryDate ? 'error' : ''}`}
                     value={formData.deliveryDate}
                     onChange={handleChange}
-                    min={new Date().toISOString().split('T')[0]}
                   />
                   {errors.deliveryDate && <span className="error-message">{errors.deliveryDate}</span>}
                 </div>

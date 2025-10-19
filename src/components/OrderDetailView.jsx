@@ -404,7 +404,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
                     ref={dateInputRef}
                     type="date"
                     value={localDeliveryDate}
-                    min={new Date().toISOString().split('T')[0]}
                     onChange={(e) => {
                       if (e.target.value) {
                         handleSaveDeliveryDate(e.target.value);
@@ -477,7 +476,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
             <div className="detail-row">
               <span className="detail-label">Autor de la Orden:</span>
               <select
-                className="author-select"
+                className={`author-select ${orderAuthor ? 'has-value' : ''}`}
                 value={orderAuthor}
                 onChange={handleAuthorChange}
               >

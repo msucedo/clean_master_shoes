@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react';
+import { subscribeToOrders } from '../services/firebaseService';
 import './EmpleadoItem.css';
 
 const EmpleadoItem = ({ empleado, onClick }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeOrders, setActiveOrders] = useState([]);
   const getInitials = (name) => {
     const names = name.split(' ');
     return names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -26,33 +30,116 @@ const EmpleadoItem = ({ empleado, onClick }) => {
 
   const isActive = empleado.status === 'active';
 
+  // Subscribe to orders and filter by employee
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders((ordersData) => {
+      // Get all active orders (not completed)
+      const allActiveOrders = [
+        ...(ordersData.recibidos || []),
+        ...(ordersData.proceso || []),
+        ...(ordersData.listos || []),
+        ...(ordersData.enEntrega || [])
+      ];
+
+      // Filter orders by this employee's name
+      const employeeOrders = allActiveOrders.filter(
+        order => order.author === empleado.name
+      );
+
+      setActiveOrders(employeeOrders);
+    });
+
+    return () => unsubscribe();
+  }, [empleado.name]);
+
+  const handleToggleOrders = (e) => {
+    e.stopPropagation(); // Prevent triggering onClick for editing employee
+    setIsExpanded(!isExpanded);
+  };
+
+  // Group services by icon and count them
+  const getServiceIcons = (services) => {
+    if (!services || services.length === 0) return null;
+
+    const grouped = {};
+    services.forEach(service => {
+      const icon = service.icon || '🧼';
+      grouped[icon] = (grouped[icon] || 0) + 1;
+    });
+
+    return Object.entries(grouped).map(([icon, count]) => (
+      <span key={icon} className="service-icon">
+        {icon}{count > 1 ? ` ${count}` : ''}
+      </span>
+    ));
+  };
+
   return (
-    <div className="empleado-item" onClick={() => onClick && onClick(empleado)}>
-      <div className={`empleado-avatar ${!isActive ? 'inactive' : ''}`}>
-        {getInitials(empleado.name)}
-      </div>
-      <div className="empleado-info">
-        <div className="empleado-name">{empleado.name}</div>
-        <div className="empleado-role">{empleado.role || 'Sin rol asignado'}</div>
-      </div>
-      <div className="empleado-meta">
-        <div className="empleado-meta-item">
-          <div className="empleado-meta-value">{empleado.phone}</div>
-          <div className="empleado-meta-label">Teléfono</div>
+    <div className="empleado-item-wrapper">
+      <div className="empleado-item" onClick={() => onClick && onClick(empleado)}>
+        <div className={`empleado-avatar ${!isActive ? 'inactive' : ''}`}>
+          {getInitials(empleado.name)}
         </div>
-        <div className="empleado-meta-item">
-          <div className="empleado-meta-value">
-            {empleado.salary ? `$${empleado.salary}` : 'No definido'}
+        <div className="empleado-info">
+          <div className="empleado-name">{empleado.name}</div>
+          <div className="empleado-role">{empleado.role || 'Sin rol asignado'}</div>
+        </div>
+        <div className="empleado-meta">
+          <div className="empleado-meta-item">
+            <div className="empleado-meta-value">{empleado.phone}</div>
+            <div className="empleado-meta-label">Teléfono</div>
           </div>
-          <div className="empleado-meta-label">Salario</div>
+        </div>
+        <div className="empleado-hire-date">{getRelativeTime(empleado.hireDate)}</div>
+        <div className="empleado-status">
+          <span className={`status-badge ${empleado.status || 'active'}`}>
+            {empleado.status === 'active' ? 'Activo' : 'Inactivo'}
+          </span>
+          <button
+            className="btn-view-orders"
+            onClick={handleToggleOrders}
+            title="Ver órdenes activas"
+          >
+            {isExpanded ? '▼' : '▶'} Ver Órdenes ({activeOrders.length})
+          </button>
         </div>
       </div>
-      <div className="empleado-hire-date">{getRelativeTime(empleado.hireDate)}</div>
-      <div className="empleado-status">
-        <span className={`status-badge ${empleado.status || 'active'}`}>
-          {empleado.status === 'active' ? 'Activo' : 'Inactivo'}
-        </span>
-      </div>
+
+      {/* Expanded Orders Section */}
+      {isExpanded && (
+        <div className="empleado-orders-section">
+          <div className="orders-header">
+            <h4>Órdenes Activas de {empleado.name}</h4>
+          </div>
+          {activeOrders.length === 0 ? (
+            <div className="no-orders">
+              <p>No hay órdenes activas asignadas a este empleado</p>
+            </div>
+          ) : (
+            <div className="orders-list">
+              {activeOrders.map((order) => (
+                <div key={order.id} className="order-item">
+                  <div className="order-info">
+                    <span className="order-number">#{order.orderNumber || order.id}</span>
+                    <span className="order-client">{order.client}</span>
+                  </div>
+                  <div className="order-details">
+                    <span className={`order-status status-${order.orderStatus}`}>
+                      {order.orderStatus === 'recibidos' && '📥 Recibidos'}
+                      {order.orderStatus === 'proceso' && '🔧 En Proceso'}
+                      {order.orderStatus === 'listos' && '✅ Listos'}
+                      {order.orderStatus === 'enEntrega' && '🚚 En Entrega'}
+                    </span>
+                    <div className="order-services">
+                      {getServiceIcons(order.services)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -76,7 +76,6 @@ const Empleados = () => {
           email: formData.email || '',
           role: formData.role,
           hireDate: formData.hireDate,
-          salary: formData.salary ? parseFloat(formData.salary) : 0,
           status: formData.status || 'active',
           notes: formData.notes || ''
         };
