@@ -3,6 +3,7 @@ import ClientItem from '../components/ClientItem';
 import Modal from '../components/Modal';
 import ClientForm from '../components/ClientForm';
 import PageHeader from '../components/PageHeader';
+import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToOrders,
   subscribeToClients,
@@ -10,9 +11,11 @@ import {
   updateClient,
   deleteClient
 } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './Clients.css';
 
 const Clients = () => {
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +28,13 @@ const Clients = () => {
     listos: [],
     enEntrega: [],
     completados: []
+  });
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
   });
 
   // Subscribe to real-time clients updates
@@ -157,6 +167,7 @@ const Clients = () => {
       if (editingClient) {
         // Edit existing client
         await updateClient(editingClient.id, formData);
+        showSuccess('Cliente actualizado exitosamente');
       } else {
         // Create new client
         const newClient = {
@@ -167,26 +178,36 @@ const Clients = () => {
           lastVisit: new Date().toISOString()
         };
         await addClient(newClient);
+        showSuccess('Cliente creado exitosamente');
       }
       handleCloseModal();
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error saving client:', error);
-      alert('Error al guardar el cliente');
+      showError('Error al guardar el cliente. Por favor intenta de nuevo.');
     }
   };
 
-  const handleDeleteClient = async (clientId) => {
-    if (confirm('¿Estás seguro de eliminar este cliente?')) {
-      try {
-        await deleteClient(clientId);
-        handleCloseModal();
-        // Real-time listener will update the UI automatically
-      } catch (error) {
-        console.error('Error deleting client:', error);
-        alert('Error al eliminar el cliente');
+  const handleDeleteClient = (clientId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Eliminar Cliente',
+      message: '¿Estás seguro de eliminar este cliente?',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteClient(clientId);
+          handleCloseModal();
+          showSuccess('Cliente eliminado exitosamente');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          // Real-time listener will update the UI automatically
+        } catch (error) {
+          console.error('Error deleting client:', error);
+          showError('Error al eliminar el cliente');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
       }
-    }
+    });
   };
 
   const filteredClients = filterClients(clients);
@@ -286,6 +307,16 @@ const Clients = () => {
           initialData={editingClient}
         />
       </Modal>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

@@ -59,8 +59,7 @@ const Reports = () => {
 
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
-    console.log('Filter by:', filter);
-    // Here you would load data for the selected period
+    // TODO: Load data for the selected period
   };
 
   return (

@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import StatCard from '../components/StatCard';
 import OrderCard from '../components/OrderCard';
 import Modal from '../components/Modal';
 import OrderDetailView from '../components/OrderDetailView';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { subscribeToOrders, updateOrder, updateOrderStatus } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const { showSuccess, showError, showInfo } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState({
     recibidos: [],
@@ -18,6 +21,14 @@ const Dashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const saveOnCloseRef = useRef(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
 
   // Subscribe to real-time orders updates
   useEffect(() => {
@@ -48,7 +59,7 @@ const Dashboard = () => {
   };
 
   const handleNewOrder = () => {
-    console.log('Open new order form');
+    // TODO: Implement new order functionality
   };
 
   // Filtrar órdenes para entregar hoy (de todas las columnas)
@@ -92,104 +103,129 @@ const Dashboard = () => {
   };
 
   const handleCloseModal = () => {
+    console.log('🚪 [DASHBOARD] Cerrando modal', {
+      hasSaveOnClose: !!saveOnCloseRef.current
+    });
+
+    // Ejecutar guardado si existe (solo guarda si hay cambios)
+    if (saveOnCloseRef.current) {
+      console.log('💾 [DASHBOARD] Ejecutando saveOnClose...');
+      saveOnCloseRef.current();
+      saveOnCloseRef.current = null; // Limpiar después de usar
+    }
+
+    // Cerrar modal
     setIsModalOpen(false);
     setSelectedOrder(null);
   };
 
   const handleSaveOrder = async (updatedOrder) => {
+    console.log('🔥 [FIREBASE] handleSaveOrder llamado con:', updatedOrder);
     try {
       await updateOrder(updatedOrder.id, updatedOrder);
+      console.log('✅ [FIREBASE] Orden actualizada exitosamente');
+      showSuccess('Orden actualizada exitosamente');
       // Real-time listener will update the UI automatically
     } catch (error) {
-      console.error('Error saving order:', error);
-      alert('Error al guardar la orden');
+      console.error('❌ [FIREBASE] Error saving order:', error);
+      showError('Error al guardar la orden. Por favor intenta de nuevo.');
     }
   };
 
   const handleStatusChange = async (order, newStatus) => {
     try {
       await updateOrderStatus(order.id, newStatus);
+      showSuccess('Estado de la orden actualizado');
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Error al actualizar el estado de la orden');
+      showError('Error al actualizar el estado de la orden');
     }
   };
 
-  const handleCobrar = async (order) => {
-    const totalPrice = order.totalPrice || 0;
-    const advancePayment = parseFloat(order.advancePayment) || 0;
-    const remainingPayment = totalPrice - advancePayment;
+  const handleEntregar = (order) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Entregar Orden',
+      message: `¿Marcar orden #${order.orderNumber || order.id} como entregada?`,
+      type: 'default',
+      onConfirm: async () => {
+        try {
+          // Excluir campos temporales antes de guardar
+          const { currentStatus, ...cleanOrder } = order;
 
-    if (confirm(`¿Cobrar $${remainingPayment} a ${order.client}?`)) {
-      try {
-        const updatedOrder = {
-          ...order,
-          paymentStatus: 'paid',
-          paymentMethod: 'cash'
-        };
+          const completedOrder = {
+            ...cleanOrder,
+            orderStatus: 'completados',
+            completedDate: new Date().toISOString(),
+            paymentStatus: 'paid',
+            paymentMethod: order.paymentMethod === 'pending' ? 'cash' : order.paymentMethod
+          };
 
-        await handleSaveOrder(updatedOrder);
-        alert('Pago registrado exitosamente');
-      } catch (error) {
-        console.error('Error processing payment:', error);
-        alert('Error al procesar el pago');
+          await updateOrder(order.id, completedOrder);
+
+          // IMPORTANTE: Limpiar saveOnCloseRef para evitar que sobrescriba el estado completado
+          saveOnCloseRef.current = null;
+
+          handleCloseModal();
+          showSuccess(`Orden #${order.orderNumber || order.id} entregada exitosamente`);
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error) {
+          console.error('Error marking order as delivered:', error);
+          showError('Error al entregar la orden');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
       }
-    }
+    });
   };
 
-  const handleEntregar = async (order) => {
-    if (confirm(`¿Marcar orden #${order.orderNumber || order.id} como entregada?`)) {
-      try {
-        const completedOrder = {
-          ...order,
-          orderStatus: 'completados',
-          completedDate: new Date().toISOString(),
-          paymentStatus: 'paid',
-          paymentMethod: order.paymentMethod === 'pending' ? 'cash' : order.paymentMethod
-        };
+  const handleCancelOrder = (order) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Cancelar Orden',
+      message: `¿Estás seguro de cancelar la orden #${order.orderNumber || order.id}?`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          // Excluir campos temporales antes de guardar
+          const { currentStatus, ...cleanOrder } = order;
 
-        await updateOrder(order.id, completedOrder);
-        handleCloseModal();
-        alert(`Orden #${order.orderNumber || order.id} entregada exitosamente`);
-      } catch (error) {
-        console.error('Error marking order as delivered:', error);
-        alert('Error al entregar la orden');
+          const cancelledOrder = {
+            ...cleanOrder,
+            orderStatus: 'completados',
+            cancelledDate: new Date().toISOString()
+          };
+
+          await updateOrder(order.id, cancelledOrder);
+
+          // IMPORTANTE: Limpiar saveOnCloseRef para evitar que sobrescriba el estado
+          saveOnCloseRef.current = null;
+
+          handleCloseModal();
+          showSuccess('Orden cancelada');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error) {
+          console.error('Error cancelling order:', error);
+          showError('Error al cancelar la orden');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
       }
-    }
-  };
-
-  const handleCancelOrder = async (order) => {
-    if (confirm(`¿Estás seguro de cancelar la orden #${order.orderNumber || order.id}?`)) {
-      try {
-        const cancelledOrder = {
-          ...order,
-          orderStatus: 'completados',
-          cancelledDate: new Date().toISOString()
-        };
-
-        await updateOrder(order.id, cancelledOrder);
-        handleCloseModal();
-        alert('Orden cancelada');
-      } catch (error) {
-        console.error('Error cancelling order:', error);
-        alert('Error al cancelar la orden');
-      }
-    }
+    });
   };
 
   const handleEmail = (order) => {
-    alert(`Enviar correo a ${order.client}\nSe seleccionará plantilla según etapa de la orden`);
+    showInfo(`Enviar correo a ${order.client}. Se seleccionará plantilla según etapa de la orden.`);
   };
 
   const handleWhatsApp = (order) => {
     const phone = order.phone.replace(/\D/g, '');
     const message = `Hola ${order.client}, tu orden #${order.orderNumber || order.id} está lista!`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    showSuccess('Abriendo WhatsApp...');
   };
 
   const handleInvoice = (order) => {
-    alert(`Generar factura para orden #${order.orderNumber || order.id}\nCliente: ${order.client}`);
+    showInfo(`Generar factura para orden #${order.orderNumber || order.id} - Cliente: ${order.client}`);
   };
 
   // Calcular pagos pendientes (órdenes con pago pendiente o parcial)
@@ -369,11 +405,21 @@ const Dashboard = () => {
             onEmail={handleEmail}
             onWhatsApp={handleWhatsApp}
             onInvoice={handleInvoice}
-            onCobrar={handleCobrar}
             onEntregar={handleEntregar}
+            onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
           />
         </Modal>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

@@ -3,15 +3,18 @@ import InventoryCard from '../components/InventoryCard';
 import Modal from '../components/Modal';
 import InventoryForm from '../components/InventoryForm';
 import PageHeader from '../components/PageHeader';
+import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToInventory,
   addProduct,
   updateProduct,
   deleteProduct
 } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './Inventory.css';
 
 const Inventory = () => {
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
@@ -19,6 +22,13 @@ const Inventory = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
 
   const categories = ['Tenis', 'Zapatos', 'Botas', 'Accesorios', 'Gorras', 'Bolsas'];
 
@@ -77,29 +87,40 @@ const Inventory = () => {
       if (editingProduct) {
         // Edit existing product
         await updateProduct(editingProduct.id, formData);
+        showSuccess('Producto actualizado exitosamente');
       } else {
         // Create new product
         await addProduct(formData);
+        showSuccess('Producto agregado al inventario');
       }
       handleCloseModal();
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Error al guardar el producto');
+      showError('Error al guardar el producto. Por favor intenta de nuevo.');
     }
   };
 
-  const handleDeleteProduct = async (productId) => {
-    if (confirm('¿Estás seguro de eliminar este producto del inventario?')) {
-      try {
-        await deleteProduct(productId);
-        handleCloseModal();
-        // Real-time listener will update the UI automatically
-      } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('Error al eliminar el producto');
+  const handleDeleteProduct = (productId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Eliminar Producto',
+      message: '¿Estás seguro de eliminar este producto del inventario?',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteProduct(productId);
+          handleCloseModal();
+          showSuccess('Producto eliminado del inventario');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          // Real-time listener will update the UI automatically
+        } catch (error) {
+          console.error('Error deleting product:', error);
+          showError('Error al eliminar el producto');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
       }
-    }
+    });
   };
 
   const filteredProducts = filterProducts(products);
@@ -227,6 +248,16 @@ const Inventory = () => {
           initialData={editingProduct}
         />
       </Modal>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

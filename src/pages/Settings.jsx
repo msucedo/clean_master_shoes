@@ -31,21 +31,19 @@ const Settings = () => {
   const handleToggle = (category, key) => {
     if (category === 'notifications') {
       setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
-      console.log(`${key}: ${!notifications[key] ? 'Activado' : 'Desactivado'}`);
+      // TODO: Save notification preferences to backend
     } else if (category === 'integrations') {
       setIntegrations(prev => ({ ...prev, [key]: !prev[key] }));
-      console.log(`${key}: ${!integrations[key] ? 'Conectado' : 'Desconectado'}`);
+      // TODO: Save integration preferences to backend
     }
   };
 
   const handleLogoUpload = () => {
-    console.log('Open file picker for logo upload');
-    // Here you would open file picker
+    // TODO: Implement logo upload functionality
   };
 
   const handleSaveProfile = () => {
-    console.log('Save profile changes:', { businessName, phone, address });
-    // Here you would save the settings
+    // TODO: Save profile changes to backend
   };
 
   const handleSavePassword = () => {
@@ -53,14 +51,12 @@ const Settings = () => {
       alert('Las contraseñas no coinciden');
       return;
     }
-    console.log('Save new password');
-    // Here you would save the password
+    // TODO: Implement password change functionality
   };
 
   const handleLogout = () => {
     if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      console.log('Logging out...');
-      // Here you would handle logout
+      // TODO: Implement logout functionality
     }
   };
 
@@ -155,7 +151,7 @@ const Settings = () => {
             <button className="btn-primary" onClick={handleSaveProfile}>
               Guardar Cambios
             </button>
-            <button className="btn-secondary" onClick={() => console.log('Cancel')}>
+            <button className="btn-secondary">
               Cancelar
             </button>
           </div>

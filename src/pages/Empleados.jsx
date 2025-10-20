@@ -3,21 +3,31 @@ import EmpleadoItem from '../components/EmpleadoItem';
 import Modal from '../components/Modal';
 import EmpleadoForm from '../components/EmpleadoForm';
 import PageHeader from '../components/PageHeader';
+import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToEmployees,
   addEmployee,
   updateEmployee,
   deleteEmployee
 } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './Empleados.css';
 
 const Empleados = () => {
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmpleado, setEditingEmpleado] = useState(null);
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
 
   // Subscribe to real-time employees updates
   useEffect(() => {
@@ -68,6 +78,7 @@ const Empleados = () => {
       if (editingEmpleado) {
         // Edit existing employee
         await updateEmployee(editingEmpleado.id, formData);
+        showSuccess('Empleado actualizado exitosamente');
       } else {
         // Create new employee
         const newEmpleado = {
@@ -80,26 +91,36 @@ const Empleados = () => {
           notes: formData.notes || ''
         };
         await addEmployee(newEmpleado);
+        showSuccess('Empleado agregado exitosamente');
       }
       handleCloseModal();
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error saving employee:', error);
-      alert('Error al guardar el empleado');
+      showError('Error al guardar el empleado. Por favor intenta de nuevo.');
     }
   };
 
-  const handleDeleteEmpleado = async (empleadoId) => {
-    if (confirm('¿Estás seguro de eliminar este empleado?')) {
-      try {
-        await deleteEmployee(empleadoId);
-        handleCloseModal();
-        // Real-time listener will update the UI automatically
-      } catch (error) {
-        console.error('Error deleting employee:', error);
-        alert('Error al eliminar el empleado');
+  const handleDeleteEmpleado = (empleadoId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Eliminar Empleado',
+      message: '¿Estás seguro de eliminar este empleado?',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteEmployee(empleadoId);
+          handleCloseModal();
+          showSuccess('Empleado eliminado exitosamente');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          // Real-time listener will update the UI automatically
+        } catch (error) {
+          console.error('Error deleting employee:', error);
+          showError('Error al eliminar el empleado');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
       }
-    }
+    });
   };
 
   const filteredEmpleados = filterEmpleados(empleados);
@@ -180,6 +201,16 @@ const Empleados = () => {
           initialData={editingEmpleado}
         />
       </Modal>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

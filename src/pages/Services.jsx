@@ -3,21 +3,31 @@ import Modal from '../components/Modal';
 import ServiceForm from '../components/ServiceForm';
 import ServiceCard from '../components/ServiceCard';
 import PageHeader from '../components/PageHeader';
+import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToServices,
   addService,
   updateService,
   deleteService
 } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './Services.css';
 
 const Services = () => {
+  const { showSuccess, showError } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
 
   // Subscribe to real-time services updates
   useEffect(() => {
@@ -64,6 +74,7 @@ const Services = () => {
       if (selectedService) {
         // Editar servicio existente
         await updateService(selectedService.id, formData);
+        showSuccess('Servicio actualizado exitosamente');
       } else {
         // Crear nuevo servicio
         const newService = {
@@ -74,24 +85,36 @@ const Services = () => {
           }
         };
         await addService(newService);
+        showSuccess('Servicio creado exitosamente');
       }
       handleCloseModal();
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error saving service:', error);
-      alert('Error al guardar el servicio');
+      showError('Error al guardar el servicio. Por favor intenta de nuevo.');
     }
   };
 
-  const handleDeleteService = async (serviceId) => {
-    try {
-      await deleteService(serviceId);
-      handleCloseModal();
-      // Real-time listener will update the UI automatically
-    } catch (error) {
-      console.error('Error deleting service:', error);
-      alert('Error al eliminar el servicio');
-    }
+  const handleDeleteService = (serviceId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Eliminar Servicio',
+      message: '¿Estás seguro de eliminar este servicio?',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteService(serviceId);
+          handleCloseModal();
+          showSuccess('Servicio eliminado exitosamente');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          // Real-time listener will update the UI automatically
+        } catch (error) {
+          console.error('Error deleting service:', error);
+          showError('Error al eliminar el servicio');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      }
+    });
   };
 
   return (
@@ -151,6 +174,16 @@ const Services = () => {
           initialData={selectedService}
         />
       </Modal>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

@@ -1,28 +1,54 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import ImageUpload from './ImageUpload';
+import ConfirmDialog from './ConfirmDialog';
 import { subscribeToEmployees } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
 
-const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, onCancel, onEmail, onWhatsApp, onInvoice, onCobrar, onEntregar }) => {
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, onCancel, onEmail, onWhatsApp, onInvoice, onEntregar, onBeforeClose }) => {
+  const { showSuccess, showInfo } = useNotification();
+  // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
-
-  // Estado local para gestionar los servicios
   const [localServices, setLocalServices] = useState(order.services || []);
-
-  // Estado local para las imágenes de la orden
   const [orderImages, setOrderImages] = useState(order.orderImages || []);
-
-  // Estado para empleados activos
   const [activeEmployees, setActiveEmployees] = useState([]);
-
-  // Estado para el autor de la orden
   const [orderAuthor, setOrderAuthor] = useState(order.author || '');
+  const [orderStatus, setOrderStatus] = useState(order.orderStatus || currentTab || 'recibidos');
+  const [paymentData, setPaymentData] = useState({
+    advancePayment: parseFloat(order.advancePayment) || 0,
+    paymentStatus: order.paymentStatus || 'pending',
+    paymentMethod: order.paymentMethod || 'pending'
+  });
+  const [localDeliveryDate, setLocalDeliveryDate] = useState(order.deliveryDate);
+  const [generalNotes, setGeneralNotes] = useState(order.generalNotes || '');
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    type: 'default'
+  });
 
-  // Sincronizar orderImages cuando cambie la orden
-  useEffect(() => {
-    setOrderImages(order.orderImages || []);
-  }, [order.orderImages]);
+  // Referencia al input de fecha
+  const dateInputRef = useRef(null);
 
+  // Ref para mantener datos actualizados sin disparar cleanup
+  const latestOrderData = useRef();
+
+  // Ref para guardar valores iniciales y detectar cambios
+  const initialData = useRef({
+    services: order.services || [],
+    orderImages: order.orderImages || [],
+    orderStatus: order.orderStatus || currentTab || 'recibidos',
+    advancePayment: parseFloat(order.advancePayment) || 0,
+    paymentStatus: order.paymentStatus || 'pending',
+    paymentMethod: order.paymentMethod || 'pending',
+    deliveryDate: order.deliveryDate,
+    generalNotes: order.generalNotes || '',
+    author: order.author || ''
+  });
+
+  // ===== USE EFFECTS PARA SINCRONIZACIÓN =====
   // Cargar empleados activos
   useEffect(() => {
     const unsubscribe = subscribeToEmployees((employees) => {
@@ -33,25 +59,75 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     return () => unsubscribe();
   }, []);
 
-  // Estado local para gestionar el estado general de la orden
-  // Usar currentTab que indica en qué pestaña está la orden actualmente
-  const [orderStatus, setOrderStatus] = useState(currentTab || 'recibidos');
+  // Actualizar ref cada vez que cambien los estados locales
+  useEffect(() => {
+    latestOrderData.current = {
+      services: localServices,
+      orderImages: orderImages,
+      orderStatus: orderStatus,
+      advancePayment: paymentData.advancePayment,
+      paymentStatus: paymentData.paymentStatus,
+      paymentMethod: paymentData.paymentMethod,
+      deliveryDate: localDeliveryDate,
+      generalNotes: generalNotes,
+      author: orderAuthor
+    };
+  }, [localServices, orderImages, orderStatus, paymentData, localDeliveryDate, generalNotes, orderAuthor]);
 
-  // Estado local para gestionar los datos de pago
-  const [paymentData, setPaymentData] = useState({
-    advancePayment: parseFloat(order.advancePayment) || 0,
-    paymentStatus: order.paymentStatus || 'pending',
-    paymentMethod: order.paymentMethod || 'pending'
-  });
+  // Función que se ejecuta antes de cerrar el modal
+  // Usamos useCallback para memoizar la función y evitar closures obsoletas
+  const handleBeforeClose = useCallback(() => {
+    console.log('🔍 [1] handleBeforeClose ejecutado');
 
-  // Estado local para la fecha de entrega
-  const [localDeliveryDate, setLocalDeliveryDate] = useState(order.deliveryDate);
+    if (!latestOrderData.current || !onSave) {
+      console.log('⚠️ [2] No hay datos o no hay onSave', {
+        hasLatestData: !!latestOrderData.current,
+        hasOnSave: !!onSave
+      });
+      return;
+    }
 
-  // Estado local para las notas generales
-  const [generalNotes, setGeneralNotes] = useState(order.generalNotes || '');
+    const current = latestOrderData.current;
+    const initial = initialData.current;
 
-  // Referencia al input de fecha
-  const dateInputRef = useRef(null);
+    console.log('📊 [3] Comparando datos:', {
+      current,
+      initial,
+      currentJSON: JSON.stringify(current),
+      initialJSON: JSON.stringify(initial)
+    });
+
+    // Detectar cambios comparando datos actuales vs iniciales
+    const changed = JSON.stringify(current) !== JSON.stringify(initial);
+
+    console.log('🔄 [4] ¿Hay cambios?', changed);
+
+    // Solo guardar si hay cambios reales
+    if (changed) {
+      // Excluir campos temporales que no deben guardarse en Firebase
+      const { currentStatus, ...cleanOrder } = order;
+
+      const updatedOrder = {
+        ...cleanOrder,
+        ...latestOrderData.current
+      };
+      console.log('💾 [5] Llamando onSave con:', updatedOrder);
+      onSave(updatedOrder);
+    } else {
+      console.log('⏭️ [6] No hay cambios, saltando guardado');
+    }
+  }, [order, onSave]);
+
+  // Pasar handleBeforeClose al padre vía callback
+  useEffect(() => {
+    console.log('🔄 [EFFECT] Pasando handleBeforeClose al parent');
+    if (typeof onBeforeClose === 'function') {
+      onBeforeClose(handleBeforeClose);
+    }
+    // IMPORTANTE: NO incluir handleBeforeClose en dependencias para evitar loop infinito
+    // handleBeforeClose usa useCallback y refs, por lo que siempre tendrá valores actuales
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onBeforeClose]);
 
   // Estados disponibles para cada par
   const pairStatuses = [
@@ -83,9 +159,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   // Determinar si la orden está completamente pagada
   const isFullyPaid = remainingPayment <= 0 || paymentData.paymentStatus === 'paid';
 
-  // Determinar si mostrar botón de Cobrar o Entregar
-  const showCobrarButton = currentTab === 'enEntrega' && !isFullyPaid;
-  const showEntregarButton = currentTab === 'enEntrega' && isFullyPaid;
+  // Determinar si mostrar botón de Cobrar o Entregar (usar orderStatus local en lugar de currentTab)
+  const showCobrarButton = orderStatus === 'enEntrega' && !isFullyPaid;
+  const showEntregarButton = orderStatus === 'enEntrega' && isFullyPaid;
 
   // Métodos de pago
   const getPaymentMethodLabel = (method) => {
@@ -122,42 +198,13 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     );
 
     setLocalServices(updatedServices);
-
-    const updatedOrder = {
-      ...order,
-      orderStatus: orderStatus,
-      services: updatedServices,
-      generalNotes: generalNotes,
-      orderImages: orderImages,
-      author: orderAuthor,
-      deliveryDate: localDeliveryDate
-    };
-
-    // Llamar a onSave si está disponible
-    if (onSave) {
-      onSave(updatedOrder);
-    }
+    // Cambios se guardarán al cerrar el modal
   };
 
   // Cambiar imágenes de la orden (a nivel de orden, no de servicio)
   const handleOrderImagesChange = (newImages) => {
-    // Actualizar estado local
     setOrderImages(newImages);
-
-    const updatedOrder = {
-      ...order,
-      orderStatus: orderStatus,
-      orderImages: newImages,
-      services: localServices,
-      generalNotes: generalNotes,
-      author: orderAuthor,
-      deliveryDate: localDeliveryDate
-    };
-
-    // Llamar a onSave si está disponible
-    if (onSave) {
-      onSave(updatedOrder);
-    }
+    // Cambios se guardarán al cerrar el modal
   };
 
   // Verificar si todos los servicios están completados o cancelados
@@ -176,87 +223,25 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     }
 
     setOrderStatus(newStatus);
-
-    // Crear orden actualizada con TODOS los campos actuales
-    const updatedOrder = {
-      ...order,
-      orderStatus: newStatus,
-      services: localServices,
-      generalNotes: generalNotes,
-      orderImages: orderImages,
-      author: orderAuthor,
-      deliveryDate: localDeliveryDate
-    };
-
-    // Primero guardar todos los cambios con onSave
-    if (onSave) {
-      onSave(updatedOrder);
-    }
-
-    // Luego llamar a onStatusChange para mover la orden entre columnas
-    if (onStatusChange) {
-      onStatusChange(updatedOrder, newStatus);
-    }
+    // Cambios se guardarán al cerrar el modal
   };
 
   // Handler para guardar la fecha de entrega
   const handleSaveDeliveryDate = (newDate) => {
-    // Actualizar estado local inmediatamente para refrescar la vista
     setLocalDeliveryDate(newDate);
-
-    const updatedOrder = {
-      ...order,
-      orderStatus: orderStatus,
-      deliveryDate: newDate, // Guardar en formato YYYY-MM-DD
-      services: localServices,
-      generalNotes: generalNotes,
-      orderImages: orderImages,
-      author: orderAuthor
-    };
-
-    if (onSave) {
-      onSave(updatedOrder);
-    }
+    // Cambios se guardarán al cerrar el modal
   };
 
   // Handler para actualizar las notas generales
   const handleGeneralNotesChange = (e) => {
-    const newNotes = e.target.value;
-    setGeneralNotes(newNotes);
-
-    const updatedOrder = {
-      ...order,
-      orderStatus: orderStatus,
-      generalNotes: newNotes,
-      services: localServices,
-      orderImages: orderImages,
-      author: orderAuthor,
-      deliveryDate: localDeliveryDate
-    };
-
-    if (onSave) {
-      onSave(updatedOrder);
-    }
+    setGeneralNotes(e.target.value);
+    // Cambios se guardarán al cerrar el modal
   };
 
   // Handler para cambiar el autor de la orden
   const handleAuthorChange = (e) => {
-    const newAuthor = e.target.value;
-    setOrderAuthor(newAuthor);
-
-    const updatedOrder = {
-      ...order,
-      orderStatus: orderStatus,
-      author: newAuthor,
-      services: localServices,
-      orderImages: orderImages,
-      generalNotes: generalNotes,
-      deliveryDate: localDeliveryDate
-    };
-
-    if (onSave) {
-      onSave(updatedOrder);
-    }
+    setOrderAuthor(e.target.value);
+    // Cambios se guardarán al cerrar el modal
   };
 
   // Función para formatear fecha de entrega para mostrar
@@ -284,17 +269,42 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     }
   };
 
-  // Handler personalizado para cobrar que actualiza el estado local
+  // Handler personalizado para cobrar
   const handleCobrar = () => {
-    if (onCobrar) {
-      onCobrar(order);
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Confirmar Pago',
+      message: `¿Confirmar pago de $${remainingPayment}?`,
+      type: 'default',
+      onConfirm: () => {
+        // Actualizar estado local - se guardará al cerrar el modal
+        setPaymentData({
+          ...paymentData,
+          paymentStatus: 'paid',
+          paymentMethod: 'cash'
+        });
+        // Notificar al usuario
+        showInfo('Pago registrado. Se guardará al cerrar el modal.');
+        setConfirmDialog({ ...confirmDialog, isOpen: false });
+      }
+    });
+  };
 
-      // Actualizar el estado local inmediatamente después de cobrar
-      setPaymentData({
-        advancePayment: paymentData.advancePayment, // Mantener el anticipo original
-        paymentStatus: 'paid',
-        paymentMethod: 'cash' // Actualizar a efectivo
-      });
+  // Handler para entregar - guarda todos los cambios y marca como entregada
+  const handleEntregar = () => {
+    if (latestOrderData.current && onEntregar) {
+      // Excluir campos temporales antes de pasar al padre
+      const { currentStatus, ...cleanOrder } = order;
+
+      // Construir objeto final con todos los cambios del ref
+      const updatedOrder = {
+        ...cleanOrder,
+        ...latestOrderData.current
+      };
+
+      // Llamar a onEntregar del padre (Dashboard/Orders)
+      // Este manejará la confirmación y marcará como completada
+      onEntregar(updatedOrder);
     }
   };
 
@@ -564,7 +574,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
           {showEntregarButton && (
             <button
               className="btn-close-order btn-entregar-large"
-              onClick={() => onEntregar && onEntregar(order)}
+              onClick={handleEntregar}
             >
               <span className="btn-close-icon">📦</span>
               <div className="btn-close-content">
@@ -624,6 +634,16 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
           </div>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

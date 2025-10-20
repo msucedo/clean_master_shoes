@@ -2,6 +2,7 @@ Clean master shoes
 
 // WIP
 - [EPIC]Pantalla inventario
+    -[FIX]Validar si hace falta algo mas
 
 // PRIORIDAD ALTA
 
@@ -22,7 +23,42 @@ Clean master shoes
 - [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
 - [FIX]Habilitar nueva orden en iphone, ux no se ve
 
+
+     📝 Plan de Mejoras Propuesto                                                                                      
+     │                                                                                                                   │
+     │ Fase 1: Crítico (1-2 días)                                                                                        │
+     │                                                                                                                   │
+     │ 1. Implementar Error Boundary global                                                                              │
+     │ 2. Agregar try-catch en todas las operaciones async                                                               │
+     │ 3. Crear componente de Confirmación/Notificación                                                                  │
+     │ 4. Verificar y limpiar .env del historial de git                                                                  │
+     │ 5. Remover console.logs                                                                                           │
+     │                                                                                                                   │
+     │ Fase 2: Performance (2-3 días)                                                                                    │
+     │                                                                                                                   │
+     │ 6. Agregar PropTypes a todos los componentes                                                                      │
+     │ 7. Implementar useCallback y useMemo donde corresponda                                                            │
+     │ 8. Cambiar keys de index a IDs únicos                                                                             │
+     │ 9. Implementar optimistic updates en Firebase                                                                     │
+     │                                                                                                                   │
+     │ Fase 3: UX/Features (3-4 días)                                                                                    │
+     │                                                                                                                   │
+     │ 10. Implementar validación de formularios con react-hook-form                                                     │
+     │ 11. Unificar loading states                                                                                       │
+     │ 12. Mejorar accesibilidad (a11y)                                                                                  │
+     │ 13. Agregar tests básicos                                                                                         │
+     │                                                                                                                   │
+     │ Fase 4: DevOps (1 día)                                                                                            │
+     │                                                                                                                   │
+     │ 14. Configurar linting en pre-commit hook                                                                         │
+     │ 15. Actualizar documentación                                                                                      │
+     │ 16. Configurar CI/CD básico      
+
 // COMPLETADO
+- [FIX]asegurarse que al entregar orden, se guarde con el ultimo estado de completado
+- [FIX]Arreglar bug de múltiples notificaciones usando useRef
+- [FIX]Optimizar llamadas a Firebase - Guardar orden solo al cerrar modal
+- [EPIC]Fase 1
 - [FEATURE]Agregar logica a nuevas etiquetas del dashboard, validar las que faltan de logica
 - [FEATURE]Agregar al empleado, aun lado de la etiqueta del estatus del empelado, un boton que diga ver ordenes activas y que se desplique una sección por debajo con las ordenes que tenga de autor ese empleado
 - [EPIC]Pantalla empleado

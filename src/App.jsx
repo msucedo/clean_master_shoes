@@ -9,25 +9,33 @@ import Settings from './pages/Settings';
 import Empleados from './pages/Empleados';
 import Inventory from './pages/Inventory';
 import Promotions from './pages/Promotions';
+import ErrorBoundary from './components/ErrorBoundary';
+import { NotificationProvider } from './contexts/NotificationContext';
+import Notification from './components/Notification';
 import './styles/global.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="clients" element={<Clients />} />
-          <Route path="services" element={<Services />} />
-          <Route path="employees" element={<Empleados />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="promotions" element={<Promotions />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <NotificationProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="clients" element={<Clients />} />
+              <Route path="services" element={<Services />} />
+              <Route path="employees" element={<Empleados />} />
+              <Route path="inventory" element={<Inventory />} />
+              <Route path="promotions" element={<Promotions />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+          <Notification />
+        </BrowserRouter>
+      </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 
