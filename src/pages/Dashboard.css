@@ -188,6 +188,34 @@
     gap: 20px;
 }
 
+.task-cards .order-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-gray-800);
+    border: 1px solid var(--color-gray-700);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    overflow: hidden;
+    height: 330px;
+}
+
+.task-cards .order-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Override badges background for dashboard cards only */
+.task-cards .order-card .pairs-count-badge {
+    background: var(--color-gray-700);
+}
+
+/* Completed badges with solid green background - dashboard only */
+.task-cards .order-card .pairs-count-badge.completed {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.3) 100%);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .search-wrapper {

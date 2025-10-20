@@ -14,6 +14,8 @@ Clean master shoes
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
+- [FEATURE]Al estar creando una orden, añadir logica para poder pagar en ese momento
+    - [FEATURE]si seleccionas un metodo de pago, el boton crear orden se actualiza por Cobrar, si se hace clic en cobrar entonces una animacion de flip voltea toda el modal de nueva orden, es decir, no solo el lado derecho, y que aparezca una nueva pantalla que sea de cobrar, que aparezcan los items de la orden, el impuesto, el total, dependiendo del metodo de pago seleccionado la pantalla deberia tener diferencias
 - [FEATURE]la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
