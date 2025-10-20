@@ -125,10 +125,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
+      orderStatus: orderStatus,
       services: updatedServices,
       generalNotes: generalNotes,
       orderImages: orderImages,
-      author: orderAuthor
+      author: orderAuthor,
+      deliveryDate: localDeliveryDate
     };
 
     // Llamar a onSave si está disponible
@@ -144,10 +146,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
+      orderStatus: orderStatus,
       orderImages: newImages,
       services: localServices,
       generalNotes: generalNotes,
-      author: orderAuthor
+      author: orderAuthor,
+      deliveryDate: localDeliveryDate
     };
 
     // Llamar a onSave si está disponible
@@ -173,9 +177,25 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     setOrderStatus(newStatus);
 
-    // Llamar a onStatusChange para mover la orden entre columnas
+    // Crear orden actualizada con TODOS los campos actuales
+    const updatedOrder = {
+      ...order,
+      orderStatus: newStatus,
+      services: localServices,
+      generalNotes: generalNotes,
+      orderImages: orderImages,
+      author: orderAuthor,
+      deliveryDate: localDeliveryDate
+    };
+
+    // Primero guardar todos los cambios con onSave
+    if (onSave) {
+      onSave(updatedOrder);
+    }
+
+    // Luego llamar a onStatusChange para mover la orden entre columnas
     if (onStatusChange) {
-      onStatusChange(order, newStatus);
+      onStatusChange(updatedOrder, newStatus);
     }
   };
 
@@ -186,6 +206,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
+      orderStatus: orderStatus,
       deliveryDate: newDate, // Guardar en formato YYYY-MM-DD
       services: localServices,
       generalNotes: generalNotes,
@@ -205,10 +226,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
+      orderStatus: orderStatus,
       generalNotes: newNotes,
       services: localServices,
       orderImages: orderImages,
-      author: orderAuthor
+      author: orderAuthor,
+      deliveryDate: localDeliveryDate
     };
 
     if (onSave) {
@@ -223,10 +246,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
     const updatedOrder = {
       ...order,
+      orderStatus: orderStatus,
       author: newAuthor,
       services: localServices,
       orderImages: orderImages,
-      generalNotes: generalNotes
+      generalNotes: generalNotes,
+      deliveryDate: localDeliveryDate
     };
 
     if (onSave) {

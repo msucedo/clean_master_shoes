@@ -76,9 +76,14 @@
     overflow-x: hidden;
     padding: 20px 30px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    align-content: start;
+    grid-template-columns: repeat(auto-fill, 240px);
+    gap: 10px;
+}
+
+/* Force order cards to have fixed width */
+.orders-list .order-card {
+    width: 240px;
+    max-width: 240px;
 }
 
 /* Empty State */
@@ -128,8 +133,8 @@
 
     .orders-list {
         padding: 25px 30px;
-        gap: 14px;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        grid-template-columns: repeat(auto-fill, 240px);
     }
 }
 
@@ -156,8 +161,8 @@
 
     .orders-list {
         padding: 20px;
-        gap: 12px;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        grid-template-columns: 1fr;
     }
 }
 

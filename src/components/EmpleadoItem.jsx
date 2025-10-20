@@ -116,7 +116,7 @@ const EmpleadoItem = ({ empleado, onClick }) => {
               <p>No hay órdenes activas asignadas a este empleado</p>
             </div>
           ) : (
-            <div className="orders-list">
+            <div className="empleado-orders-list">
               {activeOrders.map((order) => (
                 <div key={order.id} className="order-item">
                   <div className="order-info">

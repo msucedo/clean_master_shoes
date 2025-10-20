@@ -328,15 +328,17 @@ const Orders = () => {
             <p>No se encontraron órdenes en esta categoría</p>
           </div>
         ) : (
-          currentOrders.map(order => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              activeTab={activeTab}
-              onOrderClick={handleOrderClick}
-              onStatusChange={handleStatusChange}
-            />
-          ))
+          <>
+            {currentOrders.map(order => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                activeTab={activeTab}
+                onOrderClick={handleOrderClick}
+                onStatusChange={handleStatusChange}
+              />
+            ))}
+          </>
         )}
       </div>
 

@@ -1,7 +1,7 @@
 Clean master shoes
 
 // WIP
-
+- [EPIC]Pantalla inventario
 
 // PRIORIDAD ALTA
 
@@ -14,7 +14,7 @@ Clean master shoes
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
-- [EPIC]Pantalla catalogo
+- [FEATURE]la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
 - [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
@@ -34,7 +34,7 @@ Clean master shoes
 - [EPIC]Tab servicios, Agregar funcionalidad al boton de agregar servicio, remover data de prueba y establer servicios verdaderos
 - [FIX]En lugar que en la columna "listos" aparezca el boton de cobrar y de entregar en los detalles de la orden, mejor quiero que eso salga en la nueva 4ta columna "En entrega", tambien cambia la validacion que no deja avanzar a "listos" hasta completar todos los items por no dejar avanzar a la nueva 4ta columna "En entrega"
 - [FEATURE]En la tab ordenes, agregar una 4ta columna "En entrega"
-- [UX]Nuevas tab para el sidebar: empleados, catalogo y promociones
+- [UX]Nuevas tab para el sidebar: empleados, inventario y promociones
 - [EPIC]nueva funcionalidad: aparte de tenis, poder aceptar ordenes de gorras y bolsas
 - [VAL]La fecha de entrega no debe ser anterior a hoy
 - fix: en el header, centrar el icono de la lupa, en el recuadro que lo rodea

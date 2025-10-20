@@ -460,6 +460,106 @@ export const deleteEmployee = async (employeeId) => {
   }
 };
 
+// ==================== INVENTORY ====================
+
+/**
+ * Get all inventory products
+ * @returns {Promise<Array>} Array of products
+ */
+export const getAllInventory = async () => {
+  try {
+    const inventoryRef = collection(db, 'inventory');
+    const querySnapshot = await getDocs(inventoryRef);
+
+    const products = [];
+    querySnapshot.forEach((doc) => {
+      products.push({ id: doc.id, ...doc.data() });
+    });
+
+    return products;
+  } catch (error) {
+    console.error('Error getting inventory:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to real-time inventory updates
+ * @param {Function} callback - Function to call when inventory changes
+ * @returns {Function} Unsubscribe function
+ */
+export const subscribeToInventory = (callback) => {
+  try {
+    const inventoryRef = collection(db, 'inventory');
+
+    return onSnapshot(inventoryRef, (snapshot) => {
+      const products = [];
+      snapshot.forEach((doc) => {
+        products.push({ id: doc.id, ...doc.data() });
+      });
+      callback(products);
+    }, (error) => {
+      console.error('Error in inventory subscription:', error);
+    });
+  } catch (error) {
+    console.error('Error subscribing to inventory:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add a new product to inventory
+ * @param {Object} productData - Product data
+ * @returns {Promise<string>} Document ID of the created product
+ */
+export const addProduct = async (productData) => {
+  try {
+    const inventoryRef = collection(db, 'inventory');
+    const docRef = await addDoc(inventoryRef, {
+      ...productData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding product:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing product in inventory
+ * @param {string} productId - Product document ID
+ * @param {Object} productData - Updated product data
+ */
+export const updateProduct = async (productId, productData) => {
+  try {
+    const productRef = doc(db, 'inventory', productId);
+    await updateDoc(productRef, {
+      ...productData,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a product from inventory
+ * @param {string} productId - Product document ID
+ */
+export const deleteProduct = async (productId) => {
+  try {
+    const productRef = doc(db, 'inventory', productId);
+    await deleteDoc(productRef);
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
+};
+
 // ==================== BACKUP ====================
 
 /**
@@ -468,11 +568,12 @@ export const deleteEmployee = async (employeeId) => {
  */
 export const exportAllData = async () => {
   try {
-    const [orders, services, clients, employees] = await Promise.all([
+    const [orders, services, clients, employees, inventory] = await Promise.all([
       getAllOrders(),
       getAllServices(),
       getAllClients(),
-      getAllEmployees()
+      getAllEmployees(),
+      getAllInventory()
     ]);
 
     return {
@@ -480,6 +581,7 @@ export const exportAllData = async () => {
       services,
       clients,
       employees,
+      inventory,
       exportedAt: new Date().toISOString(),
       version: '1.0'
     };

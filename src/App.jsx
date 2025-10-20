@@ -7,7 +7,7 @@ import Services from './pages/Services';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Empleados from './pages/Empleados';
-import Catalog from './pages/Catalog';
+import Inventory from './pages/Inventory';
 import Promotions from './pages/Promotions';
 import './styles/global.css';
 
@@ -21,7 +21,7 @@ function App() {
           <Route path="clients" element={<Clients />} />
           <Route path="services" element={<Services />} />
           <Route path="employees" element={<Empleados />} />
-          <Route path="catalog" element={<Catalog />} />
+          <Route path="inventory" element={<Inventory />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
