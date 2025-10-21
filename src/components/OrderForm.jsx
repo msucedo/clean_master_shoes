@@ -255,10 +255,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     if (!formData.deliveryDate) {
       newErrors.deliveryDate = 'La fecha de entrega es requerida';
     }
-    const totalPrice = calculateTotalPrice();
-    if (formData.advancePayment && parseFloat(formData.advancePayment) > totalPrice) {
-      newErrors.advancePayment = 'El anticipo no puede ser mayor al precio total';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -285,7 +281,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   };
 
   // Función para crear la orden (extraída para reutilizar)
-  const createOrder = (paymentStatus = null) => {
+  const createOrder = (paymentStatus = null, advancePayment = 0) => {
     setIsSubmitting(true);
 
     // Separar servicios y productos del carrito
@@ -329,6 +325,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
       products,
       orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
       totalPrice: calculateTotalPrice(),
+      advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial')
     };
 
@@ -340,9 +337,9 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   // Handler para cuando se confirma el cobro desde PaymentScreen
   const handlePaymentConfirm = (paymentData) => {
-    // Cerrar pantalla de cobro y crear orden con estado 'paid'
+    // Cerrar pantalla de cobro y crear orden con datos de pago
     setShowPaymentScreen(false);
-    createOrder('paid');
+    createOrder(paymentData.paymentStatus, paymentData.advancePayment);
   };
 
   // Handler para cancelar desde PaymentScreen
@@ -486,7 +483,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
             quantity: item.quantity
           }))}
           totalPrice={calculateTotalPrice()}
-          advancePayment={parseFloat(formData.advancePayment) || 0}
+          advancePayment={0}
           paymentMethod={formData.paymentMethod}
           onConfirm={handlePaymentConfirm}
           onCancel={handlePaymentCancel}
@@ -741,24 +738,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                       ⏳ Pendiente
                     </button>
                   </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Anticipo (Opcional)</label>
-                  <input
-                    type="number"
-                    name="advancePayment"
-                    className={`form-input ${errors.advancePayment ? 'error' : ''}`}
-                    placeholder="0"
-                    value={formData.advancePayment}
-                    onChange={handleChange}
-                  />
-                  {errors.advancePayment && <span className="error-message">{errors.advancePayment}</span>}
-                  {formData.advancePayment > 0 && (
-                    <div className="advance-info">
-                      <span>Restante: ${calculateTotalPrice() - parseFloat(formData.advancePayment || 0)}</span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="form-group">

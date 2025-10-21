@@ -5,21 +5,15 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
   const [amountReceived, setAmountReceived] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(paymentMethod);
 
-  // Calcular subtotal (sin impuesto)
+  // Calcular total
   const subtotal = useMemo(() => {
     const servicesTotal = services.reduce((sum, service) => sum + (service.price || 0), 0);
     const productsTotal = products.reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
     return servicesTotal + productsTotal;
   }, [services, products]);
 
-  // Calcular impuesto (16% IVA)
-  const tax = useMemo(() => subtotal * 0.16, [subtotal]);
-
-  // Total con impuesto
-  const totalWithTax = useMemo(() => subtotal + tax, [subtotal, tax]);
-
   // Saldo restante a cobrar (después de anticipo)
-  const remainingBalance = useMemo(() => totalWithTax - advancePayment, [totalWithTax, advancePayment]);
+  const remainingBalance = useMemo(() => subtotal - advancePayment, [subtotal, advancePayment]);
 
   // Calcular cambio (solo si es efectivo)
   const change = useMemo(() => {
@@ -30,19 +24,55 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
   }, [selectedMethod, amountReceived, remainingBalance]);
 
   const handleConfirm = () => {
-    // Validar que se ingresó monto suficiente si es efectivo
+    // Lógica para método de pago en efectivo
     if (selectedMethod === 'cash') {
       const received = parseFloat(amountReceived) || 0;
-      if (received < remainingBalance) {
+
+      // Si hay anticipo previo (cobro en entrega), validar monto suficiente
+      if (advancePayment > 0 && received < remainingBalance) {
         alert(`Monto insuficiente. Falta: $${(remainingBalance - received).toFixed(2)}`);
         return;
       }
+
+      // Si es orden nueva (advancePayment === 0), permitir pago parcial
+      if (advancePayment === 0) {
+        if (received <= 0) {
+          alert('Debe ingresar un monto mayor a $0');
+          return;
+        }
+
+        // Determinar si es pago parcial o completo
+        if (received < remainingBalance) {
+          // Pago parcial - usar como anticipo
+          onConfirm({
+            amountReceived: received,
+            change: 0,
+            paymentMethod: selectedMethod,
+            advancePayment: received,
+            paymentStatus: 'partial'
+          });
+          return;
+        } else {
+          // Pago completo o con cambio
+          onConfirm({
+            amountReceived: received,
+            change: received - remainingBalance,
+            paymentMethod: selectedMethod,
+            advancePayment: remainingBalance,
+            paymentStatus: 'paid'
+          });
+          return;
+        }
+      }
     }
 
+    // Para otros métodos o flujo normal de cobro en entrega
     onConfirm({
       amountReceived: selectedMethod === 'cash' ? parseFloat(amountReceived) : remainingBalance,
       change: change,
-      paymentMethod: selectedMethod
+      paymentMethod: selectedMethod,
+      advancePayment: remainingBalance,
+      paymentStatus: 'paid'
     });
   };
 
@@ -90,17 +120,9 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
 
         {/* Resumen de Totales */}
         <div className="payment-summary">
-          <div className="summary-row">
-            <span className="summary-label">Subtotal:</span>
-            <span className="summary-value">${subtotal.toFixed(2)}</span>
-          </div>
-          <div className="summary-row">
-            <span className="summary-label">IVA (16%):</span>
-            <span className="summary-value">${tax.toFixed(2)}</span>
-          </div>
           <div className="summary-row total-row">
             <span className="summary-label">Total:</span>
-            <span className="summary-value total-value">${totalWithTax.toFixed(2)}</span>
+            <span className="summary-value total-value">${subtotal.toFixed(2)}</span>
           </div>
 
           {advancePayment > 0 && (
