@@ -2,6 +2,7 @@ Clean master shoes
 
 // WIP
 
+
 // PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
@@ -15,9 +16,8 @@ Clean master shoes
 // BACKLOG
 -[FIX]de orderform, remover el campo de la UI "prioridad", por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente a prioridad ponle el valor express
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
-- [FEATURE]Agregar filtro de mas recientes, mas antiguas, con mas serviciios, en la tab ordenes para todas las columnas
-- [FEATURE]en la tab clientes, deberia venir un boton en cada cliente que diga, "ver historial" y donde se despligue asi como en empleados puedes ver las ordenes activas, aca deberias ver la misma tipo de seccion pero con todas las clientes ya completadas de ese cliente y tambien si tiene activas
-- [FEATURE]la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
+- [FEATURE]Filtros para ordenes - Agregar filtro de mas recientes, mas antiguas, con mas serviciios, en la tab ordenes para todas las columnas
+- [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
 - [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
@@ -59,6 +59,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+- [FEATURE]historial de ordenes del cliente en la tab clientes - deberia venir un boton en cada cliente que diga, "ver historial" y donde se despligue asi como en empleados puedes ver las ordenes activas, aca deberias ver la misma tipo de seccion pero con todas las clientes ya completadas de ese cliente y tambien si tiene activas
 - [EPIC]Pantalla inventario
 - [FIX]Al crear una orden, remover el campo de anticipo de la pantalla de pago, en caso que el usuario seleccione el metodo de pago como efectivo, entonces en la pantalla de payment, donde se ingresa el monto, si el monto es menor al total, usalo como anticipo, crea la orden pero deberia quedar con pado pendiente y el resto pendiente deberia ser correcto
 -[FIX]Remover tax del paymentscreen, no calcular y borrar todo lo relacionado a eso
