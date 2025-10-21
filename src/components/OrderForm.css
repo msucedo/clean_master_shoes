@@ -538,6 +538,44 @@ select.form-input {
     display: block;
 }
 
+/* Stock Warning Badge */
+.service-icon-button {
+    position: relative;
+}
+
+.stock-warning {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 14px;
+    background: rgba(245, 158, 11, 0.2);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Empty Products State */
+.empty-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 24px;
+    color: var(--color-gray-500);
+}
+
+.empty-products .empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.empty-products p {
+    margin: 0;
+    font-size: 14px;
+}
+
 /* Cart Sidebar */
 .order-cart-sidebar {
     background: #0a0a0a;
@@ -563,9 +601,6 @@ select.form-input {
 
 .left-flip-front,
 .left-flip-back {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
@@ -596,43 +631,73 @@ select.form-input {
 }
 
 .left-flip-front {
+    position: relative;
     transform: rotateY(0deg);
 }
 
 .left-flip-back {
+    position: absolute;
+    top: 0;
+    left: 0;
     transform: rotateY(180deg);
+}
+
+/* Cuando el flip está activo, intercambiar posicionamiento */
+.left-flip-container.flipped .left-flip-front {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.left-flip-container.flipped .left-flip-back {
+    position: relative;
 }
 
 /* Flip Container - Right Side (Cart) */
 .cart-flip-container {
     position: relative;
     width: 100%;
+    min-height: 500px;
     height: 100%;
     transition: transform 0.6s;
     transform-style: preserve-3d;
 }
 
 .cart-flip-container.flipped {
-    transform: rotateY(-180deg);
+    transform: rotateY(180deg);
 }
 
 /* Flip Sides */
 .cart-flip-front,
 .cart-flip-back {
-    position: absolute;
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .cart-flip-front {
+    position: relative;
     transform: rotateY(0deg);
 }
 
 .cart-flip-back {
-    transform: rotateY(-180deg);
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotateY(180deg);
+}
+
+.cart-flip-container.flipped .cart-flip-front {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.cart-flip-container.flipped .cart-flip-back {
+    position: relative;
 }
 
 .cart-header {

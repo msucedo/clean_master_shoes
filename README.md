@@ -3,6 +3,10 @@ Clean master shoes
 // WIP
 - [EPIC]Pantalla inventario
     -[FIX]Validar si hace falta algo mas
+    -[FEATURE]Mostrar el emoji del inventario al momento de crear la orden, agregar inventario a la orden, guardar producto en orden
+    -[FIX]al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
+        -[FIX]si no hay servicios, cobrar directo y que se complete la orden
+    -[FIX]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 
 // PRIORIDAD ALTA
 
@@ -15,13 +19,15 @@ Clean master shoes
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
+- [FEATURE]en la tab clientes, deberia venir un boton en cada cliente que diga, "ver historial" y donde se despligue asi como en empleados puedes ver las ordenes activas, aca deberias ver la misma tipo de seccion pero con todas las clientes ya completadas de ese cliente y tambien si tiene activas
 - [FEATURE]Al estar creando una orden, añadir logica para poder pagar en ese momento
-    - [FEATURE]si seleccionas un metodo de pago, el boton crear orden se actualiza por Cobrar, si se hace clic en cobrar entonces una animacion de flip voltea toda el modal de nueva orden, es decir, no solo el lado derecho, y que aparezca una nueva pantalla que sea de cobrar, que aparezcan los items de la orden, el impuesto, el total, dependiendo del metodo de pago seleccionado la pantalla deberia tener diferencias
+    - [FEATURE]si seleccionas un metodo de pago, el boton "crear orden" se reemplaza por uno que diga "Cobrar y crear orden", si se hace clic en "cobrar y crear orden" entonces una animacion de flip voltea toda el modal de nueva orden, es decir, no solo el lado derecho, tambien el izquierdo pero como si fuera un solo giro no dos al mismo tiempo, y que aparezca una nueva pantalla que sea de cobrar, que aparezcan los items de la orden, el impuesto, el total
 - [FEATURE]la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
 - [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
 - [FIX]Habilitar nueva orden en iphone, ux no se ve
+-[VAL]Pantalla de pago, validar este todo correcto con jhnonyy
 
 
      📝 Plan de Mejoras Propuesto                                                                                      
@@ -55,6 +61,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[EPIC]primero definir el funcionamiento de cobrar antes de crear una orden y despues continuar con el fix(no crear ordenes sin servicios, cobrar directo)
 - [FIX]asegurarse que al entregar orden, se guarde con el ultimo estado de completado
 - [FIX]Arreglar bug de múltiples notificaciones usando useRef
 - [FIX]Optimizar llamadas a Firebase - Guardar orden solo al cerrar modal

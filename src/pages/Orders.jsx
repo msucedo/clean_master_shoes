@@ -274,6 +274,7 @@ const Orders = () => {
         phone: formData.phone,
         email: formData.email || '',
         services: formData.services || [],
+        products: formData.products || [],
         orderImages: formData.orderImages || [],
         totalPrice: formData.totalPrice || 0,
         deliveryDate: formData.deliveryDate,
@@ -281,7 +282,8 @@ const Orders = () => {
         paymentMethod: formData.paymentMethod || 'pending',
         advancePayment: formData.advancePayment || 0,
         generalNotes: formData.generalNotes || '',
-        paymentStatus: formData.paymentMethod === 'pending' ? 'pending' : 'partial',
+        // Usar paymentStatus si viene desde OrderForm, sino calcularlo
+        paymentStatus: formData.paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
         orderStatus: 'recibidos'
       };
 

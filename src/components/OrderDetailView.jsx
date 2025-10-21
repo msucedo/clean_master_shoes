@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
+import PaymentScreen from './PaymentScreen';
 import { subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
@@ -9,7 +10,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   const { showSuccess, showInfo } = useNotification();
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
+  const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const [localServices, setLocalServices] = useState(order.services || []);
+  const [localProducts, setLocalProducts] = useState(order.products || []);
   const [orderImages, setOrderImages] = useState(order.orderImages || []);
   const [activeEmployees, setActiveEmployees] = useState([]);
   const [orderAuthor, setOrderAuthor] = useState(order.author || '');
@@ -145,12 +148,17 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
     { value: 'enEntrega', label: '🚚 En Entrega' }
   ];
 
-  // Calcular precio total excluyendo servicios cancelados
+  // Calcular precio total excluyendo servicios cancelados y sumando productos
   const totalPrice = useMemo(() => {
-    return localServices
+    const servicesTotal = localServices
       .filter(service => service.status !== 'cancelled')
       .reduce((sum, service) => sum + (service.price || 0), 0);
-  }, [localServices]);
+
+    const productsTotal = localProducts
+      .reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
+
+    return servicesTotal + productsTotal;
+  }, [localServices, localProducts]);
 
   const advancePayment = paymentData.advancePayment;
   // Si el estado de pago es 'paid', el restante es 0, sino calcularlo normalmente
@@ -159,9 +167,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
   // Determinar si la orden está completamente pagada
   const isFullyPaid = remainingPayment <= 0 || paymentData.paymentStatus === 'paid';
 
-  // Determinar si mostrar botón de Cobrar o Entregar (usar orderStatus local en lugar de currentTab)
-  const showCobrarButton = orderStatus === 'enEntrega' && !isFullyPaid;
-  const showEntregarButton = orderStatus === 'enEntrega' && isFullyPaid;
+  // Determinar si mostrar botón de Entregar/Cobrar (usar orderStatus local en lugar de currentTab)
+  const showDeliverButton = orderStatus === 'enEntrega';
+  const deliverButtonText = !isFullyPaid ? '💰 Cobrar y Entregar' : '✅ Entregar Orden';
 
   // Métodos de pago
   const getPaymentMethodLabel = (method) => {
@@ -292,6 +300,17 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
   // Handler para entregar - guarda todos los cambios y marca como entregada
   const handleEntregar = () => {
+    // Si hay saldo pendiente, mostrar pantalla de cobro
+    if (!isFullyPaid) {
+      setShowPaymentScreen(true);
+    } else {
+      // Si ya está pagado, ejecutar entrega directamente
+      executeDelivery();
+    }
+  };
+
+  // Función para ejecutar la entrega (extraída para reutilizar)
+  const executeDelivery = (updatedOrderData = null) => {
     if (latestOrderData.current && onEntregar) {
       // Excluir campos temporales antes de pasar al padre
       const { currentStatus, ...cleanOrder } = order;
@@ -299,13 +318,35 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       // Construir objeto final con todos los cambios del ref
       const updatedOrder = {
         ...cleanOrder,
-        ...latestOrderData.current
+        ...latestOrderData.current,
+        ...updatedOrderData // Incluir datos adicionales (como paymentStatus)
       };
 
       // Llamar a onEntregar del padre (Dashboard/Orders)
       // Este manejará la confirmación y marcará como completada
       onEntregar(updatedOrder);
     }
+  };
+
+  // Handler para cuando se confirma el cobro desde PaymentScreen
+  const handlePaymentConfirm = async (paymentData) => {
+    try {
+      // Cerrar pantalla de cobro
+      setShowPaymentScreen(false);
+
+      // Actualizar orden con pago completo y ejecutar entrega
+      executeDelivery({
+        paymentStatus: 'paid',
+        paymentMethod: paymentData.paymentMethod || order.paymentMethod
+      });
+    } catch (error) {
+      console.error('Error processing payment:', error);
+    }
+  };
+
+  // Handler para cancelar desde PaymentScreen
+  const handlePaymentCancel = () => {
+    setShowPaymentScreen(false);
   };
 
   // Obtener el label del estado
@@ -316,6 +357,10 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
 
   return (
     <div className="order-detail-view">
+      {/* Contenedor de flip global */}
+      <div className={`order-detail-flip-container ${showPaymentScreen ? 'flipped' : ''}`}>
+        {/* Front - Vista normal */}
+        <div className="order-detail-flip-front">
       {/* Galería de Imágenes de la Orden */}
       <div className="order-gallery-section">
         <h3 className="section-title">📸 Galería de Imágenes de la Orden</h3>
@@ -374,6 +419,55 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
           ))}
         </div>
       </div>
+
+      {/* Información de Productos (solo si hay productos) */}
+      {localProducts && localProducts.length > 0 && (
+        <div className="order-pairs-section">
+          <h3 className="section-title">📦 Productos ({localProducts.length})</h3>
+          <div className="pairs-grid">
+            {localProducts.map((product, index) => (
+              <div key={product.id || index} className="pair-detail-card product-card">
+                <div className="pair-card-header">
+                  <div className="pair-header-left">
+                    <span className="pair-number">{product.emoji || '📦'} Producto #{index + 1}</span>
+                    <span className="product-quantity-badge">x{product.quantity}</span>
+                  </div>
+                  <span className="pair-price-badge">${product.salePrice * product.quantity}</span>
+                </div>
+
+                <div className="pair-card-body">
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">Producto:</span>
+                    <span className="pair-info-value">{product.name}</span>
+                  </div>
+
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">SKU:</span>
+                    <span className="pair-info-value">{product.sku}</span>
+                  </div>
+
+                  {product.barcode && (
+                    <div className="pair-info-row">
+                      <span className="pair-info-label">Código de Barras:</span>
+                      <span className="pair-info-value">{product.barcode}</span>
+                    </div>
+                  )}
+
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">Categoría:</span>
+                    <span className="pair-info-value">{product.category}</span>
+                  </div>
+
+                  <div className="pair-info-row">
+                    <span className="pair-info-label">Precio Unitario:</span>
+                    <span className="pair-info-value">${product.salePrice}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Información de Pago y Entrega */}
       <div className="order-details-grid">
@@ -556,33 +650,20 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
       </div>
 
       {/* Botones de Cierre de Orden */}
-      {(showCobrarButton || showEntregarButton) && (
+      {showDeliverButton && (
         <div className="order-close-section">
-          {showCobrarButton && (
-            <button
-              className="btn-close-order btn-cobrar-large"
-              onClick={handleCobrar}
-            >
-              <span className="btn-close-icon">💳</span>
-              <div className="btn-close-content">
-                <span className="btn-close-title">Cobrar</span>
-                <span className="btn-close-subtitle">Registrar pago de ${remainingPayment}</span>
-              </div>
-            </button>
-          )}
-
-          {showEntregarButton && (
-            <button
-              className="btn-close-order btn-entregar-large"
-              onClick={handleEntregar}
-            >
-              <span className="btn-close-icon">📦</span>
-              <div className="btn-close-content">
-                <span className="btn-close-title">Entregar Orden</span>
-                <span className="btn-close-subtitle">Marcar como completada y entregada</span>
-              </div>
-            </button>
-          )}
+          <button
+            className={`btn-close-order ${!isFullyPaid ? 'btn-cobrar-large' : 'btn-entregar-large'}`}
+            onClick={handleEntregar}
+          >
+            <span className="btn-close-icon">{!isFullyPaid ? '💰' : '📦'}</span>
+            <div className="btn-close-content">
+              <span className="btn-close-title">{deliverButtonText}</span>
+              <span className="btn-close-subtitle">
+                {!isFullyPaid ? `Cobrar $${remainingPayment.toFixed(2)} y entregar` : 'Marcar como completada y entregada'}
+              </span>
+            </div>
+          </button>
         </div>
       )}
 
@@ -644,6 +725,22 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
       />
+    </div>
+
+    {/* Back - Payment Screen */}
+    <div className="order-detail-flip-back">
+      <PaymentScreen
+        services={localServices}
+        products={localProducts}
+        totalPrice={totalPrice}
+        advancePayment={paymentData.advancePayment}
+        paymentMethod={paymentData.paymentMethod}
+        allowEditMethod={true}
+        onConfirm={handlePaymentConfirm}
+        onCancel={handlePaymentCancel}
+      />
+    </div>
+  </div>
     </div>
   );
 };

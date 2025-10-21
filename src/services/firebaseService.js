@@ -9,7 +9,8 @@ import {
   query,
   onSnapshot,
   orderBy,
-  where
+  where,
+  runTransaction
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -92,15 +93,65 @@ export const subscribeToOrders = (callback) => {
  */
 export const addOrder = async (orderData) => {
   try {
-    const ordersRef = collection(db, 'orders');
-    const docRef = await addDoc(ordersRef, {
-      ...orderData,
-      orderStatus: 'recibidos',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
+    // Si hay productos en la orden, usar transacción para garantizar atomicidad
+    if (orderData.products && orderData.products.length > 0) {
+      return await runTransaction(db, async (transaction) => {
+        // 1. Verificar stock disponible para todos los productos
+        const productRefs = [];
+        const productDocs = [];
 
-    return docRef.id;
+        for (const product of orderData.products) {
+          const productRef = doc(db, 'inventory', product.productId);
+          const productDoc = await transaction.get(productRef);
+
+          if (!productDoc.exists()) {
+            throw new Error(`Producto ${product.name} no encontrado en inventario`);
+          }
+
+          const currentStock = productDoc.data().stock || 0;
+          if (currentStock < product.quantity) {
+            throw new Error(`Stock insuficiente para ${product.name}. Disponible: ${currentStock}, Solicitado: ${product.quantity}`);
+          }
+
+          productRefs.push(productRef);
+          productDocs.push(productDoc);
+        }
+
+        // 2. Crear la orden
+        const ordersRef = collection(db, 'orders');
+        const orderRef = doc(ordersRef);
+        transaction.set(orderRef, {
+          ...orderData,
+          orderStatus: 'recibidos',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+
+        // 3. Descontar stock de todos los productos
+        orderData.products.forEach((product, index) => {
+          const currentStock = productDocs[index].data().stock;
+          const newStock = currentStock - product.quantity;
+
+          transaction.update(productRefs[index], {
+            stock: newStock,
+            updatedAt: new Date().toISOString()
+          });
+        });
+
+        return orderRef.id;
+      });
+    } else {
+      // Si no hay productos, crear orden normalmente
+      const ordersRef = collection(db, 'orders');
+      const docRef = await addDoc(ordersRef, {
+        ...orderData,
+        orderStatus: 'recibidos',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+
+      return docRef.id;
+    }
   } catch (error) {
     console.error('Error adding order:', error);
     throw error;
@@ -556,6 +607,37 @@ export const deleteProduct = async (productId) => {
     await deleteDoc(productRef);
   } catch (error) {
     console.error('Error deleting product:', error);
+    throw error;
+  }
+};
+
+/**
+ * Decrease product stock in inventory
+ * @param {string} productId - Product document ID
+ * @param {number} quantity - Quantity to decrease
+ */
+export const decreaseProductStock = async (productId, quantity) => {
+  try {
+    const productRef = doc(db, 'inventory', productId);
+    const productDoc = await getDoc(productRef);
+
+    if (!productDoc.exists()) {
+      throw new Error(`Product ${productId} not found`);
+    }
+
+    const currentStock = productDoc.data().stock || 0;
+    const newStock = currentStock - quantity;
+
+    if (newStock < 0) {
+      throw new Error(`Insufficient stock for product ${productId}. Available: ${currentStock}, Requested: ${quantity}`);
+    }
+
+    await updateDoc(productRef, {
+      stock: newStock,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error decreasing product stock:', error);
     throw error;
   }
 };

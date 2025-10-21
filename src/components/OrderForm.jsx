@@ -3,6 +3,7 @@ import ClientAutocomplete from './ClientAutocomplete';
 import ShoePairItem from './ShoePairItem';
 import OtherItem from './OtherItem';
 import ImageUpload from './ImageUpload';
+import PaymentScreen from './PaymentScreen';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -14,6 +15,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPayment, setShowPayment] = useState(false); // Controla si se muestra el carrito o el pago
+  const [showPaymentScreen, setShowPaymentScreen] = useState(false); // Controla si se muestra la pantalla de cobro
   const [isSubmitting, setIsSubmitting] = useState(false); // Estado de envío con animación
   const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden (array de URLs base64)
 
@@ -33,6 +35,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   // Cargar servicios desde Firebase
   const [services, setServices] = useState([]);
+  // Cargar productos desde Firebase
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const loadServices = async () => {
@@ -58,7 +62,23 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
       }
     };
 
+    const loadProducts = async () => {
+      try {
+        const { subscribeToInventory } = await import('../services/firebaseService');
+        const unsubscribe = subscribeToInventory((productsData) => {
+          // Solo mostrar productos con stock disponible
+          const availableProducts = productsData.filter(p => p.stock > 0);
+          setProducts(availableProducts);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
+    };
+
     loadServices();
+    loadProducts();
   }, []);
 
   // Calcular precio total del carrito
@@ -71,31 +91,75 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     return cart.reduce((total, item) => total + (item.quantity || 1), 0);
   };
 
-  // Agregar servicio al carrito
-  const handleAddToCart = (service) => {
+  // Agregar servicio o producto al carrito
+  const handleAddToCart = (item, type = 'service') => {
     setCart(prev => {
-      // Buscar si ya existe un item con el mismo servicio
-      const existingItemIndex = prev.findIndex(item => item.serviceName === service.name);
+      if (type === 'service') {
+        // Buscar si ya existe un item con el mismo servicio
+        const existingItemIndex = prev.findIndex(i => i.type === 'service' && i.serviceName === item.name);
 
-      if (existingItemIndex !== -1) {
-        // Si existe, incrementar la cantidad
-        const updatedCart = [...prev];
-        updatedCart[existingItemIndex] = {
-          ...updatedCart[existingItemIndex],
-          quantity: (updatedCart[existingItemIndex].quantity || 1) + 1
-        };
-        return updatedCart;
-      } else {
-        // Si no existe, agregar nuevo item con cantidad 1
-        const newItem = {
-          id: generateId(),
-          serviceName: service.name,
-          price: service.price,
-          icon: service.emoji || '🛠️',
-          quantity: 1
-        };
-        return [...prev, newItem];
+        if (existingItemIndex !== -1) {
+          // Si existe, incrementar la cantidad
+          const updatedCart = [...prev];
+          updatedCart[existingItemIndex] = {
+            ...updatedCart[existingItemIndex],
+            quantity: (updatedCart[existingItemIndex].quantity || 1) + 1
+          };
+          return updatedCart;
+        } else {
+          // Si no existe, agregar nuevo servicio con cantidad 1
+          const newItem = {
+            id: generateId(),
+            type: 'service',
+            serviceName: item.name,
+            price: item.price,
+            icon: item.emoji || '🛠️',
+            quantity: 1,
+            daysToAdd: item.daysToAdd
+          };
+          return [...prev, newItem];
+        }
+      } else if (type === 'product') {
+        // Buscar si ya existe un item con el mismo producto
+        const existingItemIndex = prev.findIndex(i => i.type === 'product' && i.productId === item.id);
+
+        if (existingItemIndex !== -1) {
+          // Verificar que no exceda el stock disponible
+          const currentQuantity = prev[existingItemIndex].quantity || 1;
+          if (currentQuantity < item.stock) {
+            // Si existe y hay stock, incrementar la cantidad
+            const updatedCart = [...prev];
+            updatedCart[existingItemIndex] = {
+              ...updatedCart[existingItemIndex],
+              quantity: currentQuantity + 1
+            };
+            return updatedCart;
+          } else {
+            // Stock insuficiente
+            alert(`Stock insuficiente para ${item.name}. Disponible: ${item.stock}`);
+            return prev;
+          }
+        } else {
+          // Si no existe, agregar nuevo producto con cantidad 1
+          const newItem = {
+            id: generateId(),
+            type: 'product',
+            productId: item.id,
+            name: item.name,
+            price: item.salePrice,
+            purchasePrice: item.purchasePrice,
+            sku: item.sku,
+            barcode: item.barcode,
+            category: item.category,
+            emoji: item.emoji,
+            icon: item.emoji || '📦',
+            quantity: 1,
+            maxStock: item.stock
+          };
+          return [...prev, newItem];
+        }
       }
+      return prev;
     });
   };
 
@@ -210,37 +274,80 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      setIsSubmitting(true);
-
-      // Expandir servicios con cantidades a servicios individuales
-      const services = cart.flatMap(item => {
-        const serviceItems = [];
-        for (let i = 0; i < (item.quantity || 1); i++) {
-          serviceItems.push({
-            id: generateId(),
-            serviceName: item.serviceName,
-            price: item.price,
-            icon: item.icon,
-            images: [], // Servicios sin imágenes individuales
-            notes: '',
-            status: 'pending'
-          });
-        }
-        return serviceItems;
-      });
-
-      const orderData = {
-        ...formData,
-        services,
-        orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
-        totalPrice: calculateTotalPrice()
-      };
-
-      // Esperar 1.5s para mostrar animación antes de cerrar
-      setTimeout(() => {
-        onSubmit(orderData);
-      }, 1500);
+      // Si el método de pago NO es pending, mostrar pantalla de cobro
+      if (formData.paymentMethod !== 'pending') {
+        setShowPaymentScreen(true);
+      } else {
+        // Flujo normal: crear orden directamente
+        createOrder();
+      }
     }
+  };
+
+  // Función para crear la orden (extraída para reutilizar)
+  const createOrder = (paymentStatus = null) => {
+    setIsSubmitting(true);
+
+    // Separar servicios y productos del carrito
+    const serviceItems = cart.filter(item => item.type === 'service');
+    const productItems = cart.filter(item => item.type === 'product');
+
+    // Expandir servicios con cantidades a servicios individuales
+    const services = serviceItems.flatMap(item => {
+      const expandedServices = [];
+      for (let i = 0; i < (item.quantity || 1); i++) {
+        expandedServices.push({
+          id: generateId(),
+          serviceName: item.serviceName,
+          price: item.price,
+          icon: item.icon,
+          images: [], // Servicios sin imágenes individuales
+          notes: '',
+          status: 'pending'
+        });
+      }
+      return expandedServices;
+    });
+
+    // Transformar productos a formato de orden (con snapshot de datos)
+    const products = productItems.map(item => ({
+      id: generateId(),
+      productId: item.productId,
+      name: item.name,
+      salePrice: item.price,
+      purchasePrice: item.purchasePrice,
+      sku: item.sku,
+      barcode: item.barcode,
+      category: item.category,
+      emoji: item.emoji,
+      quantity: item.quantity
+    }));
+
+    const orderData = {
+      ...formData,
+      services,
+      products,
+      orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
+      totalPrice: calculateTotalPrice(),
+      paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial')
+    };
+
+    // Esperar 1.5s para mostrar animación antes de cerrar
+    setTimeout(() => {
+      onSubmit(orderData);
+    }, 1500);
+  };
+
+  // Handler para cuando se confirma el cobro desde PaymentScreen
+  const handlePaymentConfirm = (paymentData) => {
+    // Cerrar pantalla de cobro y crear orden con estado 'paid'
+    setShowPaymentScreen(false);
+    createOrder('paid');
+  };
+
+  // Handler para cancelar desde PaymentScreen
+  const handlePaymentCancel = () => {
+    setShowPaymentScreen(false);
   };
 
   const handleMenuAction = (action) => {
@@ -268,24 +375,26 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     }
   };
 
-  // Auto-calcular fecha de entrega al seleccionar un servicio
+  // Auto-calcular fecha de entrega al seleccionar un servicio (solo basado en servicios)
   useEffect(() => {
     if (cart.length > 0 && !formData.deliveryDate) {
-      const maxDays = Math.max(
-        ...cart.map(item => {
-          const service = services.find(s => s.name === item.serviceName);
-          return service?.daysToAdd || 2;
-        })
-      );
+      // Filtrar solo servicios del carrito
+      const serviceItems = cart.filter(item => item.type === 'service');
 
-      const today = new Date();
-      today.setDate(today.getDate() + maxDays);
-      setFormData(prev => ({
-        ...prev,
-        deliveryDate: today.toISOString().split('T')[0]
-      }));
+      if (serviceItems.length > 0) {
+        const maxDays = Math.max(
+          ...serviceItems.map(item => item.daysToAdd || 2)
+        );
+
+        const today = new Date();
+        today.setDate(today.getDate() + maxDays);
+        setFormData(prev => ({
+          ...prev,
+          deliveryDate: today.toISOString().split('T')[0]
+        }));
+      }
     }
-  }, [cart, services]);
+  }, [cart, formData.deliveryDate]);
 
   return (
     <div className="order-form-container">
@@ -354,7 +463,36 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         </div>
       )}
 
-      <div className="order-form-layout">
+      {/* Renderizado condicional: PaymentScreen o Formulario */}
+      {showPaymentScreen ? (
+        <PaymentScreen
+          services={cart.filter(item => item.type === 'service').flatMap(item => {
+            const services = [];
+            for (let i = 0; i < (item.quantity || 1); i++) {
+              services.push({
+                id: generateId(),
+                serviceName: item.serviceName,
+                price: item.price,
+                icon: item.icon
+              });
+            }
+            return services;
+          })}
+          products={cart.filter(item => item.type === 'product').map(item => ({
+            id: item.id,
+            name: item.name,
+            salePrice: item.price,
+            emoji: item.emoji,
+            quantity: item.quantity
+          }))}
+          totalPrice={calculateTotalPrice()}
+          advancePayment={parseFloat(formData.advancePayment) || 0}
+          paymentMethod={formData.paymentMethod}
+          onConfirm={handlePaymentConfirm}
+          onCancel={handlePaymentCancel}
+        />
+      ) : (
+        <div className="order-form-layout">
         {/* Lado Izquierdo - Formulario con Flip */}
         <div className="order-form-left">
           <div className={`left-flip-container ${showPayment ? 'flipped' : ''}`}>
@@ -404,12 +542,40 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                     key={service.id}
                     type="button"
                     className="service-icon-button"
-                    onClick={() => handleAddToCart(service)}
+                    onClick={() => handleAddToCart(service, 'service')}
                     title={`${service.name} - $${service.price}`}
                   >
                     <span className="service-icon-large">{service.emoji || '🛠️'}</span>
                   </button>
                 ))}
+              </div>
+
+              <div className="form-section-header" style={{ marginTop: '24px' }}>
+                <h3 className="step-title-large">Productos Disponibles</h3>
+              </div>
+
+              <div className="order-services-grid">
+                {products.length === 0 ? (
+                  <div className="empty-products">
+                    <span className="empty-icon">📦</span>
+                    <p>No hay productos disponibles en inventario</p>
+                  </div>
+                ) : (
+                  products.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      className="service-icon-button"
+                      onClick={() => handleAddToCart(product, 'product')}
+                      title={`${product.name} - $${product.salePrice} (Stock: ${product.stock})`}
+                    >
+                      <span className="service-icon-large">{product.emoji || '📦'}</span>
+                      {product.stock <= product.minStock && (
+                        <span className="stock-warning">⚠️</span>
+                      )}
+                    </button>
+                  ))
+                )}
               </div>
               {errors.cart && <span className="error-message">{errors.cart}</span>}
             </div>
@@ -444,8 +610,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                 {cart.length === 0 ? (
                   <div className="cart-empty">
                     <span className="empty-icon">🛒</span>
-                    <p>No hay servicios agregados</p>
-                    <p className="empty-hint">Presiona los iconos de servicios para agregarlos</p>
+                    <p>No hay items agregados</p>
+                    <p className="empty-hint">Presiona los iconos de servicios o productos para agregarlos</p>
                   </div>
                 ) : (
                   cart.map((item) => (
@@ -453,7 +619,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                       <div className="cart-item-icon">{item.icon}</div>
                       <div className="cart-item-info">
                         <span className="cart-item-name">
-                          {item.serviceName}
+                          {item.type === 'service' ? item.serviceName : item.name}
                           {item.quantity > 1 && (
                             <span className="cart-item-quantity"> x{item.quantity}</span>
                           )}
@@ -620,6 +786,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
           </div>
         </div>
       </div>
+      )}
+
     </div>
   );
 };
