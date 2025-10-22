@@ -1,7 +1,8 @@
 Clean master shoes
 
 // WIP
-- [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
+- [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
+- [fix/iphone_ux_new_order]Habilitar nueva orden en iphone, ux no se ve
 
 // PRIORIDAD ALTA
 
@@ -12,7 +13,6 @@ Clean master shoes
 
 // BACKLOG
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
-- [FIX]Habilitar nueva orden en iphone, ux no se ve
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 - [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones

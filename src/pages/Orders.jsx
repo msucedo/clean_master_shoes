@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Modal from '../components/Modal';
 import OrderForm from '../components/OrderForm';
+import OrderFormMobile from '../components/OrderFormMobile';
 import OrderDetailView from '../components/OrderDetailView';
 import OrderCard from '../components/OrderCard';
 import PageHeader from '../components/PageHeader';
@@ -40,6 +41,18 @@ const Orders = () => {
     onConfirm: null,
     type: 'default'
   });
+  // Detectar si es smartphone (< 768px)
+  const [isSmartphone, setIsSmartphone] = useState(window.innerWidth < 768);
+
+  // Escuchar cambios de tamaño de ventana para actualizar isSmartphone
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmartphone(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Subscribe to real-time orders updates
   useEffect(() => {
@@ -399,11 +412,19 @@ const Orders = () => {
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
           />
         ) : (
-          <OrderForm
-            onSubmit={handleSubmitOrder}
-            onCancel={handleCloseModal}
-            initialData={null}
-          />
+          isSmartphone ? (
+            <OrderFormMobile
+              onSubmit={handleSubmitOrder}
+              onCancel={handleCloseModal}
+              initialData={null}
+            />
+          ) : (
+            <OrderForm
+              onSubmit={handleSubmitOrder}
+              onCancel={handleCloseModal}
+              initialData={null}
+            />
+          )
         )}
       </Modal>
 
