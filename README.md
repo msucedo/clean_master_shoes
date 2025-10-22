@@ -1,17 +1,13 @@
 Clean master shoes
 
 // WIP
--[fix/orders_priority]de orderform, remover el campo de la UI "prioridad", no debe cambiarse manualmente, por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente al crear la orden ponle prioridad express
-    -[fix/orders_priority]Remover el solid del background de la etiqueta urgente del ordercard en la tab ordenes
-    -[fix/orders_priority]Remover de ordercard de los item badges, el emoji del servicio express, no se usrara emoji para este servicio porque se representa por la etiqueta de prioridad urgente ya definida en este componente
-    -[fix/orders_priority]Organizar UX order's header cuando es urgente + entrega mañana
+- [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 
 // PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
 
 // PRIORIDAD BAJA
-- [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
@@ -56,6 +52,10 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[fix/orders_priority]de orderform, remover el campo de la UI "prioridad", no debe cambiarse manualmente, por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente al crear la orden ponle prioridad express
+    -[fix/orders_priority]Remover el solid del background de la etiqueta urgente del ordercard en la tab ordenes
+    -[fix/orders_priority]Remover de ordercard de los item badges, el emoji del servicio express, no se usrara emoji para este servicio porque se representa por la etiqueta de prioridad urgente ya definida en este componente
+    -[fix/orders_priority]Organizar UX order's header cuando es urgente + entrega mañana
 - [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
 - [FIX]Fecha de entrega por default que sea 2 dias, pero que en la orden siga pudiendo ser editable
 - [FEATURE]Filtros para ordenes - Agregar filtro de mas recientes

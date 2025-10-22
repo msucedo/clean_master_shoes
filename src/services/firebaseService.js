@@ -13,6 +13,7 @@ import {
   runTransaction
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { sendDeliveryNotification } from './whatsappService';
 
 // ==================== ORDERS ====================
 
@@ -192,16 +193,78 @@ export const deleteOrder = async (orderId) => {
 
 /**
  * Update order status (move to different column)
+ * Automatically sends WhatsApp notification when status changes to "enEntrega"
  * @param {string} orderId - Order document ID
  * @param {string} newStatus - New status (recibidos, proceso, listos, enEntrega, completados)
  */
 export const updateOrderStatus = async (orderId, newStatus) => {
   try {
     const orderRef = doc(db, 'orders', orderId);
-    await updateDoc(orderRef, {
-      orderStatus: newStatus,
-      updatedAt: new Date().toISOString()
-    });
+
+    // If status is changing to "enEntrega", send WhatsApp notification
+    if (newStatus === 'enEntrega') {
+      // First, get the complete order data to send notification
+      const orderDoc = await getDoc(orderRef);
+
+      if (orderDoc.exists()) {
+        const orderData = { id: orderDoc.id, ...orderDoc.data() };
+
+        // Send WhatsApp notification
+        console.log('📱 Sending WhatsApp delivery notification...');
+        const whatsappResult = await sendDeliveryNotification(orderData);
+
+        // Update order with new status AND WhatsApp notification record
+        const updateData = {
+          orderStatus: newStatus,
+          updatedAt: new Date().toISOString()
+        };
+
+        // Add WhatsApp notification to the notifications array
+        if (whatsappResult.success) {
+          console.log('✅ WhatsApp notification sent successfully');
+
+          // Initialize notifications array if it doesn't exist
+          const existingNotifications = orderData.whatsappNotifications || [];
+
+          updateData.whatsappNotifications = [
+            ...existingNotifications,
+            {
+              sentAt: whatsappResult.timestamp,
+              status: whatsappResult.status,
+              messageId: whatsappResult.messageId,
+              message: whatsappResult.message
+            }
+          ];
+        } else if (!whatsappResult.skipped) {
+          // Only log errors if it wasn't skipped due to configuration
+          console.error('❌ WhatsApp notification failed:', whatsappResult.error);
+
+          // Still record the failed attempt
+          const existingNotifications = orderData.whatsappNotifications || [];
+
+          updateData.whatsappNotifications = [
+            ...existingNotifications,
+            {
+              sentAt: whatsappResult.timestamp,
+              status: 'failed',
+              error: whatsappResult.error
+            }
+          ];
+        }
+
+        // Update the order in Firestore
+        await updateDoc(orderRef, updateData);
+      } else {
+        console.error('Order not found:', orderId);
+        throw new Error('Order not found');
+      }
+    } else {
+      // For other status changes, just update normally
+      await updateDoc(orderRef, {
+        orderStatus: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+    }
   } catch (error) {
     console.error('Error updating order status:', error);
     throw error;

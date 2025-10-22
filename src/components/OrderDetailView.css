@@ -993,3 +993,87 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* WhatsApp Notification History Styles */
+.whatsapp-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.whatsapp-notification {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-gray-800);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-notification.sent {
+  border-color: rgba(37, 211, 102, 0.3);
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.05) 0%, rgba(18, 140, 126, 0.05) 100%);
+}
+
+.whatsapp-notification.failed {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+}
+
+.whatsapp-notification:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.notification-status-icon {
+  font-size: 18px;
+}
+
+.notification-status-text {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-white);
+}
+
+.notification-timestamp {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-gray-500);
+  font-weight: 500;
+}
+
+.notification-message {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-gray-400);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-top: 8px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.notification-error {
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.notification-id {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--color-gray-600);
+  font-family: 'Courier New', monospace;
+}

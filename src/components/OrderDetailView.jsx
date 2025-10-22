@@ -621,6 +621,58 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, o
         </div>
       </div>
 
+      {/* Historial de Notificaciones de WhatsApp */}
+      {order.whatsappNotifications && order.whatsappNotifications.length > 0 && (
+        <div className="order-details-grid">
+          <div className="detail-card">
+            <h3 className="detail-card-title">📱 Historial de Notificaciones WhatsApp</h3>
+            <div className="detail-card-content">
+              <div className="whatsapp-history">
+                {order.whatsappNotifications.map((notification, index) => (
+                  <div
+                    key={index}
+                    className={`whatsapp-notification ${notification.status}`}
+                  >
+                    <div className="notification-header">
+                      <span className="notification-status-icon">
+                        {notification.status === 'sent' ? '✅' : '❌'}
+                      </span>
+                      <span className="notification-status-text">
+                        {notification.status === 'sent' ? 'Enviado' : 'Falló'}
+                      </span>
+                      <span className="notification-timestamp">
+                        {new Date(notification.sentAt).toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                    {notification.message && (
+                      <div className="notification-message">
+                        {notification.message}
+                      </div>
+                    )}
+                    {notification.error && (
+                      <div className="notification-error">
+                        Error: {notification.error}
+                      </div>
+                    )}
+                    {notification.messageId && (
+                      <div className="notification-id">
+                        ID: {notification.messageId}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notas Generales */}
       <div className="order-details-grid">
         <div className="detail-card">

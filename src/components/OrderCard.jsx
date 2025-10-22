@@ -70,6 +70,16 @@ const OrderCard = ({ order, onOrderClick }) => {
 
   const dateInfo = formatDeliveryDate(order.deliveryDate);
 
+  // Check if WhatsApp notification was sent successfully
+  const whatsappSent = useMemo(() => {
+    if (!order.whatsappNotifications || order.whatsappNotifications.length === 0) {
+      return false;
+    }
+    // Check if the last notification was successful
+    const lastNotification = order.whatsappNotifications[order.whatsappNotifications.length - 1];
+    return lastNotification.status === 'sent';
+  }, [order.whatsappNotifications]);
+
   return (
     <div className="order-card" onClick={() => onOrderClick(order)}>
       {/* Header */}
@@ -77,6 +87,11 @@ const OrderCard = ({ order, onOrderClick }) => {
         <div className="order-id-badge">#{order.orderNumber || order.id}</div>
         {order.priority === 'high' && (
           <div className="order-priority-badge">Urgente</div>
+        )}
+        {whatsappSent && (
+          <div className="order-whatsapp-badge" title="Notificación de WhatsApp enviada">
+            ✓
+          </div>
         )}
         <div className={`order-delivery-badge ${dateInfo.className}`}>
           {dateInfo.text}
