@@ -1,32 +1,29 @@
 Clean master shoes
 
 // WIP
-
+-[fix/orders_priority]de orderform, remover el campo de la UI "prioridad", no debe cambiarse manualmente, por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente al crear la orden ponle prioridad express
+    -[fix/orders_priority]Remover el solid del background de la etiqueta urgente del ordercard en la tab ordenes
+    -[fix/orders_priority]Remover de ordercard de los item badges, el emoji del servicio express, no se usrara emoji para este servicio porque se representa por la etiqueta de prioridad urgente ya definida en este componente
+    -[fix/orders_priority]Organizar UX order's header cuando es urgente + entrega mañana
 
 // PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
-- [FIX]Fecha de entrega por default que sea 2 dias, pero que en la orden siga pudiendo ser editable
-
 
 // PRIORIDAD BAJA
 - [EPIC]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
--[FIX]de orderform, remover el campo de la UI "prioridad", por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente a prioridad ponle el valor express
+-[feature/smoothness]agregar animaciones para que se sienta smooth la app
+- [FIX]Habilitar nueva orden en iphone, ux no se ve
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
-- [FEATURE]Filtros para ordenes - Agregar filtro de mas recientes, mas antiguas, con mas serviciios, en la tab ordenes para todas las columnas
 - [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
-- [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
-- [FIX]Habilitar nueva orden en iphone, ux no se ve
--[VAL]Pantalla de pago, validar este todo correcto con jhnonyy
 -[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
     -[FIX]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 -[FIX]no poder agendar ordenes con fechas pasadas, si ya se venció la fecha y la orden sigue abierta pintar de rojo toda la tarjeta
--[FIX]remover el tax de la pantalla de pagos
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
@@ -59,6 +56,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+- [VAL]Si una orden lleva el servicio express especificarlo en la tarjeta
+- [FIX]Fecha de entrega por default que sea 2 dias, pero que en la orden siga pudiendo ser editable
+- [FEATURE]Filtros para ordenes - Agregar filtro de mas recientes
 - [FEATURE]historial de ordenes del cliente en la tab clientes - deberia venir un boton en cada cliente que diga, "ver historial" y donde se despligue asi como en empleados puedes ver las ordenes activas, aca deberias ver la misma tipo de seccion pero con todas las clientes ya completadas de ese cliente y tambien si tiene activas
 - [EPIC]Pantalla inventario
 - [FIX]Al crear una orden, remover el campo de anticipo de la pantalla de pago, en caso que el usuario seleccione el metodo de pago como efectivo, entonces en la pantalla de payment, donde se ingresa el monto, si el monto es menor al total, usalo como anticipo, crea la orden pero deberia quedar con pado pendiente y el resto pendiente deberia ser correcto

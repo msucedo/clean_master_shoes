@@ -25,7 +25,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     phone: '',
     email: '',
     deliveryDate: '',
-    priority: '',
     paymentMethod: 'pending',
     advancePayment: '',
     generalNotes: ''
@@ -190,7 +189,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
         phone: initialData.phone || '',
         email: initialData.email || '',
         deliveryDate: initialData.deliveryDate || '',
-        priority: initialData.priority || '',
         paymentMethod: initialData.paymentMethod || 'pending',
         advancePayment: initialData.advancePayment || '',
         generalNotes: initialData.generalNotes || ''
@@ -280,6 +278,14 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
     }
   };
 
+  // Detectar si el carrito tiene servicio express
+  const hasExpressService = () => {
+    const serviceItems = cart.filter(item => item.type === 'service');
+    return serviceItems.some(item =>
+      item.serviceName?.toLowerCase() === 'servicio express'
+    );
+  };
+
   // Función para crear la orden (extraída para reutilizar)
   const createOrder = (paymentStatus = null, advancePayment = 0) => {
     setIsSubmitting(true);
@@ -326,7 +332,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
       orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
       totalPrice: calculateTotalPrice(),
       advancePayment: advancePayment,
-      paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial')
+      paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
+      priority: hasExpressService() ? 'high' : 'normal' // Asignar automáticamente
     };
 
     // Esperar 1.5s para mostrar animación antes de cerrar
@@ -691,19 +698,6 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                     onChange={handleChange}
                   />
                   {errors.deliveryDate && <span className="error-message">{errors.deliveryDate}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Prioridad</label>
-                  <select
-                    name="priority"
-                    className="form-input"
-                    value={formData.priority}
-                    onChange={handleChange}
-                  >
-                    <option value="">Normal</option>
-                    <option value="high">Alta 🔥</option>
-                  </select>
                 </div>
 
                 <div className="form-group">

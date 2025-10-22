@@ -42,10 +42,15 @@ const OrderCard = ({ order, onOrderClick }) => {
     return activeServices.every(service => service.status === 'completed');
   }, [activeServices]);
 
-  // Agrupar servicios por emoji y contar
+  // Agrupar servicios por emoji y contar (excluyendo servicio express)
   const servicesByEmoji = useMemo(() => {
     const grouped = {};
-    activeServices.forEach(service => {
+    // Filtrar servicios express antes de agrupar
+    const nonExpressServices = activeServices.filter(
+      service => service.serviceName?.toLowerCase() !== 'servicio express'
+    );
+
+    nonExpressServices.forEach(service => {
       const emoji = service.icon || '🛠️';
       if (!grouped[emoji]) {
         grouped[emoji] = { emoji, count: 0 };
@@ -71,7 +76,7 @@ const OrderCard = ({ order, onOrderClick }) => {
       <div className="order-card-header">
         <div className="order-id-badge">#{order.orderNumber || order.id}</div>
         {order.priority === 'high' && (
-          <div className="order-priority-badge">🔥 Urgente</div>
+          <div className="order-priority-badge">Urgente</div>
         )}
         <div className={`order-delivery-badge ${dateInfo.className}`}>
           {dateInfo.text}

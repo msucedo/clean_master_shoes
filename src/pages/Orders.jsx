@@ -278,7 +278,7 @@ const Orders = () => {
         orderImages: formData.orderImages || [],
         totalPrice: formData.totalPrice || 0,
         deliveryDate: formData.deliveryDate,
-        priority: formData.priority || '',
+        priority: formData.priority || 'normal',
         paymentMethod: formData.paymentMethod || 'pending',
         advancePayment: formData.advancePayment || 0,
         generalNotes: formData.generalNotes || '',
@@ -305,7 +305,11 @@ const Orders = () => {
     { key: 'enEntrega', label: 'En Entrega', icon: '🚚', color: '#8b5cf6' }
   ];
 
-  const currentOrders = filterOrders(orders[activeTab]);
+  const currentOrders = filterOrders(orders[activeTab]).sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0);
+    const dateB = new Date(b.createdAt || 0);
+    return dateB - dateA; // Descendente (más reciente primero)
+  });
 
   return (
     <div className="orders-page">
