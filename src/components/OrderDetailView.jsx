@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
+import VariablePriceModal from './VariablePriceModal';
 import { subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
@@ -11,6 +12,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
+  const [showVariablePriceModal, setShowVariablePriceModal] = useState(false);
+  const [variablePriceServices, setVariablePriceServices] = useState([]);
   const [localServices, setLocalServices] = useState(order.services || []);
   const [localProducts, setLocalProducts] = useState(order.products || []);
   const [orderImages, setOrderImages] = useState(order.orderImages || []);
@@ -38,9 +41,22 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   // Ref para mantener datos actualizados sin disparar cleanup
   const latestOrderData = useRef();
 
+  // Calcular totalPrice inicial de la orden
+  const initialTotalPrice = useMemo(() => {
+    const servicesTotal = (order.services || [])
+      .filter(service => service.status !== 'cancelled')
+      .reduce((sum, service) => sum + (service.price || 0), 0);
+
+    const productsTotal = (order.products || [])
+      .reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
+
+    return servicesTotal + productsTotal;
+  }, [order.services, order.products]);
+
   // Ref para guardar valores iniciales y detectar cambios
   const initialData = useRef({
     services: order.services || [],
+    products: order.products || [],
     orderImages: order.orderImages || [],
     orderStatus: order.orderStatus || currentTab || 'recibidos',
     advancePayment: parseFloat(order.advancePayment) || 0,
@@ -48,8 +64,22 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     paymentMethod: order.paymentMethod || 'pending',
     deliveryDate: order.deliveryDate,
     generalNotes: order.generalNotes || '',
-    author: order.author || ''
+    author: order.author || '',
+    totalPrice: initialTotalPrice
   });
+
+  // ===== CÁLCULOS DERIVADOS =====
+  // Calcular precio total excluyendo servicios cancelados y sumando productos
+  const totalPrice = useMemo(() => {
+    const servicesTotal = localServices
+      .filter(service => service.status !== 'cancelled')
+      .reduce((sum, service) => sum + (service.price || 0), 0);
+
+    const productsTotal = localProducts
+      .reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
+
+    return servicesTotal + productsTotal;
+  }, [localServices, localProducts]);
 
   // ===== USE EFFECTS PARA SINCRONIZACIÓN =====
   // Cargar empleados activos
@@ -66,6 +96,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   useEffect(() => {
     latestOrderData.current = {
       services: localServices,
+      products: localProducts,
       orderImages: orderImages,
       orderStatus: orderStatus,
       advancePayment: paymentData.advancePayment,
@@ -73,9 +104,10 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       paymentMethod: paymentData.paymentMethod,
       deliveryDate: localDeliveryDate,
       generalNotes: generalNotes,
-      author: orderAuthor
+      author: orderAuthor,
+      totalPrice: totalPrice
     };
-  }, [localServices, orderImages, orderStatus, paymentData, localDeliveryDate, generalNotes, orderAuthor]);
+  }, [localServices, localProducts, orderImages, orderStatus, paymentData, localDeliveryDate, generalNotes, orderAuthor, totalPrice]);
 
   // Función que se ejecuta antes de cerrar el modal
   // Usamos useCallback para memoizar la función y evitar closures obsoletas
@@ -148,24 +180,18 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     { value: 'enEntrega', label: '🚚 En Entrega' }
   ];
 
-  // Calcular precio total excluyendo servicios cancelados y sumando productos
-  const totalPrice = useMemo(() => {
-    const servicesTotal = localServices
-      .filter(service => service.status !== 'cancelled')
-      .reduce((sum, service) => sum + (service.price || 0), 0);
-
-    const productsTotal = localProducts
-      .reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
-
-    return servicesTotal + productsTotal;
-  }, [localServices, localProducts]);
-
   const advancePayment = paymentData.advancePayment;
   // Si el estado de pago es 'paid', el restante es 0, sino calcularlo normalmente
   const remainingPayment = paymentData.paymentStatus === 'paid' ? 0 : totalPrice - advancePayment;
 
+  // Detectar si hay servicios con precio por definir ($0)
+  const hasServicesWithoutPrice = localServices.some(service =>
+    service.status !== 'cancelled' && service.price === 0
+  );
+
   // Determinar si la orden está completamente pagada
-  const isFullyPaid = remainingPayment <= 0 || paymentData.paymentStatus === 'paid';
+  // Una orden NO está pagada si tiene servicios con precio $0 pendientes de definir
+  const isFullyPaid = (remainingPayment <= 0 || paymentData.paymentStatus === 'paid') && !hasServicesWithoutPrice;
 
   // Determinar si mostrar botón de Entregar/Cobrar (usar orderStatus local en lugar de currentTab)
   const showDeliverButton = orderStatus === 'enEntrega';
@@ -300,9 +326,19 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
   // Handler para entregar - guarda todos los cambios y marca como entregada
   const handleEntregar = () => {
-    // Si hay saldo pendiente, mostrar pantalla de cobro
+    // Si hay saldo pendiente, verificar primero precios variables
     if (!isFullyPaid) {
-      setShowPaymentScreen(true);
+      // Detectar servicios con precio $0 (precio por definir)
+      const servicesWithoutPrice = localServices.filter(service => service.price === 0);
+
+      if (servicesWithoutPrice.length > 0) {
+        // Hay servicios sin precio, mostrar modal para definirlos
+        setVariablePriceServices(servicesWithoutPrice);
+        setShowVariablePriceModal(true);
+      } else {
+        // No hay servicios sin precio, continuar a PaymentScreen
+        setShowPaymentScreen(true);
+      }
     } else {
       // Si ya está pagado, ejecutar entrega directamente
       executeDelivery();
@@ -349,6 +385,34 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     setShowPaymentScreen(false);
   };
 
+  // Handler para cuando se confirman los precios variables
+  const handleVariablePricesConfirm = (assignedPrices) => {
+    // Actualizar precios en los servicios locales
+    const updatedServices = localServices.map(service => {
+      if (assignedPrices[service.id]) {
+        return {
+          ...service,
+          price: assignedPrices[service.id]
+        };
+      }
+      return service;
+    });
+
+    setLocalServices(updatedServices);
+    setShowVariablePriceModal(false);
+
+    // El useEffect se encargará de actualizar latestOrderData.current con el nuevo totalPrice
+    // automáticamente cuando localServices cambie
+
+    // Continuar a PaymentScreen
+    setShowPaymentScreen(true);
+  };
+
+  // Handler para cancelar desde VariablePriceModal
+  const handleVariablePricesCancel = () => {
+    setShowVariablePriceModal(false);
+  };
+
   // Obtener el label del estado
   const getStatusLabel = (status) => {
     const statusObj = pairStatuses.find(s => s.value === status);
@@ -357,6 +421,15 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
   return (
     <div className="order-detail-view">
+      {/* Modal de Precios Variables */}
+      {showVariablePriceModal && (
+        <VariablePriceModal
+          services={variablePriceServices}
+          onConfirm={handleVariablePricesConfirm}
+          onCancel={handleVariablePricesCancel}
+        />
+      )}
+
       {/* Contenedor de flip global */}
       <div className={`order-detail-flip-container ${showPaymentScreen ? 'flipped' : ''}`}>
         {/* Front - Vista normal */}

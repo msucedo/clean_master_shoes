@@ -48,8 +48,10 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
       newErrors.duration = 'La duración es requerida';
     }
 
-    if (!formData.price || formData.price <= 0) {
-      newErrors.price = 'El precio debe ser mayor a 0';
+    // Precio es opcional (puede ser 0 para "precio por definir")
+    // Si se proporciona, validar que sea >= 0
+    if (formData.price !== '' && formData.price < 0) {
+      newErrors.price = 'El precio no puede ser negativo';
     }
 
     if (!formData.description.trim()) {
@@ -65,7 +67,7 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
     if (validateForm()) {
       const serviceData = {
         ...formData,
-        price: parseFloat(formData.price)
+        price: formData.price === '' ? 0 : parseFloat(formData.price)
       };
       onSubmit(serviceData);
     }
@@ -189,19 +191,20 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
 
         <div className="form-group">
           <label className="form-label">
-            Precio <span className="required">*</span>
+            Precio
           </label>
           <input
             type="number"
             name="price"
             className={`form-input ${errors.price ? 'error' : ''}`}
-            placeholder="150"
+            placeholder="150 (deja en 0 para precio por definir)"
             value={formData.price}
             onChange={handleChange}
             min="0"
             step="1"
           />
           {errors.price && <span className="error-message">{errors.price}</span>}
+          <span className="field-hint">💡 Usa $0 para servicios con precio variable (se definirá al cobrar)</span>
         </div>
 
         <div className="form-group">

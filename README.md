@@ -1,6 +1,7 @@
 Clean master shoes
 
 // WIP
+-[feature/servicio_precio_undefined]Poder agregar un servicio sin precio definido, el cual se debe definir al momento de hacer el cobro de la orden
 -[FEATURE]Generar factura
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
@@ -13,7 +14,6 @@ Clean master shoes
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
--[feature/servicio_precio_undefined]Poder agregar un servicio sin precio definido, el cual se debe definir al momento de hacer el cobro de la orden
 -[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
 -[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
 -[feature/facturas]desde una orden poder generar facturas y enviarlas por wapp o correo

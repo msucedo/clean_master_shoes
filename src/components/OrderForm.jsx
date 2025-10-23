@@ -4,6 +4,7 @@ import ShoePairItem from './ShoePairItem';
 import OtherItem from './OtherItem';
 import ImageUpload from './ImageUpload';
 import PaymentScreen from './PaymentScreen';
+import VariablePriceModal from './VariablePriceModal';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -16,6 +17,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPayment, setShowPayment] = useState(false); // Controla si se muestra el carrito o el pago
   const [showPaymentScreen, setShowPaymentScreen] = useState(false); // Controla si se muestra la pantalla de cobro
+  const [showVariablePriceModal, setShowVariablePriceModal] = useState(false); // Controla modal de precios variables
+  const [variablePriceServices, setVariablePriceServices] = useState([]); // Servicios con precio por definir
   const [isSubmitting, setIsSubmitting] = useState(false); // Estado de envío con animación
   const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden (array de URLs base64)
 
@@ -268,9 +271,20 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Si el método de pago NO es pending, mostrar pantalla de cobro
+      // Si el método de pago NO es pending, verificar servicios con precio variable
       if (formData.paymentMethod !== 'pending') {
-        setShowPaymentScreen(true);
+        // Detectar servicios con precio $0 (precio por definir)
+        const serviceItems = cart.filter(item => item.type === 'service');
+        const servicesWithoutPrice = serviceItems.filter(item => item.price === 0);
+
+        if (servicesWithoutPrice.length > 0) {
+          // Hay servicios sin precio, mostrar modal para definirlos
+          setVariablePriceServices(servicesWithoutPrice);
+          setShowVariablePriceModal(true);
+        } else {
+          // No hay servicios sin precio, continuar a PaymentScreen
+          setShowPaymentScreen(true);
+        }
       } else {
         // Flujo normal: crear orden directamente
         createOrder();
@@ -352,6 +366,31 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   // Handler para cancelar desde PaymentScreen
   const handlePaymentCancel = () => {
     setShowPaymentScreen(false);
+  };
+
+  // Handler para cuando se confirman los precios variables
+  const handleVariablePricesConfirm = (assignedPrices) => {
+    // Actualizar precios en el carrito
+    const updatedCart = cart.map(item => {
+      if (item.type === 'service' && assignedPrices[item.id]) {
+        return {
+          ...item,
+          price: assignedPrices[item.id]
+        };
+      }
+      return item;
+    });
+
+    setCart(updatedCart);
+    setShowVariablePriceModal(false);
+
+    // Continuar a PaymentScreen
+    setShowPaymentScreen(true);
+  };
+
+  // Handler para cancelar desde VariablePriceModal
+  const handleVariablePricesCancel = () => {
+    setShowVariablePriceModal(false);
   };
 
   const handleMenuAction = (action) => {
@@ -465,6 +504,15 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Modal de Precios Variables */}
+      {showVariablePriceModal && (
+        <VariablePriceModal
+          services={variablePriceServices}
+          onConfirm={handleVariablePricesConfirm}
+          onCancel={handleVariablePricesCancel}
+        />
       )}
 
       {/* Renderizado condicional: PaymentScreen o Formulario */}
