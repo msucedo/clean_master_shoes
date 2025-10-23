@@ -13,7 +13,9 @@ Clean master shoes
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
--[FEATURE]desde una orden poder generar facturas y enviarlas por wapp o correo
+-[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
+-[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
+-[feature/facturas]desde una orden poder generar facturas y enviarlas por wapp o correo
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 - [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
@@ -22,6 +24,7 @@ Clean master shoes
 -[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
     -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 -[FIX]no poder agendar ordenes con fechas pasadas, si ya se venció la fecha y la orden sigue abierta pintar de rojo toda la tarjeta
+-[FEATURE]Validar agregar expense funciona en corte de caja
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │

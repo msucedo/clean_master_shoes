@@ -7,98 +7,138 @@
 
 /* Section Styles */
 .cr-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-radius: 18px;
+  padding: 30px;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
+}
+
+.cr-section:hover {
+  border-color: #3a3a3a;
 }
 
 .cr-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .cr-section-header h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
 }
 
 .cr-period-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
   color: white;
-  padding: 6px 16px;
+  padding: 8px 20px;
   border-radius: 20px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3);
 }
 
 /* Stats Grid */
 .cr-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .cr-stat-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 10px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s;
+  gap: 15px;
+  padding: 25px;
+  border-radius: 16px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.cr-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
 }
 
 .cr-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  border-color: #3a3a3a;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
 }
 
-.cr-stat-card.total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: white;
+.cr-stat-card.total::before {
+  background: linear-gradient(90deg, #FF006E 0%, #E91E63 100%);
 }
 
-.cr-stat-card.cash {
-  background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-  border: none;
-  color: #064e3b;
+.cr-stat-card.cash::before {
+  background: linear-gradient(90deg, #00ff88 0%, #00d9a3 100%);
 }
 
-.cr-stat-card.card {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  border: none;
-  color: #7c2d12;
+.cr-stat-card.card::before {
+  background: linear-gradient(90deg, #00d9ff 0%, #0099cc 100%);
 }
 
-.cr-stat-card.transfer {
-  background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%);
-  border: none;
-  color: #713f12;
+.cr-stat-card.transfer::before {
+  background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
 }
 
-.cr-stat-card.orders {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-  border: none;
-  color: #7c2d12;
+.cr-stat-card.orders::before {
+  background: linear-gradient(90deg, #00d9ff 0%, #0099cc 100%);
 }
 
-.cr-stat-card.pending {
-  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-  border: none;
-  color: #7f1d1d;
+.cr-stat-card.pending::before {
+  background: linear-gradient(90deg, #FF006E 0%, #E91E63 100%);
 }
 
 .cr-stat-icon {
   font-size: 32px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.cr-stat-card.total .cr-stat-icon {
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
+}
+
+.cr-stat-card.cash .cr-stat-icon {
+  background: linear-gradient(135deg, #00ff88 0%, #00d9a3 100%);
+}
+
+.cr-stat-card.card .cr-stat-icon {
+  background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+}
+
+.cr-stat-card.transfer .cr-stat-icon {
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+}
+
+.cr-stat-card.orders .cr-stat-icon {
+  background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+}
+
+.cr-stat-card.pending .cr-stat-icon {
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
 }
 
 .cr-stat-info {
@@ -106,14 +146,19 @@
 }
 
 .cr-stat-label {
-  font-size: 13px;
-  opacity: 0.9;
-  margin-bottom: 4px;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .cr-stat-value {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
 }
 
 /* Cash Count Section */
@@ -127,44 +172,50 @@
 .cr-cash-input {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cr-cash-input label {
   font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cr-input {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  transition: all 0.2s;
+  padding: 16px 20px;
+  font-size: 18px;
+  font-weight: 700;
+  background: #0a0a0a;
+  border: 2px solid #2a2a2a;
+  border-radius: 12px;
+  color: #fff;
+  transition: all 0.3s;
 }
 
 .cr-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #FF006E;
+  box-shadow: 0 0 0 4px rgba(255, 0, 110, 0.1);
 }
 
 .cr-cash-summary {
-  background: #f9fafb;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  background: #0a0a0a;
+  padding: 25px;
+  border-radius: 16px;
+  border: 1px solid #2a2a2a;
 }
 
 .cr-cash-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 14px 0;
+  border-bottom: 1px solid #2a2a2a;
   font-size: 14px;
+  color: #999;
 }
 
 .cr-cash-row:last-child {
@@ -172,78 +223,85 @@
 }
 
 .cr-cash-row.difference {
-  font-weight: 600;
-  font-size: 16px;
-  margin-top: 8px;
-  padding-top: 16px;
-  border-top: 2px solid #d1d5db;
+  font-weight: 700;
+  font-size: 17px;
+  margin-top: 10px;
+  padding-top: 18px;
+  border-top: 2px solid #2a2a2a;
 }
 
 .cr-cash-row.difference.positive {
-  color: #059669;
+  color: #00ff88;
 }
 
 .cr-cash-row.difference.negative {
-  color: #dc2626;
+  color: #FF006E;
 }
 
 .cr-cash-amount {
-  font-weight: 600;
-  font-size: 16px;
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
 }
 
 /* Expenses Section */
 .cr-btn-add {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 6px 20px rgba(255, 0, 110, 0.3);
 }
 
 .cr-btn-add:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 30px rgba(255, 0, 110, 0.5);
 }
 
 .cr-expenses-summary {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #f9fafb;
-  border-radius: 10px;
+  padding: 20px 25px;
+  background: #0a0a0a;
+  border-radius: 16px;
   margin-bottom: 20px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #2a2a2a;
 }
 
 .cr-expense-total,
 .cr-expense-final {
   font-size: 15px;
   font-weight: 600;
+  color: #999;
 }
 
 .cr-expense-total span {
-  color: #dc2626;
-  font-size: 18px;
-  margin-left: 8px;
+  color: #FF006E;
+  font-size: 20px;
+  font-weight: 900;
+  margin-left: 10px;
 }
 
 .cr-expense-final span {
-  font-size: 18px;
-  margin-left: 8px;
+  font-size: 20px;
+  font-weight: 900;
+  margin-left: 10px;
 }
 
 .cr-expense-final span.positive {
-  color: #059669;
+  color: #00ff88;
 }
 
 .cr-expense-final span.negative {
-  color: #dc2626;
+  color: #FF006E;
 }
 
 .cr-expenses-list {
@@ -255,28 +313,30 @@
 .cr-expense-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  transition: all 0.2s;
+  gap: 15px;
+  padding: 20px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  transition: all 0.3s;
 }
 
 .cr-expense-item:hover {
-  background: #f3f4f6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: #3a3a3a;
+  transform: translateX(3px);
 }
 
 .cr-expense-icon {
-  font-size: 24px;
-  width: 40px;
-  height: 40px;
+  font-size: 28px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
 }
 
 .cr-expense-info {
@@ -284,45 +344,46 @@
 }
 
 .cr-expense-concept {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
 }
 
 .cr-expense-details {
   font-size: 13px;
-  color: #6b7280;
+  color: #666;
 }
 
 .cr-expense-notes {
   font-size: 13px;
-  color: #4b5563;
+  color: #888;
   margin-top: 6px;
   font-style: italic;
 }
 
 .cr-expense-amount {
-  font-size: 16px;
-  font-weight: 700;
-  color: #dc2626;
-  min-width: 100px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #FF006E;
+  min-width: 120px;
   text-align: right;
 }
 
 .cr-expense-delete {
-  background: none;
-  border: none;
+  background: rgba(255, 0, 110, 0.1);
+  border: 1px solid rgba(255, 0, 110, 0.2);
   cursor: pointer;
   font-size: 20px;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s;
-  opacity: 0.6;
+  padding: 10px;
+  border-radius: 10px;
+  transition: all 0.3s;
+  opacity: 0.7;
 }
 
 .cr-expense-delete:hover {
-  background: #fee2e2;
+  background: rgba(255, 0, 110, 0.2);
+  border-color: #FF006E;
   opacity: 1;
   transform: scale(1.1);
 }
@@ -330,36 +391,40 @@
 /* Empty State */
 .cr-empty-state {
   text-align: center;
-  padding: 48px 20px;
+  padding: 60px 20px;
 }
 
 .cr-empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
-  opacity: 0.5;
+  font-size: 72px;
+  margin-bottom: 20px;
+  opacity: 0.3;
 }
 
 .cr-empty-text {
-  font-size: 15px;
-  color: #6b7280;
-  margin-bottom: 20px;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 24px;
 }
 
 .cr-btn-add-empty {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 6px 20px rgba(255, 0, 110, 0.3);
 }
 
 .cr-btn-add-empty:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 30px rgba(255, 0, 110, 0.5);
 }
 
 /* Orders Table */
@@ -374,119 +439,146 @@
 }
 
 .cr-orders-table thead {
-  background: #f9fafb;
-  border-bottom: 2px solid #e5e7eb;
+  background: #0a0a0a;
+  border-bottom: 2px solid #2a2a2a;
 }
 
 .cr-orders-table th {
-  padding: 12px 16px;
+  padding: 16px 18px;
   text-align: left;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
 .cr-orders-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px 18px;
+  border-bottom: 1px solid #2a2a2a;
+  color: #999;
+}
+
+.cr-orders-table tbody tr {
+  transition: all 0.2s;
 }
 
 .cr-orders-table tbody tr:hover {
-  background: #f9fafb;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .cr-order-number {
-  font-weight: 600;
-  color: #667eea;
+  font-weight: 700;
+  color: #FF006E;
+  font-size: 15px;
 }
 
 .cr-order-client {
-  font-weight: 500;
+  font-weight: 600;
+  color: #fff;
 }
 
 .cr-order-total,
 .cr-order-advance,
 .cr-order-remaining {
-  font-weight: 600;
+  font-weight: 700;
   text-align: right;
+  color: #fff;
 }
 
 .cr-order-method {
   text-align: center;
+  color: #888;
 }
 
 .cr-payment-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .cr-payment-badge.paid {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
 }
 
 .cr-payment-badge.partial {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .cr-payment-badge.pending {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(255, 0, 110, 0.15);
+  color: #FF006E;
+  border: 1px solid rgba(255, 0, 110, 0.3);
 }
 
 /* Notes Section */
 .cr-notes-textarea {
   width: 100%;
-  padding: 12px 16px;
+  padding: 16px 20px;
   font-size: 14px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  background: #0a0a0a;
+  border: 2px solid #2a2a2a;
+  border-radius: 12px;
+  color: #fff;
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
   font-family: inherit;
-  transition: all 0.2s;
+  transition: all 0.3s;
 }
 
 .cr-notes-textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #FF006E;
+  box-shadow: 0 0 0 4px rgba(255, 0, 110, 0.1);
+}
+
+.cr-notes-textarea::placeholder {
+  color: #555;
 }
 
 .cr-char-counter {
   text-align: right;
   font-size: 12px;
-  color: #9ca3af;
-  margin-top: 4px;
-  margin-bottom: 20px;
+  color: #666;
+  margin-top: 6px;
+  margin-bottom: 24px;
 }
 
 .cr-btn-close {
   width: 100%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
   color: white;
   border: none;
-  padding: 16px;
-  border-radius: 10px;
+  padding: 20px;
+  border-radius: 16px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 8px 25px rgba(255, 0, 110, 0.4);
 }
 
 .cr-btn-close:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(255, 0, 110, 0.6);
 }
 
 .cr-btn-close:disabled {
-  background: #d1d5db;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
+  box-shadow: none;
 }
 
 /* Responsive */
@@ -506,7 +598,8 @@
   }
 
   .cr-section {
-    padding: 16px;
+    padding: 20px;
+    border-radius: 16px;
   }
 
   .cr-section-header {
@@ -520,7 +613,7 @@
   }
 
   .cr-stat-card {
-    padding: 12px;
+    padding: 20px;
   }
 
   .cr-expenses-summary {
@@ -531,13 +624,15 @@
 
   .cr-expense-item {
     flex-wrap: wrap;
+    padding: 16px;
   }
 
   .cr-expense-amount {
     order: 3;
     width: 100%;
     text-align: left;
-    margin-left: 52px;
+    margin-left: 65px;
+    margin-top: 10px;
   }
 
   .cr-orders-table {
@@ -546,6 +641,6 @@
 
   .cr-orders-table th,
   .cr-orders-table td {
-    padding: 8px 10px;
+    padding: 12px 10px;
   }
 }
