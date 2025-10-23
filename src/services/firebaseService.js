@@ -863,3 +863,116 @@ export const getAllSettings = async () => {
     throw error;
   }
 };
+
+// ==================== EXPENSES ====================
+
+/**
+ * Add a new expense
+ * @param {Object} expenseData - Expense data
+ * @returns {Promise<string>} Document ID of the created expense
+ */
+export const addExpense = async (expenseData) => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const docRef = await addDoc(expensesRef, {
+      ...expenseData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding expense:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get expenses by date range
+ * @param {string} startDate - Start date in ISO format
+ * @param {string} endDate - End date in ISO format
+ * @returns {Promise<Array>} Array of expenses
+ */
+export const getExpensesByDateRange = async (startDate, endDate) => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const q = query(
+      expensesRef,
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
+      orderBy('date', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    const expenses = [];
+    querySnapshot.forEach((doc) => {
+      expenses.push({ id: doc.id, ...doc.data() });
+    });
+
+    return expenses;
+  } catch (error) {
+    console.error('Error getting expenses:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an expense
+ * @param {string} expenseId - Expense document ID
+ */
+export const deleteExpense = async (expenseId) => {
+  try {
+    const expenseRef = doc(db, 'expenses', expenseId);
+    await deleteDoc(expenseRef);
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    throw error;
+  }
+};
+
+// ==================== CASH REGISTER ====================
+
+/**
+ * Save a cash register closure (corte de caja)
+ * @param {Object} closureData - Closure data
+ * @returns {Promise<string>} Document ID of the created closure
+ */
+export const saveCashRegisterClosure = async (closureData) => {
+  try {
+    const closuresRef = collection(db, 'cash-register-closures');
+    const docRef = await addDoc(closuresRef, {
+      ...closureData,
+      createdAt: new Date().toISOString(),
+      // Cortes son inmutables (solo lectura)
+      readonly: true
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Error saving cash register closure:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all cash register closures
+ * @returns {Promise<Array>} Array of closures
+ */
+export const getAllCashRegisterClosures = async () => {
+  try {
+    const closuresRef = collection(db, 'cash-register-closures');
+    const q = query(closuresRef, orderBy('fechaCorte', 'desc'));
+    const querySnapshot = await getDocs(q);
+
+    const closures = [];
+    querySnapshot.forEach((doc) => {
+      closures.push({ id: doc.id, ...doc.data() });
+    });
+
+    return closures;
+  } catch (error) {
+    console.error('Error getting cash register closures:', error);
+    throw error;
+  }
+};

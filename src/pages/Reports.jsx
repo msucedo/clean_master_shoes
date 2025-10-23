@@ -1,9 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
+import CashRegister from '../components/CashRegister';
+import { subscribeToOrders } from '../services/firebaseService';
 import './Reports.css';
 
 const Reports = () => {
   const [activeFilter, setActiveFilter] = useState('Mes');
+  const [activeTab, setActiveTab] = useState('reportes');
+  const [orders, setOrders] = useState({
+    recibidos: [],
+    proceso: [],
+    listos: [],
+    enEntrega: [],
+    completados: [],
+    cancelados: []
+  });
+
+  // Subscribe to orders for cash register
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders((ordersData) => {
+      setOrders(ordersData);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const stats = [
     {
@@ -62,11 +82,59 @@ const Reports = () => {
     // TODO: Load data for the selected period
   };
 
+  // Get filtered orders for cash register based on date filter
+  const getFilteredOrders = () => {
+    const now = new Date();
+    let startDate, endDate;
+
+    switch (activeFilter) {
+      case 'Hoy':
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        endDate = new Date(now.setHours(23, 59, 59, 999));
+        break;
+      case 'Semana':
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        startDate = new Date(startOfWeek.setHours(0, 0, 0, 0));
+        endDate = new Date();
+        break;
+      case 'Mes':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        break;
+      case 'Año':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+        break;
+      default:
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        endDate = new Date(now.setHours(23, 59, 59, 999));
+    }
+
+    // Combine all orders from all statuses
+    const allOrders = [
+      ...orders.recibidos,
+      ...orders.proceso,
+      ...orders.listos,
+      ...orders.enEntrega,
+      ...orders.completados
+    ];
+
+    // Filter by date range
+    return allOrders.filter(order => {
+      if (!order.createdAt) return false;
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startDate && orderDate <= endDate;
+    });
+  };
+
+  const filteredOrders = getFilteredOrders();
+
   return (
     <div className="reports-page">
       {/* Header */}
       <PageHeader
-        title="Reportes"
+        title="Reportes y Corte de Caja"
         filters={dateFilters.map((filter) => ({
           label: filter,
           onClick: () => handleFilterChange(filter),
@@ -74,8 +142,27 @@ const Reports = () => {
         }))}
       />
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
+      {/* Tabs */}
+      <div className="reports-tabs">
+        <button
+          className={`reports-tab ${activeTab === 'reportes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('reportes')}
+        >
+          📊 Reportes
+        </button>
+        <button
+          className={`reports-tab ${activeTab === 'corte' ? 'active' : ''}`}
+          onClick={() => setActiveTab('corte')}
+        >
+          💰 Corte de Caja
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'reportes' && (
+        <>
+          {/* Stats Grid */}
+          <div className="stats-grid">
         {stats.map((stat, index) => (
           <div key={index} className={`stat-card ${stat.type}`}>
             <div className="stat-header">
@@ -147,6 +234,16 @@ const Reports = () => {
           ))}
         </div>
       </div>
+        </>
+      )}
+
+      {/* Cash Register Tab */}
+      {activeTab === 'corte' && (
+        <CashRegister
+          orders={filteredOrders}
+          dateFilter={activeFilter}
+        />
+      )}
     </div>
   );
 };
