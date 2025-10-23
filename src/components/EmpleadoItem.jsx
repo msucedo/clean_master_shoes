@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { subscribeToOrders } from '../services/firebaseService';
+import { subscribeToOrders, updateOrder } from '../services/firebaseService';
 import './EmpleadoItem.css';
 
 const EmpleadoItem = ({ empleado, onClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAssignOrders, setShowAssignOrders] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
+  const [unassignedOrders, setUnassignedOrders] = useState([]);
   const getInitials = (name) => {
     const names = name.split(' ');
     return names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -47,6 +49,13 @@ const EmpleadoItem = ({ empleado, onClick }) => {
       );
 
       setActiveOrders(employeeOrders);
+
+      // Get unassigned orders in "recibidos" status
+      const ordersWithoutEmployee = (ordersData.recibidos || []).filter(
+        order => !order.author || order.author === ''
+      );
+
+      setUnassignedOrders(ordersWithoutEmployee);
     });
 
     return () => unsubscribe();
@@ -54,7 +63,29 @@ const EmpleadoItem = ({ empleado, onClick }) => {
 
   const handleToggleOrders = (e) => {
     e.stopPropagation(); // Prevent triggering onClick for editing employee
+    // Si se abre "Ver Órdenes", cerrar "Asignar Orden"
+    if (!isExpanded && showAssignOrders) {
+      setShowAssignOrders(false);
+    }
     setIsExpanded(!isExpanded);
+  };
+
+  const handleToggleAssignOrders = (e) => {
+    e.stopPropagation(); // Prevent triggering onClick for editing employee
+    // Si se abre "Asignar Orden", cerrar "Ver Órdenes"
+    if (!showAssignOrders && isExpanded) {
+      setIsExpanded(false);
+    }
+    setShowAssignOrders(!showAssignOrders);
+  };
+
+  const handleAssignOrder = async (orderId) => {
+    try {
+      await updateOrder(orderId, { author: empleado.name });
+      // La suscripción en tiempo real actualizará automáticamente las listas
+    } catch (error) {
+      console.error('Error asignando orden:', error);
+    }
   };
 
   // Group services by icon and count them
@@ -102,6 +133,13 @@ const EmpleadoItem = ({ empleado, onClick }) => {
           >
             {isExpanded ? '▼' : '▶'} Ver Órdenes ({activeOrders.length})
           </button>
+          <button
+            className="btn-assign-order"
+            onClick={handleToggleAssignOrders}
+            title="Asignar órdenes sin empleado"
+          >
+            {showAssignOrders ? '▼' : '▶'} Asignar Orden ({unassignedOrders.length})
+          </button>
         </div>
       </div>
 
@@ -133,6 +171,45 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                     <div className="order-services">
                       {getServiceIcons(order.services)}
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Expanded Assign Orders Section */}
+      {showAssignOrders && (
+        <div className="empleado-orders-section">
+          <div className="orders-header">
+            <h4>Órdenes sin Asignar (Recibidos)</h4>
+          </div>
+          {unassignedOrders.length === 0 ? (
+            <div className="no-orders">
+              <p>No hay órdenes sin asignar en estado "Recibidos"</p>
+            </div>
+          ) : (
+            <div className="empleado-orders-list">
+              {unassignedOrders.map((order) => (
+                <div key={order.id} className="order-item assign-order-item">
+                  <div className="order-info">
+                    <span className="order-number">#{order.orderNumber || order.id}</span>
+                    <span className="order-client">{order.client}</span>
+                  </div>
+                  <div className="order-details">
+                    <span className="order-status status-recibidos">
+                      📥 Recibidos
+                    </span>
+                    <div className="order-services">
+                      {getServiceIcons(order.services)}
+                    </div>
+                    <button
+                      className="btn-assign-to-employee"
+                      onClick={() => handleAssignOrder(order.id)}
+                    >
+                      ✓ Asignar
+                    </button>
                   </div>
                 </div>
               ))}

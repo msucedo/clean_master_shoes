@@ -13,7 +13,7 @@ const Reports = () => {
     listos: [],
     enEntrega: [],
     completados: [],
-    cancelados: []
+    cancelado: []
   });
 
   // Subscribe to orders for cash register

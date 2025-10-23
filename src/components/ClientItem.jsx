@@ -57,7 +57,7 @@ const ClientItem = ({ client, onClick }) => {
       const allCompletedOrders = ordersData.completados || [];
 
       // Get cancelled orders
-      const allCancelledOrders = ordersData.cancelados || [];
+      const allCancelledOrders = ordersData.cancelado || [];
 
       // Filter orders by this client's name
       const clientActiveOrders = allActiveOrders.filter(

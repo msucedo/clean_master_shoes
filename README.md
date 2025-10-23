@@ -1,7 +1,6 @@
 Clean master shoes
 
 // WIP
--[feature/servicio_precio_undefined]Poder agregar un servicio sin precio definido, el cual se debe definir al momento de hacer el cobro de la orden
 -[FEATURE]Generar factura
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
@@ -58,6 +57,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[fix]tab empleados,en el componente EmpleadoItem, aun lado del boton ver ordenes agregar un boton nuevo "asignar orden", se van a desplegar todas las ordenes en el estado recibido y que no tengan a un empleado asignado, cada orden desplegada va tener un boton para asignarsela al empleado
+-[fix]tab clientes, ver historial, validar canceladas este bien configurado
+-[feature/servicio_precio_undefined]Poder agregar un servicio sin precio definido, el cual se debe definir al momento de hacer el cobro de la orden
 -[feature/corte_de_caja]Componente corte de caja
 -[FIX]Cargar perfil del negocio desde firebase
 -[FIX]arreglar backup manual de settings tab

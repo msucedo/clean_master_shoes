@@ -286,6 +286,10 @@
     gap: 12px;
 }
 
+.client-orders-list .order-status {
+    color:white;
+}
+
 /* Cada orden */
 .order-item {
     background: rgba(255, 255, 255, 0.03);

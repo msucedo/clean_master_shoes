@@ -34,7 +34,7 @@ export const getAllOrders = async () => {
       listos: [],
       enEntrega: [],
       completados: [],
-      cancelados: []
+      cancelado: []
     };
 
     querySnapshot.forEach((doc) => {
@@ -69,7 +69,7 @@ export const subscribeToOrders = (callback) => {
         listos: [],
         enEntrega: [],
         completados: [],
-        cancelados: []
+        cancelado: []
       };
 
       snapshot.forEach((doc) => {
