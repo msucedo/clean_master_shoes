@@ -3,11 +3,12 @@ import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
-import { subscribeToEmployees } from '../services/firebaseService';
+import { subscribeToEmployees, getBusinessProfile } from '../services/firebaseService';
+import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
 
-const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onInvoice, onEntregar, onBeforeClose }) => {
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose }) => {
   const { showSuccess, showInfo } = useNotification();
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
@@ -325,6 +326,21 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   };
 
   // Handler para entregar - guarda todos los cambios y marca como entregada
+  const handleGenerateInvoice = async () => {
+    try {
+      const businessProfile = await getBusinessProfile();
+      const pdf = await generateInvoicePDF(order, businessProfile);
+
+      // Abrir PDF en nueva pestaña (sin imprimir automáticamente)
+      window.open(pdf.output('bloburl'), '_blank');
+
+      showSuccess('Factura generada exitosamente');
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      showInfo('Error al generar la factura');
+    }
+  };
+
   const handleEntregar = () => {
     // Si hay saldo pendiente, verificar primero precios variables
     if (!isFullyPaid) {
@@ -813,7 +829,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
           <button
             className="action-btn btn-invoice"
-            onClick={() => onInvoice && onInvoice(order)}
+            onClick={handleGenerateInvoice}
           >
             <span className="action-icon">🧾</span>
             <span className="action-text">Generar Factura</span>

@@ -236,10 +236,6 @@ const Dashboard = () => {
     showSuccess('Abriendo WhatsApp...');
   };
 
-  const handleInvoice = (order) => {
-    showInfo(`Generar factura para orden #${order.orderNumber || order.id} - Cliente: ${order.client}`);
-  };
-
   // Calcular pagos pendientes (órdenes con pago pendiente o parcial)
   const getPendingPayments = () => {
     const allActiveOrders = [
@@ -415,7 +411,6 @@ const Dashboard = () => {
             onCancel={handleCancelOrder}
             onEmail={handleEmail}
             onWhatsApp={handleWhatsApp}
-            onInvoice={handleInvoice}
             onEntregar={handleEntregar}
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
           />

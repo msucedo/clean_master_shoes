@@ -20,11 +20,11 @@ Clean master shoes
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 - [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
 - [EPIC]Pantalla promociones
-- [EPIC]Agregar pantalla de login, creacion de usuarios
+- [EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
 -[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
     -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 -[FIX]no poder agendar ordenes con fechas pasadas, si ya se venció la fecha y la orden sigue abierta pintar de rojo toda la tarjeta
--[FEATURE]Validar agregar expense funciona en corte de caja
+-[fix]poder actualizarse el costo a un servicio cotizado desde orderdetailview, que se logre como si fuera el update del precio de un servicio en una orden pero solo este habilitado hacer esto cuando el servicio tenga 0, no quiero que las demas ordenes puedan cambiar el costo del servicio desde orderdetailview, solo cuando sea 0, y este cambio al cerrar el modal se deberia mandar a firebase porque se actualizo la orden
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │

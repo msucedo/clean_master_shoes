@@ -249,11 +249,6 @@ const Orders = () => {
     showSuccess('Abriendo WhatsApp...');
   };
 
-  const handleInvoice = (order) => {
-    // TODO: Implementar generación de factura
-    showInfo(`Generar factura para orden #${order.orderNumber || order.id} - Cliente: ${order.client}`);
-  };
-
   const handleEntregar = (order) => {
     setConfirmDialog({
       isOpen: true,
@@ -419,7 +414,6 @@ const Orders = () => {
             onCancel={handleCancelOrder}
             onEmail={handleEmail}
             onWhatsApp={handleWhatsApp}
-            onInvoice={handleInvoice}
             onEntregar={handleEntregar}
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
           />
