@@ -12,6 +12,7 @@ Clean master shoes
 - [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
 
 // BACKLOG
+-[FEATURE]desde una orden poder generar facturas y enviarlas por wapp o correo
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 - [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
@@ -52,6 +53,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]arreglar backup manual de settings tab
+-[FIX]eliminar nn components settings tab
+-[feature/loading_screen]Agregar loading screen al entrar en la app
 -[FEATURE]Al cancelar la orden, ya no se borra, se actualiza a cancelado y se deja para reporteria
 - [fix/iphone_ux_new_order]Habilitar nueva orden en iphone, ux no se ve
 -[fix/orders_priority]de orderform, remover el campo de la UI "prioridad", no debe cambiarse manualmente, por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente al crear la orden ponle prioridad express

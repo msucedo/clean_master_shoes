@@ -1,62 +1,80 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import PageHeader from '../components/PageHeader';
 import { downloadBackup, getBackupInfo } from '../utils/backup';
+import { saveBusinessProfile } from '../services/firebaseService';
+import { useNotification } from '../contexts/NotificationContext';
 import './Settings.css';
 
 const Settings = () => {
-  const [businessName, setBusinessName] = useState('SneakerWash');
-  const [phone, setPhone] = useState('555-123-4567');
-  const [address, setAddress] = useState('Calle Principal #123, Colima');
-  const [email, setEmail] = useState('usuario@sneakerwash.com');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { showSuccess, showError } = useNotification();
 
-  const [notifications, setNotifications] = useState({
-    deliveryReminders: true,
-    paymentAlerts: true,
-    whatsappNotifications: false,
-    dailySummary: true
-  });
+  // Business Profile State
+  const [businessName, setBusinessName] = useState('Clean Master Shoes');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const [integrations, setIntegrations] = useState({
-    whatsapp: false,
-    clipPayment: false,
-    autoBackup: true,
-    googleAnalytics: false
-  });
-
+  // Backup State
   const [backupLoading, setBackupLoading] = useState(false);
   const [backupInfo, setBackupInfo] = useState(null);
 
-  const handleToggle = (category, key) => {
-    if (category === 'notifications') {
-      setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
-      // TODO: Save notification preferences to backend
-    } else if (category === 'integrations') {
-      setIntegrations(prev => ({ ...prev, [key]: !prev[key] }));
-      // TODO: Save integration preferences to backend
-    }
-  };
+  // Ref for file input
+  const fileInputRef = useRef(null);
 
   const handleLogoUpload = () => {
-    // TODO: Implement logo upload functionality
+    fileInputRef.current?.click();
   };
 
-  const handleSaveProfile = () => {
-    // TODO: Save profile changes to backend
-  };
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        showError('Tipo de archivo no permitido. Usa PNG, JPG o WEBP.');
+        return;
+      }
 
-  const handleSavePassword = () => {
-    if (newPassword !== confirmPassword) {
-      alert('Las contraseñas no coinciden');
-      return;
+      // Validate file size (max 2MB)
+      const maxSize = 2 * 1024 * 1024;
+      if (file.size > maxSize) {
+        showError('El archivo es demasiado grande. Máximo 2MB.');
+        return;
+      }
+
+      setLogoFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-    // TODO: Implement password change functionality
   };
 
-  const handleLogout = () => {
-    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      // TODO: Implement logout functionality
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const profileData = {
+        businessName,
+        phone,
+        address
+      };
+
+      await saveBusinessProfile(profileData, logoFile);
+
+      showSuccess('Perfil guardado exitosamente');
+
+      // Clear logo file after saving (keep preview)
+      setLogoFile(null);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showError(error.message || 'Error al guardar el perfil');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -64,14 +82,14 @@ const Settings = () => {
     setBackupLoading(true);
     try {
       const result = await downloadBackup();
-      alert(`Backup descargado exitosamente: ${result.filename}`);
+      showSuccess(`Backup descargado: ${result.filename}`);
 
       // Get updated backup info
       const info = await getBackupInfo();
       setBackupInfo(info);
     } catch (error) {
       console.error('Error downloading backup:', error);
-      alert('Error al descargar el backup. Por favor intenta nuevamente.');
+      showError('Error al descargar el backup');
     } finally {
       setBackupLoading(false);
     }
@@ -83,15 +101,14 @@ const Settings = () => {
       setBackupInfo(info);
     } catch (error) {
       console.error('Error getting backup info:', error);
+      showError('Error al obtener información del backup');
     }
   };
 
   return (
     <div className="settings-page">
       {/* Header */}
-      <PageHeader
-        title="Configuración"
-      />
+      <PageHeader title="Configuración" />
 
       {/* Settings Grid */}
       <div className="settings-grid">
@@ -108,10 +125,25 @@ const Settings = () => {
           <div className="form-group">
             <label className="form-label">Logo del Negocio</label>
             <div className="upload-area" onClick={handleLogoUpload}>
-              <div className="upload-icon">📸</div>
-              <div className="upload-text">Click para subir logo</div>
-              <div className="upload-subtext">PNG o JPG (máx. 2MB)</div>
+              {logoPreview ? (
+                <div className="logo-preview">
+                  <img src={logoPreview} alt="Logo preview" />
+                </div>
+              ) : (
+                <>
+                  <div className="upload-icon">📸</div>
+                  <div className="upload-text">Click para subir logo</div>
+                  <div className="upload-subtext">PNG o JPG (máx. 2MB)</div>
+                </>
+              )}
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
           </div>
 
           <div className="form-group">
@@ -148,213 +180,21 @@ const Settings = () => {
           </div>
 
           <div className="btn-group">
-            <button className="btn-primary" onClick={handleSaveProfile}>
-              Guardar Cambios
+            <button
+              className="btn-primary"
+              onClick={handleSaveProfile}
+              disabled={saving}
+            >
+              {saving ? '⏳ Guardando...' : 'Guardar Cambios'}
             </button>
-            <button className="btn-secondary">
+            <button className="btn-secondary" onClick={() => {
+              setBusinessName('Clean Master Shoes');
+              setPhone('');
+              setAddress('');
+              setLogoFile(null);
+              setLogoPreview(null);
+            }}>
               Cancelar
-            </button>
-          </div>
-        </div>
-
-        {/* Notificaciones */}
-        <div className="settings-section">
-          <div className="section-header">
-            <div className="section-icon notifications">🔔</div>
-            <div>
-              <div className="section-title">Notificaciones</div>
-              <div className="section-subtitle">Alertas y recordatorios</div>
-            </div>
-          </div>
-
-          <div className="toggle-group">
-            <div className="toggle-info">
-              <div className="toggle-label">Recordatorios de Entrega</div>
-              <div className="toggle-description">Notificarte cuando un pedido esté listo</div>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={notifications.deliveryReminders}
-                onChange={() => handleToggle('notifications', 'deliveryReminders')}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div className="toggle-group">
-            <div className="toggle-info">
-              <div className="toggle-label">Alertas de Pagos Pendientes</div>
-              <div className="toggle-description">Notificarte sobre pagos sin cobrar</div>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={notifications.paymentAlerts}
-                onChange={() => handleToggle('notifications', 'paymentAlerts')}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div className="toggle-group">
-            <div className="toggle-info">
-              <div className="toggle-label">Notificaciones por WhatsApp</div>
-              <div className="toggle-description">Enviar recordatorios a clientes</div>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={notifications.whatsappNotifications}
-                onChange={() => handleToggle('notifications', 'whatsappNotifications')}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div className="toggle-group">
-            <div className="toggle-info">
-              <div className="toggle-label">Resumen Diario</div>
-              <div className="toggle-description">Recibir reporte al final del día</div>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={notifications.dailySummary}
-                onChange={() => handleToggle('notifications', 'dailySummary')}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        {/* Seguridad */}
-        <div className="settings-section">
-          <div className="section-header">
-            <div className="section-icon security">🔒</div>
-            <div>
-              <div className="section-title">Cuenta y Seguridad</div>
-              <div className="section-subtitle">Protege tu cuenta</div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              className="form-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Nueva Contraseña</label>
-            <input
-              type="password"
-              className="form-input"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Confirmar Contraseña</label>
-            <input
-              type="password"
-              className="form-input"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div className="btn-group">
-            <button className="btn-primary" onClick={handleSavePassword}>
-              Cambiar Contraseña
-            </button>
-          </div>
-
-          <div className="logout-section">
-            <button className="btn-danger" onClick={handleLogout}>
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-
-        {/* Integraciones */}
-        <div className="settings-section">
-          <div className="section-header">
-            <div className="section-icon integrations">🔌</div>
-            <div>
-              <div className="section-title">Integraciones</div>
-              <div className="section-subtitle">Conecta herramientas</div>
-            </div>
-          </div>
-
-          <div className="integration-item">
-            <div className="integration-icon">💬</div>
-            <div className="integration-info">
-              <div className="integration-name">WhatsApp Business</div>
-              <div className={`integration-status ${integrations.whatsapp ? 'connected' : ''}`}>
-                {integrations.whatsapp ? '✓ Conectado' : 'No conectado'}
-              </div>
-            </div>
-            <button
-              className={`btn-connect ${integrations.whatsapp ? 'connected' : ''}`}
-              onClick={() => handleToggle('integrations', 'whatsapp')}
-            >
-              {integrations.whatsapp ? 'Desconectar' : 'Conectar'}
-            </button>
-          </div>
-
-          <div className="integration-item">
-            <div className="integration-icon clip">💳</div>
-            <div className="integration-info">
-              <div className="integration-name">Terminal de Pago (Clip)</div>
-              <div className={`integration-status ${integrations.clipPayment ? 'connected' : ''}`}>
-                {integrations.clipPayment ? '✓ Conectado' : 'No conectado'}
-              </div>
-            </div>
-            <button
-              className={`btn-connect ${integrations.clipPayment ? 'connected' : ''}`}
-              onClick={() => handleToggle('integrations', 'clipPayment')}
-            >
-              {integrations.clipPayment ? 'Desconectar' : 'Conectar'}
-            </button>
-          </div>
-
-          <div className="integration-item">
-            <div className="integration-icon backup">☁️</div>
-            <div className="integration-info">
-              <div className="integration-name">Backup Automático</div>
-              <div className={`integration-status ${integrations.autoBackup ? 'connected' : ''}`}>
-                {integrations.autoBackup ? '✓ Conectado' : 'No conectado'}
-              </div>
-            </div>
-            <button
-              className={`btn-connect ${integrations.autoBackup ? 'connected' : ''}`}
-              onClick={() => handleToggle('integrations', 'autoBackup')}
-            >
-              {integrations.autoBackup ? 'Desconectar' : 'Conectar'}
-            </button>
-          </div>
-
-          <div className="integration-item">
-            <div className="integration-icon analytics">📊</div>
-            <div className="integration-info">
-              <div className="integration-name">Google Analytics</div>
-              <div className={`integration-status ${integrations.googleAnalytics ? 'connected' : ''}`}>
-                {integrations.googleAnalytics ? '✓ Conectado' : 'No conectado'}
-              </div>
-            </div>
-            <button
-              className={`btn-connect ${integrations.googleAnalytics ? 'connected' : ''}`}
-              onClick={() => handleToggle('integrations', 'googleAnalytics')}
-            >
-              {integrations.googleAnalytics ? 'Desconectar' : 'Conectar'}
             </button>
           </div>
         </div>
@@ -378,23 +218,31 @@ const Settings = () => {
             {backupInfo && (
               <div className="backup-stats">
                 <div className="stat-item">
-                  <div className="stat-label">Órdenes:</div>
+                  <div className="stat-label">Órdenes</div>
                   <div className="stat-value">{backupInfo.ordersCount}</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-label">Servicios:</div>
+                  <div className="stat-label">Servicios</div>
                   <div className="stat-value">{backupInfo.servicesCount}</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-label">Clientes:</div>
+                  <div className="stat-label">Clientes</div>
                   <div className="stat-value">{backupInfo.clientsCount}</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-label">Empleados:</div>
+                  <div className="stat-label">Empleados</div>
                   <div className="stat-value">{backupInfo.employeesCount}</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-label">Tamaño:</div>
+                  <div className="stat-label">Inventario</div>
+                  <div className="stat-value">{backupInfo.inventoryCount || 0}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Configuración</div>
+                  <div className="stat-value">{backupInfo.settingsCount}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Tamaño</div>
                   <div className="stat-value">{backupInfo.size}</div>
                 </div>
               </div>

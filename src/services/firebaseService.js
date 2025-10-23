@@ -10,9 +10,11 @@ import {
   onSnapshot,
   orderBy,
   where,
-  runTransaction
+  runTransaction,
+  setDoc
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../config/firebase';
 import { sendDeliveryNotification } from './whatsappService';
 
 // ==================== ORDERS ====================
@@ -709,12 +711,13 @@ export const decreaseProductStock = async (productId, quantity) => {
  */
 export const exportAllData = async () => {
   try {
-    const [orders, services, clients, employees, inventory] = await Promise.all([
+    const [orders, services, clients, employees, inventory, settings] = await Promise.all([
       getAllOrders(),
       getAllServices(),
       getAllClients(),
       getAllEmployees(),
-      getAllInventory()
+      getAllInventory(),
+      getAllSettings()
     ]);
 
     return {
@@ -723,11 +726,140 @@ export const exportAllData = async () => {
       clients,
       employees,
       inventory,
+      settings,
       exportedAt: new Date().toISOString(),
       version: '1.0'
     };
   } catch (error) {
     console.error('Error exporting data:', error);
+    throw error;
+  }
+};
+
+// ==================== BUSINESS PROFILE ====================
+
+/**
+ * Upload logo to Firebase Storage
+ * @param {File} file - Logo image file
+ * @returns {Promise<string>} URL of uploaded logo
+ */
+export const uploadLogo = async (file) => {
+  try {
+    if (!file) {
+      throw new Error('No file provided');
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Tipo de archivo no permitido. Usa PNG, JPG o WEBP.');
+    }
+
+    // Validate file size (max 2MB)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      throw new Error('El archivo es demasiado grande. Máximo 2MB.');
+    }
+
+    // Create unique filename
+    const timestamp = Date.now();
+    const extension = file.name.split('.').pop();
+    const filename = `${timestamp}_logo.${extension}`;
+
+    // Create reference to storage
+    const storageRef = ref(storage, `logos/${filename}`);
+
+    // Upload file
+    await uploadBytes(storageRef, file);
+
+    // Get download URL
+    const downloadURL = await getDownloadURL(storageRef);
+
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading logo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Save business profile to Firestore
+ * @param {Object} profileData - Business profile data
+ * @param {File} logoFile - Optional logo file to upload
+ * @returns {Promise<Object>} Saved profile data
+ */
+export const saveBusinessProfile = async (profileData, logoFile = null) => {
+  try {
+    let logoUrl = profileData.logoUrl || null;
+
+    // Upload logo if provided
+    if (logoFile) {
+      logoUrl = await uploadLogo(logoFile);
+    }
+
+    // Prepare profile data
+    const profile = {
+      businessName: profileData.businessName || '',
+      phone: profileData.phone || '',
+      address: profileData.address || '',
+      logoUrl: logoUrl,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Save to Firestore (document with fixed ID)
+    const profileRef = doc(db, 'settings', 'business-profile');
+    await setDoc(profileRef, profile, { merge: true });
+
+    return profile;
+  } catch (error) {
+    console.error('Error saving business profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get business profile from Firestore
+ * @returns {Promise<Object>} Business profile data
+ */
+export const getBusinessProfile = async () => {
+  try {
+    const profileRef = doc(db, 'settings', 'business-profile');
+    const profileSnap = await getDoc(profileRef);
+
+    if (profileSnap.exists()) {
+      return profileSnap.data();
+    } else {
+      // Return default profile if doesn't exist
+      return {
+        businessName: 'Clean Master Shoes',
+        phone: '',
+        address: '',
+        logoUrl: null
+      };
+    }
+  } catch (error) {
+    console.error('Error getting business profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all settings documents from Firestore
+ * @returns {Promise<Array>} All settings documents
+ */
+export const getAllSettings = async () => {
+  try {
+    const settingsRef = collection(db, 'settings');
+    const querySnapshot = await getDocs(settingsRef);
+
+    const settings = [];
+    querySnapshot.forEach((doc) => {
+      settings.push({ id: doc.id, ...doc.data() });
+    });
+
+    return settings;
+  } catch (error) {
+    console.error('Error getting settings:', error);
     throw error;
   }
 };

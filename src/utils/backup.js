@@ -77,6 +77,8 @@ export const getBackupInfo = async () => {
       servicesCount: data.services?.length || 0,
       clientsCount: data.clients?.length || 0,
       employeesCount: data.employees?.length || 0,
+      inventoryCount: data.inventory?.length || 0,
+      settingsCount: data.settings?.length || 0,
       exportedAt: data.exportedAt
     };
   } catch (error) {
