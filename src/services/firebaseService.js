@@ -711,13 +711,15 @@ export const decreaseProductStock = async (productId, quantity) => {
  */
 export const exportAllData = async () => {
   try {
-    const [orders, services, clients, employees, inventory, settings] = await Promise.all([
+    const [orders, services, clients, employees, inventory, settings, expenses, cashClosures] = await Promise.all([
       getAllOrders(),
       getAllServices(),
       getAllClients(),
       getAllEmployees(),
       getAllInventory(),
-      getAllSettings()
+      getAllSettings(),
+      getAllExpenses(),
+      getAllCashRegisterClosures()
     ]);
 
     return {
@@ -727,6 +729,8 @@ export const exportAllData = async () => {
       employees,
       inventory,
       settings,
+      expenses,
+      cashClosures,
       exportedAt: new Date().toISOString(),
       version: '1.0'
     };
@@ -913,6 +917,27 @@ export const getExpensesByDateRange = async (startDate, endDate) => {
     return expenses;
   } catch (error) {
     console.error('Error getting expenses:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all expenses
+ * @returns {Promise<Array>} Array of expenses
+ */
+export const getAllExpenses = async () => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const querySnapshot = await getDocs(expensesRef);
+
+    const expenses = [];
+    querySnapshot.forEach((doc) => {
+      expenses.push({ id: doc.id, ...doc.data() });
+    });
+
+    return expenses;
+  } catch (error) {
+    console.error('Error getting all expenses:', error);
     throw error;
   }
 };

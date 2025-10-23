@@ -252,8 +252,8 @@ const Settings = () => {
 
           <div className="backup-info">
             <p className="backup-description">
-              Descarga una copia de seguridad de todas tus órdenes y servicios en formato JSON.
-              Puedes usar este archivo para restaurar tu información si algo sale mal.
+              Descarga una copia de seguridad completa de todos tus datos en formato JSON.
+              Incluye órdenes, servicios, clientes, empleados, inventario, gastos, cortes de caja y configuraciones.
             </p>
 
             {backupInfo && (
@@ -277,6 +277,14 @@ const Settings = () => {
                 <div className="stat-item">
                   <div className="stat-label">Inventario</div>
                   <div className="stat-value">{backupInfo.inventoryCount || 0}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Gastos</div>
+                  <div className="stat-value">{backupInfo.expensesCount || 0}</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-label">Cortes de Caja</div>
+                  <div className="stat-value">{backupInfo.cashClosuresCount || 0}</div>
                 </div>
                 <div className="stat-item">
                   <div className="stat-label">Configuración</div>
