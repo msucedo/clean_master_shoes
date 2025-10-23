@@ -4,7 +4,7 @@ import OrderCard from '../components/OrderCard';
 import Modal from '../components/Modal';
 import OrderDetailView from '../components/OrderDetailView';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { subscribeToOrders, updateOrder, updateOrderStatus } from '../services/firebaseService';
+import { subscribeToOrders, updateOrder } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Dashboard.css';
 
@@ -122,9 +122,30 @@ const Dashboard = () => {
   const handleSaveOrder = async (updatedOrder) => {
     console.log('🔥 [FIREBASE] handleSaveOrder llamado con:', updatedOrder);
     try {
-      await updateOrder(updatedOrder.id, updatedOrder);
+      const result = await updateOrder(updatedOrder.id, updatedOrder);
       console.log('✅ [FIREBASE] Orden actualizada exitosamente');
-      showSuccess('Orden actualizada exitosamente');
+
+      // Siempre mostrar notificación de orden actualizada
+      showSuccess('Orden actualizada exitosamente ✓');
+
+      // Si hubo cambio a "enEntrega", mostrar segunda notificación según resultado del WhatsApp
+      if (result.whatsappResult) {
+        const whatsapp = result.whatsappResult;
+
+        if (whatsapp.success) {
+          showSuccess(`WhatsApp enviado a ${updatedOrder.client} ✓`);
+        } else if (whatsapp.skipped) {
+          showInfo('WhatsApp no configurado, enviar mensaje manualmente.');
+        } else {
+          // WhatsApp falló
+          showError(
+            `WhatsApp falló: ${whatsapp.error || 'Error desconocido'}. ` +
+            `Enviar mensaje manualmente a ${updatedOrder.phone}.`
+          );
+          console.error('❌ [UI] Detalles del error de WhatsApp:', whatsapp);
+        }
+      }
+
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('❌ [FIREBASE] Error saving order:', error);
@@ -132,16 +153,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleStatusChange = async (order, newStatus) => {
-    try {
-      await updateOrderStatus(order.id, newStatus);
-      showSuccess('Estado de la orden actualizado');
-      // Real-time listener will update the UI automatically
-    } catch (error) {
-      console.error('Error updating order status:', error);
-      showError('Error al actualizar el estado de la orden');
-    }
-  };
 
   const handleEntregar = (order) => {
     setConfirmDialog({
@@ -190,10 +201,11 @@ const Dashboard = () => {
           // Excluir campos temporales antes de guardar
           const { currentStatus, ...cleanOrder } = order;
 
+          // Marcar orden como cancelada en lugar de borrarla
           const cancelledOrder = {
             ...cleanOrder,
-            orderStatus: 'completados',
-            cancelledDate: new Date().toISOString()
+            orderStatus: 'cancelado',
+            cancelledAt: new Date().toISOString()
           };
 
           await updateOrder(order.id, cancelledOrder);
@@ -202,7 +214,7 @@ const Dashboard = () => {
           saveOnCloseRef.current = null;
 
           handleCloseModal();
-          showSuccess('Orden cancelada');
+          showSuccess('Orden cancelada exitosamente');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
           console.error('Error cancelling order:', error);
@@ -400,7 +412,6 @@ const Dashboard = () => {
             currentTab={selectedOrder.currentStatus}
             onClose={handleCloseModal}
             onSave={handleSaveOrder}
-            onStatusChange={handleStatusChange}
             onCancel={handleCancelOrder}
             onEmail={handleEmail}
             onWhatsApp={handleWhatsApp}

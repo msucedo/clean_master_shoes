@@ -47,16 +47,25 @@
 
 .order-whatsapp-badge {
     padding: 4px 8px;
-    background: linear-gradient(135deg, rgba(37, 211, 102, 0.2) 0%, rgba(18, 140, 126, 0.2) 100%);
-    border: 1.5px solid #25d366;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 700;
-    color: #25d366;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: help;
+}
+
+.order-whatsapp-badge.success {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.2) 0%, rgba(18, 140, 126, 0.2) 100%);
+    border: 1.5px solid #25d366;
+    color: #25d366;
+}
+
+.order-whatsapp-badge.error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
+    border: 1.5px solid #ef4444;
+    color: #ef4444;
 }
 
 .order-delivery-badge {

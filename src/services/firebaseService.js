@@ -31,7 +31,8 @@ export const getAllOrders = async () => {
       proceso: [],
       listos: [],
       enEntrega: [],
-      completados: []
+      completados: [],
+      cancelados: []
     };
 
     querySnapshot.forEach((doc) => {
@@ -65,7 +66,8 @@ export const subscribeToOrders = (callback) => {
         proceso: [],
         listos: [],
         enEntrega: [],
-        completados: []
+        completados: [],
+        cancelados: []
       };
 
       snapshot.forEach((doc) => {
@@ -161,16 +163,89 @@ export const addOrder = async (orderData) => {
 
 /**
  * Update an existing order
+ * Automatically sends WhatsApp notification when status changes to "enEntrega"
  * @param {string} orderId - Order document ID
  * @param {Object} orderData - Updated order data
+ * @returns {Promise<Object>} Result object with whatsapp info if status changed to enEntrega
  */
 export const updateOrder = async (orderId, orderData) => {
   try {
     const orderRef = doc(db, 'orders', orderId);
-    await updateDoc(orderRef, {
+
+    // Get current order data to check if status changed
+    const orderDoc = await getDoc(orderRef);
+
+    if (!orderDoc.exists()) {
+      throw new Error('Order not found');
+    }
+
+    const currentOrderData = orderDoc.data();
+    const currentStatus = currentOrderData.orderStatus;
+    const newStatus = orderData.orderStatus;
+
+    // Check if status is changing to "enEntrega"
+    const statusChangingToEntrega = newStatus === 'enEntrega' && currentStatus !== 'enEntrega';
+
+    let whatsappResult = null;
+    let updateData = {
       ...orderData,
       updatedAt: new Date().toISOString()
-    });
+    };
+
+    if (statusChangingToEntrega) {
+      // Prepare complete order data for WhatsApp notification
+      const completeOrderData = {
+        id: orderId,
+        ...currentOrderData,
+        ...orderData
+      };
+
+      console.log('📱 [Firebase] Status changing to enEntrega, sending WhatsApp notification...');
+      whatsappResult = await sendDeliveryNotification(completeOrderData);
+
+      // Add WhatsApp notification to the notifications array
+      if (whatsappResult.success) {
+        console.log('✅ [Firebase] WhatsApp notification sent successfully');
+
+        const existingNotifications = currentOrderData.whatsappNotifications || [];
+
+        updateData.whatsappNotifications = [
+          ...existingNotifications,
+          {
+            sentAt: whatsappResult.timestamp,
+            status: whatsappResult.status,
+            messageId: whatsappResult.messageId,
+            message: whatsappResult.message
+          }
+        ];
+      } else if (!whatsappResult.skipped) {
+        // Only log errors if it wasn't skipped due to configuration
+        console.error('❌ [Firebase] WhatsApp notification failed:', whatsappResult.error);
+
+        const existingNotifications = currentOrderData.whatsappNotifications || [];
+
+        updateData.whatsappNotifications = [
+          ...existingNotifications,
+          {
+            sentAt: whatsappResult.timestamp,
+            status: 'failed',
+            error: whatsappResult.error,
+            errorCode: whatsappResult.errorCode,
+            errorType: whatsappResult.errorType
+          }
+        ];
+      }
+    }
+
+    // Update the order
+    await updateDoc(orderRef, updateData);
+
+    // Return result with WhatsApp info if applicable
+    return {
+      success: true,
+      whatsappResult: whatsappResult
+    };
+
   } catch (error) {
     console.error('Error updating order:', error);
     throw error;
@@ -191,85 +266,6 @@ export const deleteOrder = async (orderId) => {
   }
 };
 
-/**
- * Update order status (move to different column)
- * Automatically sends WhatsApp notification when status changes to "enEntrega"
- * @param {string} orderId - Order document ID
- * @param {string} newStatus - New status (recibidos, proceso, listos, enEntrega, completados)
- */
-export const updateOrderStatus = async (orderId, newStatus) => {
-  try {
-    const orderRef = doc(db, 'orders', orderId);
-
-    // If status is changing to "enEntrega", send WhatsApp notification
-    if (newStatus === 'enEntrega') {
-      // First, get the complete order data to send notification
-      const orderDoc = await getDoc(orderRef);
-
-      if (orderDoc.exists()) {
-        const orderData = { id: orderDoc.id, ...orderDoc.data() };
-
-        // Send WhatsApp notification
-        console.log('📱 Sending WhatsApp delivery notification...');
-        const whatsappResult = await sendDeliveryNotification(orderData);
-
-        // Update order with new status AND WhatsApp notification record
-        const updateData = {
-          orderStatus: newStatus,
-          updatedAt: new Date().toISOString()
-        };
-
-        // Add WhatsApp notification to the notifications array
-        if (whatsappResult.success) {
-          console.log('✅ WhatsApp notification sent successfully');
-
-          // Initialize notifications array if it doesn't exist
-          const existingNotifications = orderData.whatsappNotifications || [];
-
-          updateData.whatsappNotifications = [
-            ...existingNotifications,
-            {
-              sentAt: whatsappResult.timestamp,
-              status: whatsappResult.status,
-              messageId: whatsappResult.messageId,
-              message: whatsappResult.message
-            }
-          ];
-        } else if (!whatsappResult.skipped) {
-          // Only log errors if it wasn't skipped due to configuration
-          console.error('❌ WhatsApp notification failed:', whatsappResult.error);
-
-          // Still record the failed attempt
-          const existingNotifications = orderData.whatsappNotifications || [];
-
-          updateData.whatsappNotifications = [
-            ...existingNotifications,
-            {
-              sentAt: whatsappResult.timestamp,
-              status: 'failed',
-              error: whatsappResult.error
-            }
-          ];
-        }
-
-        // Update the order in Firestore
-        await updateDoc(orderRef, updateData);
-      } else {
-        console.error('Order not found:', orderId);
-        throw new Error('Order not found');
-      }
-    } else {
-      // For other status changes, just update normally
-      await updateDoc(orderRef, {
-        orderStatus: newStatus,
-        updatedAt: new Date().toISOString()
-      });
-    }
-  } catch (error) {
-    console.error('Error updating order status:', error);
-    throw error;
-  }
-};
 
 // ==================== SERVICES ====================
 

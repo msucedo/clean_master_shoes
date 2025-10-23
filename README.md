@@ -2,7 +2,7 @@ Clean master shoes
 
 // WIP
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
-- [fix/iphone_ux_new_order]Habilitar nueva orden en iphone, ux no se ve
+    -[FIX]Debuggeando porque falla
 
 // PRIORIDAD ALTA
 
@@ -18,7 +18,7 @@ Clean master shoes
 - [EPIC]Pantalla promociones
 - [EPIC]Agregar pantalla de login, creacion de usuarios
 -[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
-    -[FIX]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
+    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 -[FIX]no poder agendar ordenes con fechas pasadas, si ya se venció la fecha y la orden sigue abierta pintar de rojo toda la tarjeta
 
      📝 Plan de Mejoras Propuesto                                                                                      
@@ -52,6 +52,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]Al cancelar la orden, ya no se borra, se actualiza a cancelado y se deja para reporteria
+- [fix/iphone_ux_new_order]Habilitar nueva orden en iphone, ux no se ve
 -[fix/orders_priority]de orderform, remover el campo de la UI "prioridad", no debe cambiarse manualmente, por defecto a todas las ordenes ponles la prioridad de normal, cuando una orden tenga el producto express, entonces automaticamente al crear la orden ponle prioridad express
     -[fix/orders_priority]Remover el solid del background de la etiqueta urgente del ordercard en la tab ordenes
     -[fix/orders_priority]Remover de ordercard de los item badges, el emoji del servicio express, no se usrara emoji para este servicio porque se representa por la etiqueta de prioridad urgente ya definida en este componente

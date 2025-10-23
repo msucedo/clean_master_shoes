@@ -6,6 +6,7 @@ const ClientItem = ({ client, onClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
+  const [cancelledOrders, setCancelledOrders] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('all');
 
   const getInitials = (name) => {
@@ -44,7 +45,7 @@ const ClientItem = ({ client, onClick }) => {
   // Subscribe to orders and filter by client
   useEffect(() => {
     const unsubscribe = subscribeToOrders((ordersData) => {
-      // Get all active orders (not completed)
+      // Get all active orders (not completed or cancelled)
       const allActiveOrders = [
         ...(ordersData.recibidos || []),
         ...(ordersData.proceso || []),
@@ -55,12 +56,19 @@ const ClientItem = ({ client, onClick }) => {
       // Get completed orders
       const allCompletedOrders = ordersData.completados || [];
 
+      // Get cancelled orders
+      const allCancelledOrders = ordersData.cancelados || [];
+
       // Filter orders by this client's name
       const clientActiveOrders = allActiveOrders.filter(
         order => order.client === client.name
       );
 
       const clientCompletedOrders = allCompletedOrders.filter(
+        order => order.client === client.name
+      );
+
+      const clientCancelledOrders = allCancelledOrders.filter(
         order => order.client === client.name
       );
 
@@ -77,8 +85,15 @@ const ClientItem = ({ client, onClick }) => {
         return dateB - dateA; // Descendente (más reciente primero)
       });
 
+      const sortedCancelledOrders = clientCancelledOrders.sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA; // Descendente (más reciente primero)
+      });
+
       setActiveOrders(sortedActiveOrders);
       setCompletedOrders(sortedCompletedOrders);
+      setCancelledOrders(sortedCancelledOrders);
     });
 
     return () => unsubscribe();
@@ -113,8 +128,10 @@ const ClientItem = ({ client, onClick }) => {
       orders = activeOrders;
     } else if (historyFilter === 'completed') {
       orders = completedOrders;
+    } else if (historyFilter === 'cancelled') {
+      orders = cancelledOrders;
     } else {
-      orders = [...activeOrders, ...completedOrders];
+      orders = [...activeOrders, ...completedOrders, ...cancelledOrders];
     }
 
     // Ordenar por fecha de creación (más reciente primero)
@@ -123,7 +140,7 @@ const ClientItem = ({ client, onClick }) => {
       const dateB = new Date(b.createdAt || 0);
       return dateB - dateA;
     });
-  }, [historyFilter, activeOrders, completedOrders]);
+  }, [historyFilter, activeOrders, completedOrders, cancelledOrders]);
 
   const hasDebt = client.debt > 0;
 
@@ -179,7 +196,7 @@ const ClientItem = ({ client, onClick }) => {
                 className={historyFilter === 'all' ? 'active' : ''}
                 onClick={() => setHistoryFilter('all')}
               >
-                Todas ({activeOrders.length + completedOrders.length})
+                Todas ({activeOrders.length + completedOrders.length + cancelledOrders.length})
               </button>
               <button
                 className={historyFilter === 'active' ? 'active' : ''}
@@ -192,6 +209,12 @@ const ClientItem = ({ client, onClick }) => {
                 onClick={() => setHistoryFilter('completed')}
               >
                 Completadas ({completedOrders.length})
+              </button>
+              <button
+                className={historyFilter === 'cancelled' ? 'active' : ''}
+                onClick={() => setHistoryFilter('cancelled')}
+              >
+                Canceladas ({cancelledOrders.length})
               </button>
             </div>
           </div>
@@ -217,6 +240,7 @@ const ClientItem = ({ client, onClick }) => {
                       {order.orderStatus === 'listos' && '✅ Listos'}
                       {order.orderStatus === 'enEntrega' && '🚚 En Entrega'}
                       {order.orderStatus === 'completados' && '✅ Completado'}
+                      {order.orderStatus === 'cancelado' && '❌ Cancelado'}
                     </span>
                     <div className="order-services">
                       {getServiceIcons(order.services)}

@@ -8,9 +8,7 @@ import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToOrders,
-  updateOrder,
-  updateOrderStatus,
-  deleteOrder
+  updateOrder
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Orders.css';
@@ -68,16 +66,6 @@ const Orders = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleStatusChange = async (order, newStatus) => {
-    try {
-      await updateOrderStatus(order.id, newStatus);
-      showSuccess('Estado de la orden actualizado');
-      // Real-time listener will update the UI automatically
-    } catch (error) {
-      console.error('Error updating order status:', error);
-      showError('Error al actualizar el estado de la orden');
-    }
-  };
 
   const filterOrders = (ordersList) => {
     // Validar que ordersList existe y es un array
@@ -181,9 +169,30 @@ const Orders = () => {
   const handleSaveOrder = async (updatedOrder) => {
     console.log('🔥 [FIREBASE] handleSaveOrder llamado con:', updatedOrder);
     try {
-      await updateOrder(updatedOrder.id, updatedOrder);
+      const result = await updateOrder(updatedOrder.id, updatedOrder);
       console.log('✅ [FIREBASE] Orden actualizada exitosamente');
-      showSuccess('Orden actualizada exitosamente');
+
+      // Siempre mostrar notificación de orden actualizada
+      showSuccess('Orden actualizada exitosamente ✓');
+
+      // Si hubo cambio a "enEntrega", mostrar segunda notificación según resultado del WhatsApp
+      if (result.whatsappResult) {
+        const whatsapp = result.whatsappResult;
+
+        if (whatsapp.success) {
+          showSuccess(`WhatsApp enviado a ${updatedOrder.client} ✓`);
+        } else if (whatsapp.skipped) {
+          showInfo('WhatsApp no configurado, enviar mensaje manualmente.');
+        } else {
+          // WhatsApp falló
+          showError(
+            `WhatsApp falló: ${whatsapp.error || 'Error desconocido'}. ` +
+            `Enviar mensaje manualmente a ${updatedOrder.phone}.`
+          );
+          console.error('❌ [UI] Detalles del error de WhatsApp:', whatsapp);
+        }
+      }
+
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('❌ [FIREBASE] Error saving order:', error);
@@ -209,14 +218,19 @@ const Orders = () => {
       type: 'danger',
       onConfirm: async () => {
         try {
-          await deleteOrder(order.id);
+          // Marcar orden como cancelada en lugar de borrarla
+          await updateOrder(order.id, {
+            ...order,
+            orderStatus: 'cancelado',
+            cancelledAt: new Date().toISOString()
+          });
           handleCloseModal();
           showSuccess('Orden cancelada exitosamente');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
           // Real-time listener will update the UI automatically
         } catch (error) {
-          console.error('Error deleting order:', error);
-          showError('Error al eliminar la orden');
+          console.error('Error cancelling order:', error);
+          showError('Error al cancelar la orden');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         }
       }
@@ -383,7 +397,6 @@ const Orders = () => {
                 order={order}
                 activeTab={activeTab}
                 onOrderClick={handleOrderClick}
-                onStatusChange={handleStatusChange}
               />
             ))}
           </>
@@ -403,7 +416,6 @@ const Orders = () => {
             currentTab={activeTab}
             onClose={handleCloseModal}
             onSave={handleSaveOrder}
-            onStatusChange={handleStatusChange}
             onCancel={handleCancelOrder}
             onEmail={handleEmail}
             onWhatsApp={handleWhatsApp}

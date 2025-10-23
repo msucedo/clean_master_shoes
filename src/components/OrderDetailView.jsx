@@ -6,7 +6,7 @@ import { subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
 
-const OrderDetailView = ({ order, currentTab, onClose, onSave, onStatusChange, onCancel, onEmail, onWhatsApp, onInvoice, onEntregar, onBeforeClose }) => {
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onInvoice, onEntregar, onBeforeClose }) => {
   const { showSuccess, showInfo } = useNotification();
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);

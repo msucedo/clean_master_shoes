@@ -70,14 +70,18 @@ const OrderCard = ({ order, onOrderClick }) => {
 
   const dateInfo = formatDeliveryDate(order.deliveryDate);
 
-  // Check if WhatsApp notification was sent successfully
-  const whatsappSent = useMemo(() => {
+  // Check WhatsApp notification status
+  const whatsappStatus = useMemo(() => {
     if (!order.whatsappNotifications || order.whatsappNotifications.length === 0) {
-      return false;
+      return null;
     }
-    // Check if the last notification was successful
+    // Check if the last notification was successful or failed
     const lastNotification = order.whatsappNotifications[order.whatsappNotifications.length - 1];
-    return lastNotification.status === 'sent';
+    return {
+      sent: lastNotification.status === 'sent',
+      failed: lastNotification.status === 'failed',
+      error: lastNotification.error
+    };
   }, [order.whatsappNotifications]);
 
   return (
@@ -88,9 +92,14 @@ const OrderCard = ({ order, onOrderClick }) => {
         {order.priority === 'high' && (
           <div className="order-priority-badge">Urgente</div>
         )}
-        {whatsappSent && (
-          <div className="order-whatsapp-badge" title="Notificación de WhatsApp enviada">
+        {whatsappStatus?.sent && (
+          <div className="order-whatsapp-badge success" title="Notificación de WhatsApp enviada">
             ✓
+          </div>
+        )}
+        {whatsappStatus?.failed && (
+          <div className="order-whatsapp-badge error" title={`WhatsApp falló: ${whatsappStatus.error || 'Error desconocido'}`}>
+            ✗
           </div>
         )}
         <div className={`order-delivery-badge ${dateInfo.className}`}>

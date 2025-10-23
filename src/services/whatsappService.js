@@ -117,12 +117,24 @@ const sendWhatsAppMessage = async (to, message) => {
   };
 
   try {
+    // 📋 LOG: Request details antes de enviar
+    console.log('📤 [WhatsApp] Enviando mensaje:', {
+      timestamp: new Date().toISOString(),
+      to: to,
+      url: url,
+      messageLength: message.length,
+      payload: JSON.stringify(payload, null, 2)
+    });
+
     const response = await axios.post(url, payload, config);
 
-    console.log('✅ WhatsApp message sent successfully:', {
+    // ✅ LOG: Success con detalles completos
+    console.log('✅ [WhatsApp] Mensaje enviado exitosamente:', {
       messageId: response.data.messages[0].id,
       to: to,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      statusCode: response.status,
+      whatsappStatus: response.data.messages[0].message_status || 'sent'
     });
 
     return {
@@ -132,17 +144,31 @@ const sendWhatsAppMessage = async (to, message) => {
       status: 'sent'
     };
   } catch (error) {
-    console.error('❌ Error sending WhatsApp message:', {
-      error: error.response?.data || error.message,
+    // ❌ LOG: Error detallado para debugging
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
       to: to,
-      timestamp: new Date().toISOString()
-    });
+      httpStatus: error.response?.status,
+      httpStatusText: error.response?.statusText,
+      whatsappErrorCode: error.response?.data?.error?.code,
+      whatsappErrorMessage: error.response?.data?.error?.message,
+      whatsappErrorType: error.response?.data?.error?.type,
+      errorDetail: error.response?.data?.error?.error_data?.details,
+      fullError: error.response?.data || error.message,
+      requestUrl: url,
+      phoneNumber: to
+    };
+
+    console.error('❌ [WhatsApp] Error enviando mensaje:', errorDetails);
+    console.error('📝 [WhatsApp] Mensaje que se intentó enviar:', message);
 
     // Return error details
     return {
       success: false,
       error: error.response?.data?.error?.message || error.message,
       errorCode: error.response?.data?.error?.code,
+      errorType: error.response?.data?.error?.type,
+      httpStatus: error.response?.status,
       timestamp: new Date().toISOString(),
       status: 'failed'
     };
@@ -157,9 +183,17 @@ const sendWhatsAppMessage = async (to, message) => {
  * @returns {Promise<Object>} Result object with success status and details
  */
 export const sendDeliveryNotification = async (order) => {
+  // 📋 LOG: Inicio del proceso de notificación
+  console.log('🔔 [WhatsApp] Iniciando envío de notificación de entrega:', {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    client: order.client,
+    phone: order.phone
+  });
+
   // Check if WhatsApp is configured
   if (!isWhatsAppConfigured()) {
-    console.warn('⚠️ WhatsApp is not configured. Skipping notification.');
+    console.warn('⚠️ [WhatsApp] WhatsApp no está configurado. Saltando notificación.');
     return {
       success: false,
       error: 'WhatsApp not configured',
@@ -169,7 +203,11 @@ export const sendDeliveryNotification = async (order) => {
 
   // Validate order has required fields
   if (!order.client || !order.phone) {
-    console.error('❌ Order missing required fields (client or phone)');
+    console.error('❌ [WhatsApp] Orden sin campos requeridos:', {
+      orderId: order.id,
+      hasClient: !!order.client,
+      hasPhone: !!order.phone
+    });
     return {
       success: false,
       error: 'Missing client name or phone number'
@@ -178,7 +216,9 @@ export const sendDeliveryNotification = async (order) => {
 
   try {
     // Format phone number
+    console.log('📞 [WhatsApp] Formateando número:', { original: order.phone });
     const formattedPhone = formatPhoneNumber(order.phone);
+    console.log('📞 [WhatsApp] Número formateado:', { formatted: formattedPhone });
 
     if (!formattedPhone) {
       throw new Error('Invalid phone number format');
@@ -186,6 +226,7 @@ export const sendDeliveryNotification = async (order) => {
 
     // Build message
     const message = buildDeliveryMessage(order);
+    console.log('📝 [WhatsApp] Mensaje construido, longitud:', message.length);
 
     // Send message via WhatsApp API
     const result = await sendWhatsAppMessage(formattedPhone, message);
@@ -201,7 +242,12 @@ export const sendDeliveryNotification = async (order) => {
     };
 
   } catch (error) {
-    console.error('❌ Unexpected error in sendDeliveryNotification:', error);
+    console.error('❌ [WhatsApp] Error inesperado en sendDeliveryNotification:', {
+      error: error.message,
+      stack: error.stack,
+      orderId: order.id,
+      orderNumber: order.orderNumber
+    });
     return {
       success: false,
       error: error.message,
