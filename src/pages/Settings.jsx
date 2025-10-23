@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import { downloadBackup, getBackupInfo } from '../utils/backup';
-import { saveBusinessProfile } from '../services/firebaseService';
+import { saveBusinessProfile, getBusinessProfile } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Settings.css';
 
@@ -15,6 +15,7 @@ const Settings = () => {
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Backup State
   const [backupLoading, setBackupLoading] = useState(false);
@@ -22,6 +23,28 @@ const Settings = () => {
 
   // Ref for file input
   const fileInputRef = useRef(null);
+
+  // Load business profile on component mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const profile = await getBusinessProfile();
+
+        setBusinessName(profile.businessName || 'Clean Master Shoes');
+        setPhone(profile.phone || '');
+        setAddress(profile.address || '');
+        setLogoPreview(profile.logoUrl || null);
+      } catch (error) {
+        console.error('Error loading business profile:', error);
+        showError('Error al cargar el perfil del negocio');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [showError]);
 
   const handleLogoUpload = () => {
     fileInputRef.current?.click();
@@ -75,6 +98,26 @@ const Settings = () => {
       showError(error.message || 'Error al guardar el perfil');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCancelProfile = async () => {
+    try {
+      setLoading(true);
+      const profile = await getBusinessProfile();
+
+      setBusinessName(profile.businessName || 'Clean Master Shoes');
+      setPhone(profile.phone || '');
+      setAddress(profile.address || '');
+      setLogoFile(null);
+      setLogoPreview(profile.logoUrl || null);
+
+      showSuccess('Cambios descartados');
+    } catch (error) {
+      console.error('Error reloading profile:', error);
+      showError('Error al recargar el perfil');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -183,17 +226,15 @@ const Settings = () => {
             <button
               className="btn-primary"
               onClick={handleSaveProfile}
-              disabled={saving}
+              disabled={saving || loading}
             >
               {saving ? '⏳ Guardando...' : 'Guardar Cambios'}
             </button>
-            <button className="btn-secondary" onClick={() => {
-              setBusinessName('Clean Master Shoes');
-              setPhone('');
-              setAddress('');
-              setLogoFile(null);
-              setLogoPreview(null);
-            }}>
+            <button
+              className="btn-secondary"
+              onClick={handleCancelProfile}
+              disabled={loading}
+            >
               Cancelar
             </button>
           </div>

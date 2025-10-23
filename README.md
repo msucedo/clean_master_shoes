@@ -1,6 +1,8 @@
 Clean master shoes
 
 // WIP
+-[FEATURE]Componente corte de caja
+-[FEATURE]Generar factura
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
 
@@ -53,6 +55,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]Cargar perfil del negocio desde firebase
 -[FIX]arreglar backup manual de settings tab
 -[FIX]eliminar nn components settings tab
 -[feature/loading_screen]Agregar loading screen al entrar en la app
@@ -120,4 +123,4 @@ Clean master shoes
 // GASTOS
 - dominio .com
 - dominio .company
-- membresia claude code
+- membresia claude max
