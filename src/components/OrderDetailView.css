@@ -164,6 +164,9 @@
   overflow: hidden;
   transition: all 0.3s;
   position: relative;
+  cursor: pointer;
+  user-select: none;
+  transform-style: preserve-3d;
 }
 
 /* Borde superior con color según estado */
@@ -179,19 +182,11 @@
 }
 
 .pair-detail-card.pair-status-pending::before {
-  background: #fbbf24;
-}
-
-.pair-detail-card.pair-status-in-progress::before {
-  background: #0096ff;
+  background: #9ca3af;
 }
 
 .pair-detail-card.pair-status-completed::before {
   background: #10b981;
-}
-
-.pair-detail-card.pair-status-delivered::before {
-  background: #8b5cf6;
 }
 
 .pair-detail-card.pair-status-cancelled::before {
@@ -202,6 +197,47 @@
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px var(--shadow-primary);
+}
+
+.pair-detail-card:active {
+  transform: translateY(0);
+}
+
+/* Animación flip horizontal */
+.pair-detail-card.flipping {
+  animation: flipHorizontal 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes flipHorizontal {
+  0% {
+    transform: perspective(1200px) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: perspective(1200px) rotateY(180deg) scale(1.05);
+    opacity: 0.2;
+  }
+  70% {
+    transform: perspective(1200px) rotateY(270deg) scale(1.03);
+    opacity: 0.6;
+  }
+  80% {
+    transform: perspective(1200px) rotateY(310deg) scale(1.02);
+    opacity: 0.75;
+  }
+  90% {
+    transform: perspective(1200px) rotateY(340deg) scale(1.01);
+    opacity: 0.88;
+  }
+  95% {
+    transform: perspective(1200px) rotateY(350deg) scale(1.005);
+    opacity: 0.94;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(360deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .pair-card-header {
@@ -385,73 +421,41 @@
 }
 
 /* Pair Status Selector */
-.pair-status-selector {
+/* Pair Status Display (reemplaza dropdown selector) */
+.pair-status-display {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--color-gray-800);
 }
 
-.pair-status-select {
-  padding: 12px 16px;
-  background: var(--color-black);
-  border: 2px solid var(--color-gray-800);
-  border-radius: 10px;
-  font-size: 15px;
+.status-indicator {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: inherit;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  padding-right: 40px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.pair-status-select:hover {
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.status-indicator.status-pending {
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.3);
 }
 
-.pair-status-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--bg-primary-10);
-}
-
-/* Estados con colores */
-.pair-status-select.status-pending {
-  color: #fbbf24;
-  border-color: rgba(251, 191, 36, 0.3);
-  background-color: rgba(251, 191, 36, 0.05);
-}
-
-.pair-status-select.status-in-progress {
-  color: #0096ff;
-  border-color: rgba(0, 150, 255, 0.3);
-  background-color: rgba(0, 150, 255, 0.05);
-}
-
-.pair-status-select.status-completed {
+.status-indicator.status-completed {
+  background: rgba(16, 185, 129, 0.2);
   color: #10b981;
-  border-color: rgba(16, 185, 129, 0.3);
-  background-color: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.pair-status-select.status-delivered {
-  color: #8b5cf6;
-  border-color: rgba(139, 92, 246, 0.3);
-  background-color: rgba(139, 92, 246, 0.05);
-}
-
-.pair-status-select.status-cancelled {
+.status-indicator.status-cancelled {
+  background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.3);
-  background-color: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Pair Notes */

@@ -1,6 +1,8 @@
 Clean master shoes
 
 // WIP
+-[FEATURE]en orderdetailview, cada que presione un item de la orden, debera animarse con un flip y automaticamente cambiarse el estado en un loop al siguiente estado de la lista
+-[FEATURE]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
 
@@ -27,7 +29,6 @@ Clean master shoes
     -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 
 // BACKLOG
--[FEATURE]en orderdetailview, cada que presione un item de la orden, debera animarse con un flip y automaticamente cambiarse el estado en un loop al siguiente estado de la lista
 -[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
 -[FEATURE]pagina de tracking de ordenes para la .com

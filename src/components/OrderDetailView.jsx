@@ -35,6 +35,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     onConfirm: null,
     type: 'default'
   });
+  const [flippingServices, setFlippingServices] = useState({});
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -165,12 +166,11 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onBeforeClose]);
 
-  // Estados disponibles para cada par
+  // Estados disponibles para cada par (simplificado a 3 estados)
   const pairStatuses = [
-    { value: 'pending', label: '⏳ Pendiente', color: '#fbbf24' },
-    { value: 'in-progress', label: '🔄 En Proceso', color: '#0096ff' },
-    { value: 'completed', label: '✅ Completado', color: '#10b981' },
-    { value: 'cancelled', label: '❌ Cancelado', color: '#ef4444' }
+    { value: 'pending', label: 'Pendiente', color: '#9ca3af' },
+    { value: 'completed', label: 'Completado', color: '#10b981' },
+    { value: 'cancelled', label: 'Cancelado', color: '#ef4444' }
   ];
 
   // Estados disponibles para la orden general (deben coincidir con las pestañas)
@@ -431,8 +431,41 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
   // Obtener el label del estado
   const getStatusLabel = (status) => {
-    const statusObj = pairStatuses.find(s => s.value === status);
-    return statusObj ? statusObj.label : '⏳ Pendiente';
+    const labels = {
+      pending: 'Pendiente',
+      completed: 'Completado',
+      cancelled: 'Cancelado'
+    };
+    return labels[status] || 'Pendiente';
+  };
+
+  // Manejar click en servicio con animación flip
+  const handleServiceClick = (serviceId, currentStatus) => {
+    // Prevenir clicks durante animación
+    if (flippingServices[serviceId]) return;
+
+    // Determinar siguiente estado en el loop: pending → completed → cancelled → pending
+    const getNextStatus = (status) => {
+      const statusLoop = ['pending', 'completed', 'cancelled'];
+      const currentIndex = statusLoop.indexOf(status || 'pending');
+      const nextIndex = (currentIndex + 1) % statusLoop.length;
+      return statusLoop[nextIndex];
+    };
+
+    const nextStatus = getNextStatus(currentStatus);
+
+    // Activar animación flip
+    setFlippingServices(prev => ({ ...prev, [serviceId]: true }));
+
+    // Cambiar estado LOCAL cuando la carta es menos visible (400ms - justo en el keyframe 50%)
+    setTimeout(() => {
+      handleServiceStatusChange(serviceId, nextStatus);
+    }, 400);
+
+    // Desactivar animación después de 800ms (duración total de la animación CSS)
+    setTimeout(() => {
+      setFlippingServices(prev => ({ ...prev, [serviceId]: false }));
+    }, 800);
   };
 
   return (
@@ -464,7 +497,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         <h3 className="section-title">🧼 Servicios ({localServices.length})</h3>
         <div className="pairs-grid">
           {localServices.map((service, index) => (
-            <div key={service.id || index} className={`pair-detail-card pair-status-${service.status || 'pending'}`}>
+            <div
+              key={service.id || index}
+              className={`pair-detail-card pair-status-${service.status || 'pending'} ${flippingServices[service.id] ? 'flipping' : ''}`}
+              onClick={() => handleServiceClick(service.id, service.status)}
+              title="Click para cambiar estado"
+            >
               <div className="pair-card-header">
                 <div className="pair-header-left">
                   <span className="pair-number">{service.icon} Servicio #{index + 1}</span>
@@ -481,20 +519,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
                   <span className="pair-info-value">{service.serviceName}</span>
                 </div>
 
-                {/* Selector de Estado */}
-                <div className="pair-status-selector">
-                  <span className="pair-info-label">Estado del Servicio:</span>
-                  <select
-                    className={`pair-status-select status-${service.status || 'pending'}`}
-                    value={service.status || 'pending'}
-                    onChange={(e) => handleServiceStatusChange(service.id, e.target.value)}
-                  >
-                    {pairStatuses.map(status => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
+                {/* Display de Estado (solo lectura visual) */}
+                <div className="pair-status-display">
+                  <span className="pair-info-label">Estado:</span>
+                  <span className={`status-indicator status-${service.status || 'pending'}`}>
+                    {getStatusLabel(service.status || 'pending')}
+                  </span>
                 </div>
 
                 {service.notes && (
