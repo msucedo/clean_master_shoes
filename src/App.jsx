@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
@@ -17,19 +17,31 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import Notification from './components/Notification';
 import './styles/global.css';
 
-function App() {
-  const [isLoading, setIsLoading] = useState(true);
+function AppContent() {
+  // Inicializar isLoading basado en la ruta actual (antes del primer render)
+  const [isLoading, setIsLoading] = useState(() => {
+    return window.location.pathname === '/';
+  });
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Marcar que ya cargamos una vez para evitar que vuelva a aparecer
+    if (location.pathname === '/' && isLoading && !hasLoadedOnce) {
+      setHasLoadedOnce(true);
+    }
+  }, [location.pathname, isLoading, hasLoadedOnce]);
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
   };
 
   return (
-    <ErrorBoundary>
-      {isLoading && <LoadingScreen onLoadingComplete={handleLoadingComplete} />}
-
-      <NotificationProvider>
-        <BrowserRouter>
+    <>
+      {isLoading ? (
+        <LoadingScreen onLoadingComplete={handleLoadingComplete} />
+      ) : (
+        <>
           <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Dashboard />} />
@@ -45,6 +57,18 @@ function App() {
             </Route>
           </Routes>
           <Notification />
+        </>
+      )}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <NotificationProvider>
+        <BrowserRouter>
+          <AppContent />
         </BrowserRouter>
       </NotificationProvider>
     </ErrorBoundary>
