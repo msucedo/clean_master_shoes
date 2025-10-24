@@ -10,6 +10,7 @@ import Settings from './pages/Settings';
 import Empleados from './pages/Empleados';
 import Inventory from './pages/Inventory';
 import Promotions from './pages/Promotions';
+import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen from './components/LoadingScreen';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -40,6 +41,7 @@ function App() {
               <Route path="promotions" element={<Promotions />} />
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
           <Notification />

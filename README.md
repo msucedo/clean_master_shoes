@@ -1,30 +1,32 @@
 Clean master shoes
 
 // WIP
--[FEATURE]Generar factura
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
 
 // PRIORIDAD ALTA
+-[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
+-[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
+-[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion
+-[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
+-[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
+-[FIX]volver a mostrar el emoji del servicio express en ordercard, y tambien mantener el tag urgente
+-[EPIC]Pantalla promociones
+-[CODE_REVIEW]Pedir code review para analizar app
 
 // PRIORIDAD MEDIA
+-[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
+-[fix]poder actualizarse el costo a un servicio cotizado desde orderdetailview, que se logre como si fuera el update del precio de un servicio en una orden pero solo este habilitado hacer esto cuando el servicio tenga 0, no quiero que las demas ordenes puedan cambiar el costo del servicio desde orderdetailview, solo cuando sea 0, y este cambio al cerrar el modal se deberia mandar a firebase porque se actualizo la orden
 
 // PRIORIDAD BAJA
-- [FEATURE]si una orden esta retrasada que aparezca "retrasada" en la orden component
+-[FIX]no poder agendar ordenes con fechas pasadas
+- [FEATURE]Habilitar opcion de descuento en la paymentscreen
+-[feature/smoothness]agregar animaciones para que se sienta smooth la app
+- [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
+    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 
 // BACKLOG
--[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
--[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
--[feature/facturas]desde una orden poder generar facturas y enviarlas por wapp o correo
--[feature/smoothness]agregar animaciones para que se sienta smooth la app
-- [FEATURE]Habilitar opcion de descuento en la paymentscreen
-- [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
-- [EPIC]Pantalla promociones
-- [EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
--[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
-    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
--[FIX]no poder agendar ordenes con fechas pasadas, si ya se venció la fecha y la orden sigue abierta pintar de rojo toda la tarjeta
--[fix]poder actualizarse el costo a un servicio cotizado desde orderdetailview, que se logre como si fuera el update del precio de un servicio en una orden pero solo este habilitado hacer esto cuando el servicio tenga 0, no quiero que las demas ordenes puedan cambiar el costo del servicio desde orderdetailview, solo cuando sea 0, y este cambio al cerrar el modal se deberia mandar a firebase porque se actualizo la orden
+- [ALTERNATIVA]al crear una orden se asigne al empleado activo con menos ordenes
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
@@ -57,6 +59,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]added componente 404, fixed rerouting in vercel
+-[FEATURE]agregado a vercel variables de firebase
+-[feature/facturas]desde una orden poder generar facturas
 -[fix]tab empleados,en el componente EmpleadoItem, aun lado del boton ver ordenes agregar un boton nuevo "asignar orden", se van a desplegar todas las ordenes en el estado recibido y que no tengan a un empleado asignado, cada orden desplegada va tener un boton para asignarsela al empleado
 -[fix]tab clientes, ver historial, validar canceladas este bien configurado
 -[feature/servicio_precio_undefined]Poder agregar un servicio sin precio definido, el cual se debe definir al momento de hacer el cobro de la orden
