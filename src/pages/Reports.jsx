@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import CashRegister from '../components/CashRegister';
+import CashClosureHistory from '../components/CashClosureHistory';
+import CashClosureDetail from '../components/CashClosureDetail';
+import Modal from '../components/Modal';
 import { subscribeToOrders } from '../services/firebaseService';
 import './Reports.css';
 
 const Reports = () => {
   const [activeFilter, setActiveFilter] = useState('Mes');
   const [activeTab, setActiveTab] = useState('reportes');
+  const [selectedClosure, setSelectedClosure] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [orders, setOrders] = useState({
     recibidos: [],
     proceso: [],
@@ -130,6 +135,16 @@ const Reports = () => {
 
   const filteredOrders = getFilteredOrders();
 
+  const handleViewClosureDetails = (closure) => {
+    setSelectedClosure(closure);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedClosure(null);
+  };
+
   return (
     <div className="reports-page">
       {/* Header */}
@@ -155,6 +170,12 @@ const Reports = () => {
           onClick={() => setActiveTab('corte')}
         >
           💰 Corte de Caja
+        </button>
+        <button
+          className={`reports-tab ${activeTab === 'historial' ? 'active' : ''}`}
+          onClick={() => setActiveTab('historial')}
+        >
+          📋 Historial de Cortes
         </button>
       </div>
 
@@ -243,6 +264,28 @@ const Reports = () => {
           orders={filteredOrders}
           dateFilter={activeFilter}
         />
+      )}
+
+      {/* History Tab */}
+      {activeTab === 'historial' && (
+        <CashClosureHistory
+          onViewDetails={handleViewClosureDetails}
+        />
+      )}
+
+      {/* Detail Modal */}
+      {isDetailModalOpen && selectedClosure && (
+        <Modal
+          isOpen={isDetailModalOpen}
+          onClose={handleCloseDetailModal}
+          title=""
+          size="large"
+        >
+          <CashClosureDetail
+            closure={selectedClosure}
+            onClose={handleCloseDetailModal}
+          />
+        </Modal>
       )}
     </div>
   );

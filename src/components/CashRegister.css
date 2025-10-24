@@ -48,6 +48,55 @@
   box-shadow: 0 4px 15px rgba(255, 0, 110, 0.3);
 }
 
+/* Employee Selector */
+.cr-employee-selector {
+  margin-bottom: 25px;
+}
+
+.cr-employee-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.cr-required {
+  color: #FF006E;
+  font-weight: 900;
+}
+
+.cr-employee-select {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid #2a2a2a;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cr-employee-select:hover {
+  border-color: #FF006E;
+  background: rgba(255, 0, 110, 0.05);
+}
+
+.cr-employee-select:focus {
+  outline: none;
+  border-color: #FF006E;
+  background: rgba(255, 0, 110, 0.08);
+  box-shadow: 0 0 0 4px rgba(255, 0, 110, 0.1);
+}
+
+.cr-employee-select option {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 10px;
+}
+
 /* Stats Grid */
 .cr-stats-grid {
   display: grid;

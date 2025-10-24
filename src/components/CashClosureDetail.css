@@ -1,0 +1,359 @@
+.cash-closure-detail {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Header */
+.ccd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  padding-bottom: 25px;
+  border-bottom: 2px solid #2a2a2a;
+}
+
+.ccd-header-left {
+  flex: 1;
+}
+
+.ccd-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+
+.ccd-subtitle {
+  font-size: 15px;
+  color: #999;
+  font-weight: 600;
+}
+
+.ccd-btn-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a2a2a;
+  color: #999;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ccd-btn-close:hover {
+  background: rgba(255, 0, 110, 0.1);
+  border-color: #FF006E;
+  color: #FF006E;
+  transform: rotate(90deg);
+}
+
+/* Author Info */
+.ccd-author {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 20px 25px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+}
+
+.ccd-author-icon {
+  font-size: 40px;
+  filter: grayscale(0.2);
+}
+
+.ccd-author-label {
+  font-size: 13px;
+  color: #999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.ccd-author-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #8b5cf6;
+}
+
+/* Section */
+.ccd-section {
+  margin-bottom: 30px;
+}
+
+.ccd-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+/* Stats Grid */
+.ccd-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.ccd-stat-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s;
+}
+
+.ccd-stat-card:hover {
+  border-color: #3a3a3a;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.ccd-stat-card.total {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.ccd-stat-icon {
+  font-size: 28px;
+  filter: grayscale(0.2);
+}
+
+.ccd-stat-label {
+  font-size: 12px;
+  color: #999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.ccd-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Cash Summary */
+.ccd-cash-summary {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.ccd-cash-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #999;
+}
+
+.ccd-cash-row:not(:last-child) {
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.ccd-cash-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.ccd-cash-row.difference {
+  margin-top: 10px;
+  padding-top: 20px;
+  border-top: 2px solid #2a2a2a;
+  font-size: 16px;
+}
+
+.ccd-cash-row.difference.positive {
+  color: #10b981;
+}
+
+.ccd-cash-row.difference.positive .ccd-cash-amount {
+  color: #10b981;
+}
+
+.ccd-cash-row.difference.negative {
+  color: #ef4444;
+}
+
+.ccd-cash-row.difference.negative .ccd-cash-amount {
+  color: #ef4444;
+}
+
+/* Expenses Summary */
+.ccd-expenses-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.ccd-expense-total,
+.ccd-expense-final {
+  font-size: 15px;
+  font-weight: 600;
+  color: #999;
+}
+
+.ccd-expense-total span {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f59e0b;
+  margin-left: 10px;
+}
+
+.ccd-expense-final span {
+  font-size: 18px;
+  font-weight: 800;
+  margin-left: 10px;
+}
+
+.ccd-expense-final span.positive {
+  color: #10b981;
+}
+
+.ccd-expense-final span.negative {
+  color: #ef4444;
+}
+
+/* Expenses List */
+.ccd-expenses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ccd-expense-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 15px 18px;
+  transition: all 0.3s;
+}
+
+.ccd-expense-item:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: #3a3a3a;
+}
+
+.ccd-expense-icon {
+  font-size: 24px;
+  filter: grayscale(0.2);
+}
+
+.ccd-expense-info {
+  flex: 1;
+}
+
+.ccd-expense-concept {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.ccd-expense-details {
+  font-size: 13px;
+  color: #999;
+  font-weight: 600;
+}
+
+.ccd-expense-notes {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+  margin-top: 5px;
+}
+
+.ccd-expense-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f59e0b;
+}
+
+/* Empty State */
+.ccd-empty-state {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+  font-size: 15px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+}
+
+/* Notes */
+.ccd-notes {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Footer */
+.ccd-footer {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 2px solid #2a2a2a;
+  text-align: center;
+}
+
+.ccd-readonly-badge {
+  display: inline-block;
+  padding: 12px 24px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 20px;
+  color: #f59e0b;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ccd-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ccd-expenses-summary {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .ccd-title {
+    font-size: 22px;
+  }
+}

@@ -7,7 +7,8 @@ import {
   addExpense,
   getExpensesByDateRange,
   deleteExpense,
-  saveCashRegisterClosure
+  saveCashRegisterClosure,
+  subscribeToEmployees
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './CashRegister.css';
@@ -18,6 +19,8 @@ const CashRegister = ({ orders, dateFilter }) => {
   const [expenses, setExpenses] = useState([]);
   const [cashCounted, setCashCounted] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [employees, setEmployees] = useState([]);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -25,6 +28,17 @@ const CashRegister = ({ orders, dateFilter }) => {
     message: '',
     onConfirm: null
   });
+
+  // Load employees
+  useEffect(() => {
+    const unsubscribe = subscribeToEmployees((employeesData) => {
+      // Filter only active employees
+      const activeEmployees = employeesData.filter(emp => emp.status === 'active');
+      setEmployees(activeEmployees);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Load expenses when date filter changes
   useEffect(() => {
@@ -158,6 +172,14 @@ const CashRegister = ({ orders, dateFilter }) => {
   };
 
   const handleCloseCashRegister = () => {
+    // Validate employee is selected
+    if (!selectedEmployee) {
+      showError('Por favor selecciona el empleado que realiza el corte');
+      return;
+    }
+
+    const employee = employees.find(emp => emp.id === selectedEmployee);
+
     setConfirmDialog({
       isOpen: true,
       title: 'Cerrar Corte de Caja',
@@ -167,6 +189,10 @@ const CashRegister = ({ orders, dateFilter }) => {
           const { startDate, endDate } = getDateRange();
 
           const closureData = {
+            autor: {
+              id: employee.id,
+              nombre: employee.name
+            },
             fechaCorte: new Date().toISOString(),
             periodo: {
               inicio: startDate,
@@ -201,6 +227,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           // Reset form
           setCashCounted('');
           setNotes('');
+          setSelectedEmployee('');
 
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
@@ -484,7 +511,28 @@ const CashRegister = ({ orders, dateFilter }) => {
       {/* Notes and Close Button */}
       <div className="cr-section">
         <div className="cr-section-header">
-          <h3>📝 Notas del Corte</h3>
+          <h3>📝 Notas y Cierre del Corte</h3>
+        </div>
+
+        {/* Employee Selector */}
+        <div className="cr-employee-selector">
+          <label className="cr-employee-label">
+            <span className="cr-required">* </span>
+            Empleado que realiza el corte:
+          </label>
+          <select
+            className="cr-employee-select"
+            value={selectedEmployee}
+            onChange={(e) => setSelectedEmployee(e.target.value)}
+            required
+          >
+            <option value="">Selecciona un empleado...</option>
+            {employees.map(employee => (
+              <option key={employee.id} value={employee.id}>
+                {employee.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <textarea
@@ -500,7 +548,7 @@ const CashRegister = ({ orders, dateFilter }) => {
         <button
           className="cr-btn-close"
           onClick={handleCloseCashRegister}
-          disabled={orders.length === 0}
+          disabled={orders.length === 0 || !selectedEmployee}
         >
           🔒 Cerrar Corte de Caja
         </button>
