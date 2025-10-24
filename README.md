@@ -1,12 +1,11 @@
 Clean master shoes
 
-// WIP
--[]no mostrar el item del servicio express, en orderdetailview, esconderlo y marcarlo siempre como completado, 2. agregar a ordercard el emoji del servicio express en caso que esa orden lo tenga
+// WIP 
+-[FIX]que una orden no pueda estar en proceso si no tiene autor
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
 
 // PRIORIDAD ALTA
--[FEATURE]la lista de ordenes sin asignar de la tab empleados, hazle un sort de mas nuevas primero, de acorde al numero de orden, y que hasta arriba aparezcan las que tengan express, 2.agrega la foto de la orden ahi mismo y 3. que al darle clic al boton asignar tambien actualices el estado de la orden a en proceso
 -[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
 -[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion
@@ -29,6 +28,7 @@ Clean master shoes
 -[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 
 // BACKLOG
+-[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
 -[FEATURE]pagina de tracking de ordenes para la .com
@@ -68,6 +68,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]la lista de ordenes sin asignar de la tab empleados, hazle un sort de mas nuevas primero, de acorde al numero de orden, y que hasta arriba aparezcan las que tengan express, cambiar estado por fecha
+-[FEATURE]agrega la foto de la orden ahi mismo y 3. que al darle clic al boton asignar tambien actualices el estado de la orden a en proceso,
+-[FIX]no mostrar el item del servicio express, en orderdetailview, esconderlo y marcarlo siempre como completado, 2. agregar a ordercard el emoji del servicio express en caso que esa orden lo tenga
 -[FEATURE]en orderdetailview, cada que presione un item de la orden, debera animarse con un flip y automaticamente cambiarse el estado en un loop al siguiente estado de la lista
 -[FIX]autor para corte de caja, nueva sección historial de cortes de caja
 -[FIX]added componente 404, fixed rerouting in vercel

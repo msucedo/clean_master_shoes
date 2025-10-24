@@ -7,6 +7,7 @@ const EmpleadoItem = ({ empleado, onClick }) => {
   const [showAssignOrders, setShowAssignOrders] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
   const [unassignedOrders, setUnassignedOrders] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
   const getInitials = (name) => {
     const names = name.split(' ');
     return names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -30,6 +31,36 @@ const EmpleadoItem = ({ empleado, onClick }) => {
     return `Hace ${Math.floor(diffInDays / 365)} años`;
   };
 
+  const getRelativeTimeWithHour = (dateString) => {
+    if (!dateString) return 'Nunca';
+
+    const date = new Date(dateString);
+    const now = new Date();
+
+    // Crear fechas sin hora para comparar días de calendario
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffInMs = nowOnly - dateOnly;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    // Obtener hora en formato HH:MM
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
+    if (diffInDays === 0) return `hoy ${timeStr}`;
+    if (diffInDays === 1) return `ayer ${timeStr}`;
+    if (diffInDays === 2) return `hace dos días ${timeStr}`;
+    if (diffInDays === 3) return `hace tres días ${timeStr}`;
+    if (diffInDays < 7) return `hace ${diffInDays} días ${timeStr}`;
+    if (diffInDays < 14) return `hace 1 semana ${timeStr}`;
+    if (diffInDays < 30) return `hace ${Math.floor(diffInDays / 7)} semanas ${timeStr}`;
+    if (diffInDays < 60) return `hace 1 mes`;
+    if (diffInDays < 365) return `hace ${Math.floor(diffInDays / 30)} meses`;
+    return `hace ${Math.floor(diffInDays / 365)} años`;
+  };
+
   const isActive = empleado.status === 'active';
 
   // Subscribe to orders and filter by employee
@@ -44,16 +75,34 @@ const EmpleadoItem = ({ empleado, onClick }) => {
       ];
 
       // Filter orders by this employee's name
-      const employeeOrders = allActiveOrders.filter(
-        order => order.author === empleado.name
-      );
+      const employeeOrders = allActiveOrders
+        .filter(order => order.author === empleado.name)
+        .sort((a, b) => {
+          // Primero ordenar por prioridad (high primero)
+          if (a.priority === 'high' && b.priority !== 'high') return -1;
+          if (a.priority !== 'high' && b.priority === 'high') return 1;
+
+          // Si tienen la misma prioridad, ordenar por número de orden ascendente
+          const orderNumA = a.orderNumber || 0;
+          const orderNumB = b.orderNumber || 0;
+          return orderNumA - orderNumB;
+        });
 
       setActiveOrders(employeeOrders);
 
       // Get unassigned orders in "recibidos" status
-      const ordersWithoutEmployee = (ordersData.recibidos || []).filter(
-        order => !order.author || order.author === ''
-      );
+      const ordersWithoutEmployee = (ordersData.recibidos || [])
+        .filter(order => !order.author || order.author === '')
+        .sort((a, b) => {
+          // Primero ordenar por prioridad (high primero)
+          if (a.priority === 'high' && b.priority !== 'high') return -1;
+          if (a.priority !== 'high' && b.priority === 'high') return 1;
+
+          // Si tienen la misma prioridad, ordenar por número de orden descendente
+          const orderNumA = a.orderNumber || 0;
+          const orderNumB = b.orderNumber || 0;
+          return orderNumB - orderNumA;
+        });
 
       setUnassignedOrders(ordersWithoutEmployee);
     });
@@ -81,11 +130,22 @@ const EmpleadoItem = ({ empleado, onClick }) => {
 
   const handleAssignOrder = async (orderId) => {
     try {
-      await updateOrder(orderId, { author: empleado.name });
+      await updateOrder(orderId, {
+        author: empleado.name,
+        orderStatus: 'proceso'
+      });
       // La suscripción en tiempo real actualizará automáticamente las listas
     } catch (error) {
       console.error('Error asignando orden:', error);
     }
+  };
+
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
   };
 
   // Group services by icon and count them
@@ -159,9 +219,28 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                 <div key={order.id} className="order-item">
                   <div className="order-info">
                     <span className="order-number">#{order.orderNumber || order.id}</span>
+                    {order.priority === 'high' && (
+                      <div className="order-priority-badge">Urgente</div>
+                    )}
                     <span className="order-client">{order.client}</span>
                   </div>
                   <div className="order-details">
+                    {order.orderImages && order.orderImages.length > 0 && (
+                      <img
+                        src={order.orderImages[0]}
+                        alt="Orden"
+                        className="order-thumbnail"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openImageModal(order.orderImages[0]);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    )}
+                    <span className="order-created-date">
+                      <span>Recibido </span>
+                      {getRelativeTimeWithHour(order.createdAt)}
+                    </span>
                     <span className={`order-status status-${order.orderStatus}`}>
                       {order.orderStatus === 'recibidos' && '📥 Recibidos'}
                       {order.orderStatus === 'proceso' && '🔧 En Proceso'}
@@ -195,11 +274,27 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                 <div key={order.id} className="order-item assign-order-item">
                   <div className="order-info">
                     <span className="order-number">#{order.orderNumber || order.id}</span>
+                    {order.priority === 'high' && (
+                      <div className="order-priority-badge">Urgente</div>
+                    )}
                     <span className="order-client">{order.client}</span>
                   </div>
                   <div className="order-details">
-                    <span className="order-status status-recibidos">
-                      📥 Recibidos
+                    {order.orderImages && order.orderImages.length > 0 && (
+                      <img
+                        src={order.orderImages[0]}
+                        alt="Orden"
+                        className="order-thumbnail"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openImageModal(order.orderImages[0]);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    )}
+                    <span className="order-created-date">
+                      <span>Recibido </span>
+                      {getRelativeTimeWithHour(order.createdAt)}
                     </span>
                     <div className="order-services">
                       {getServiceIcons(order.services)}
@@ -215,6 +310,18 @@ const EmpleadoItem = ({ empleado, onClick }) => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="image-modal" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={closeImageModal}>
+              ✕
+            </button>
+            <img src={selectedImage} alt="Vista ampliada" className="image-modal-img" />
+          </div>
         </div>
       )}
     </div>
