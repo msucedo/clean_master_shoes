@@ -15,7 +15,15 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const [showVariablePriceModal, setShowVariablePriceModal] = useState(false);
   const [variablePriceServices, setVariablePriceServices] = useState([]);
-  const [localServices, setLocalServices] = useState(order.services || []);
+  const [localServices, setLocalServices] = useState(() => {
+    // Marcar automáticamente servicios "Servicio Express" como completados
+    return (order.services || []).map(service => {
+      if (service.serviceName?.toLowerCase() === 'servicio express') {
+        return { ...service, status: 'completed' };
+      }
+      return service;
+    });
+  });
   const [localProducts, setLocalProducts] = useState(order.products || []);
   const [orderImages, setOrderImages] = useState(order.orderImages || []);
   const [activeEmployees, setActiveEmployees] = useState([]);
@@ -494,9 +502,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
       {/* Información de Servicios */}
       <div className="order-pairs-section">
-        <h3 className="section-title">🧼 Servicios ({localServices.length})</h3>
+        <h3 className="section-title">🧼 Servicios ({localServices.filter(s => s.serviceName?.toLowerCase() !== 'servicio express').length})</h3>
         <div className="pairs-grid">
-          {localServices.map((service, index) => (
+          {localServices.filter(service => service.serviceName?.toLowerCase() !== 'servicio express').map((service, index) => (
             <div
               key={service.id || index}
               className={`pair-detail-card pair-status-${service.status || 'pending'} ${flippingServices[service.id] ? 'flipping' : ''}`}

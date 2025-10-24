@@ -1,8 +1,7 @@
 Clean master shoes
 
 // WIP
--[FEATURE]en orderdetailview, cada que presione un item de la orden, debera animarse con un flip y automaticamente cambiarse el estado en un loop al siguiente estado de la lista
--[FEATURE]si todos los servicios estan en completado, automaticamente cambia a listos la orden
+-[]no mostrar el item del servicio express, en orderdetailview, esconderlo y marcarlo siempre como completado, 2. agregar a ordercard el emoji del servicio express en caso que esa orden lo tenga
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
 
@@ -27,6 +26,7 @@ Clean master shoes
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 - [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
     -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
+-[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 
 // BACKLOG
 -[ALTERNATIVA]boton nueva orden desde el sidebar
@@ -68,6 +68,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]en orderdetailview, cada que presione un item de la orden, debera animarse con un flip y automaticamente cambiarse el estado en un loop al siguiente estado de la lista
 -[FIX]autor para corte de caja, nueva sección historial de cortes de caja
 -[FIX]added componente 404, fixed rerouting in vercel
 -[FEATURE]agregado a vercel variables de firebase
