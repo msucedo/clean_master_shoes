@@ -68,6 +68,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]se remueven 000 ceros del orden number
 -[FEATURE]la lista de ordenes sin asignar de la tab empleados, hazle un sort de mas nuevas primero, de acorde al numero de orden, y que hasta arriba aparezcan las que tengan express, cambiar estado por fecha
 -[FEATURE]agrega la foto de la orden ahi mismo y 3. que al darle clic al boton asignar tambien actualices el estado de la orden a en proceso,
 -[FIX]no mostrar el item del servicio express, en orderdetailview, esconderlo y marcarlo siempre como completado, 2. agregar a ordercard el emoji del servicio express en caso que esa orden lo tenga

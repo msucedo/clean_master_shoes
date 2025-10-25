@@ -727,7 +727,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
             </div>
             <div className="detail-row">
               <span className="detail-label">Número de Orden:</span>
-              <span className="detail-value">#{order.orderNumber || order.id}</span>
+              <span className="detail-value">#{parseInt(order.orderNumber, 10)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Autor de la Orden:</span>

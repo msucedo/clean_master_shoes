@@ -84,7 +84,7 @@ const OrderCard = ({ order, onOrderClick }) => {
     <div className="order-card" onClick={() => onOrderClick(order)}>
       {/* Header */}
       <div className="order-card-header">
-        <div className="order-id-badge">#{order.orderNumber || order.id}</div>
+        <div className="order-id-badge">#{parseInt(order.orderNumber, 10)}</div>
         {order.priority === 'high' && (
           <div className="order-priority-badge">Urgente</div>
         )}

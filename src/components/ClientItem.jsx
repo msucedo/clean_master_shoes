@@ -228,7 +228,7 @@ const ClientItem = ({ client, onClick }) => {
               {filteredOrders.map((order) => (
                 <div key={order.id} className="order-item">
                   <div className="order-info">
-                    <span className="order-number">#{order.orderNumber || order.id?.substring(0, 8)}</span>
+                    <span className="order-number">#{parseInt(order.orderNumber, 10)}</span>
                     <span className="order-date">
                       {formatDate(order.completedDate || order.deliveryDate)}
                     </span>

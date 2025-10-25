@@ -480,7 +480,7 @@ const CashRegister = ({ orders, dateFilter }) => {
 
                   return (
                     <tr key={order.id}>
-                      <td className="cr-order-number">{order.orderNumber}</td>
+                      <td className="cr-order-number">{parseInt(order.orderNumber, 10)}</td>
                       <td className="cr-order-client">{order.client}</td>
                       <td className="cr-order-total">{formatCurrency(total)}</td>
                       <td className="cr-order-advance">{formatCurrency(advance)}</td>

@@ -218,7 +218,7 @@ const EmpleadoItem = ({ empleado, onClick }) => {
               {activeOrders.map((order) => (
                 <div key={order.id} className="order-item">
                   <div className="order-info">
-                    <span className="order-number">#{order.orderNumber || order.id}</span>
+                    <span className="order-number">#{parseInt(order.orderNumber, 10)}</span>
                     {order.priority === 'high' && (
                       <div className="order-priority-badge">Urgente</div>
                     )}
@@ -273,7 +273,7 @@ const EmpleadoItem = ({ empleado, onClick }) => {
               {unassignedOrders.map((order) => (
                 <div key={order.id} className="order-item assign-order-item">
                   <div className="order-info">
-                    <span className="order-number">#{order.orderNumber || order.id}</span>
+                    <span className="order-number">#{parseInt(order.orderNumber, 10)}</span>
                     {order.priority === 'high' && (
                       <div className="order-priority-badge">Urgente</div>
                     )}
