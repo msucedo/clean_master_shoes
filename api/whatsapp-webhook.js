@@ -11,22 +11,25 @@
  * 3. Suscripciones: messages, message_status
  */
 
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+const crypto = require('crypto');
+const admin = require('firebase-admin');
 
 // Initialize Firebase Admin (solo si no está inicializado)
-if (!getApps().length) {
-  // En producción, Vercel cargará las credenciales desde variables de entorno
-  const serviceAccount = JSON.parse(
-    process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}'
-  );
+if (!admin.apps.length) {
+  try {
+    const serviceAccount = JSON.parse(
+      process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}'
+    );
 
-  initializeApp({
-    credential: cert(serviceAccount)
-  });
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+  } catch (error) {
+    console.error('❌ Error initializing Firebase Admin:', error.message);
+  }
 }
 
-const db = getFirestore();
+const db = admin.firestore();
 
 /**
  * Verificar la firma del webhook de Meta
@@ -35,12 +38,15 @@ const db = getFirestore();
  * @returns {boolean}
  */
 function verifyWebhookSignature(signature, body) {
-  const crypto = require('crypto');
   const appSecret = process.env.VITE_WHATSAPP_APP_SECRET;
 
   if (!appSecret) {
     console.warn('⚠️ VITE_WHATSAPP_APP_SECRET not configured');
     return true; // En desarrollo, permitir sin verificación
+  }
+
+  if (!signature) {
+    return false;
   }
 
   const expectedSignature = 'sha256=' + crypto
@@ -155,7 +161,7 @@ async function saveIncomingMessage(orderId, messageData) {
 /**
  * Handler principal del webhook
  */
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const method = req.method;
 
   console.log(`📥 [Webhook] ${method} request received`);
@@ -193,7 +199,7 @@ export default async function handler(req, res) {
 
       const body = req.body;
 
-      console.log('📨 [Webhook] Payload:', JSON.stringify(body, null, 2));
+      console.log('📨 [Webhook] Payload received');
 
       // Extraer mensajes del webhook
       if (body.object === 'whatsapp_business_account') {
@@ -205,7 +211,7 @@ export default async function handler(req, res) {
               // Procesar mensajes entrantes
               if (value.messages) {
                 for (const message of value.messages) {
-                  console.log('💬 [Webhook] Incoming message:', message);
+                  console.log('💬 [Webhook] Incoming message:', message.id);
 
                   // Solo procesar mensajes de texto por ahora
                   if (message.type === 'text') {
@@ -237,7 +243,7 @@ export default async function handler(req, res) {
               // También podemos procesar actualizaciones de estado (delivered, read, etc)
               if (value.statuses) {
                 for (const status of value.statuses) {
-                  console.log('📊 [Webhook] Message status update:', status);
+                  console.log('📊 [Webhook] Message status update:', status.id);
                   // Aquí podrías actualizar el estado de mensajes enviados
                   // Por ejemplo: marcar como "delivered", "read", etc.
                 }
@@ -259,4 +265,4 @@ export default async function handler(req, res) {
 
   // Método no soportado
   return res.status(405).send('Method Not Allowed');
-}
+};
