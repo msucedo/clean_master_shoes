@@ -180,10 +180,13 @@ async function saveIncomingMessage(orderId, messageData) {
     };
 
     await orderRef.update({
-      whatsappNotifications: [...existingNotifications, newNotification]
+      whatsappNotifications: [...existingNotifications, newNotification],
+      hasUnreadMessages: true,
+      lastIncomingMessageAt: new Date().toISOString()
     });
 
     console.log('✅ Mensaje guardado en orden:', orderId);
+    console.log('📬 Marcado como no leído');
 
   } catch (error) {
     console.error('❌ Error guardando mensaje:', error);

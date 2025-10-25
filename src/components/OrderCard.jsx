@@ -71,14 +71,20 @@ const OrderCard = ({ order, onOrderClick }) => {
     if (!order.whatsappNotifications || order.whatsappNotifications.length === 0) {
       return null;
     }
-    // Check if the last notification was successful or failed
-    const lastNotification = order.whatsappNotifications[order.whatsappNotifications.length - 1];
+
+    // Buscar la última notificación enviada (outgoing)
+    const lastSentNotification = order.whatsappNotifications
+      .filter(n => n.status === 'sent' || n.status === 'failed')
+      .pop();
+
     return {
-      sent: lastNotification.status === 'sent',
-      failed: lastNotification.status === 'failed',
-      error: lastNotification.error
+      hasConversation: true, // Hay conversación activa
+      sent: lastSentNotification?.status === 'sent',
+      failed: lastSentNotification?.status === 'failed',
+      error: lastSentNotification?.error,
+      hasUnread: order.hasUnreadMessages === true // Badge de mensajes sin leer
     };
-  }, [order.whatsappNotifications]);
+  }, [order.whatsappNotifications, order.hasUnreadMessages]);
 
   return (
     <div className="order-card" onClick={() => onOrderClick(order)}>
@@ -89,8 +95,14 @@ const OrderCard = ({ order, onOrderClick }) => {
           <div className="order-priority-badge">Urgente</div>
         )}
         {whatsappStatus?.sent && (
-          <div className="order-whatsapp-badge success" title="Notificación de WhatsApp enviada">
+          <div
+            className="order-whatsapp-badge success"
+            title={whatsappStatus.hasUnread ? "Nuevo mensaje recibido" : "Notificación de WhatsApp enviada"}
+          >
             ✓
+            {whatsappStatus.hasUnread && (
+              <span className="whatsapp-unread-dot"></span>
+            )}
           </div>
         )}
         {whatsappStatus?.failed && (

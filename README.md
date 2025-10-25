@@ -29,6 +29,7 @@ Clean master shoes
 -[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 
 // BACKLOG
+-[FEATURE]notificacion cuando un cliente responda el mensaje de orden lista
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor

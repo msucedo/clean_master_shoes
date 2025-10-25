@@ -15,6 +15,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen from './components/LoadingScreen';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Notification from './components/Notification';
+import { useWhatsAppNotifications } from './hooks/useWhatsAppNotifications';
 import './styles/global.css';
 
 function AppContent() {
@@ -24,6 +25,9 @@ function AppContent() {
   });
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const location = useLocation();
+
+  // Escuchar notificaciones de WhatsApp
+  useWhatsAppNotifications();
 
   useEffect(() => {
     // Marcar que ya cargamos una vez para evitar que vuelva a aparecer

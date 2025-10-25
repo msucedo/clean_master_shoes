@@ -54,6 +54,7 @@
     align-items: center;
     justify-content: center;
     cursor: help;
+    position: relative;
 }
 
 .order-whatsapp-badge.success {
@@ -66,6 +67,28 @@
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
     border: 1.5px solid #ef4444;
     color: #ef4444;
+}
+
+/* Badge de notificación de mensajes sin leer */
+.whatsapp-unread-dot {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 10px;
+    height: 10px;
+    background: #ef4444;
+    border: 2px solid var(--bg-darker);
+    border-radius: 50%;
+    animation: pulse-unread 2s infinite;
+}
+
+@keyframes pulse-unread {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+    }
 }
 
 .order-delivery-badge {

@@ -3,7 +3,7 @@ import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
-import { subscribeToEmployees, getBusinessProfile } from '../services/firebaseService';
+import { subscribeToEmployees, getBusinessProfile, updateOrder } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
@@ -118,6 +118,24 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       totalPrice: totalPrice
     };
   }, [localServices, localProducts, orderImages, orderStatus, paymentData, localDeliveryDate, generalNotes, orderAuthor, totalPrice]);
+
+  // Marcar mensajes de WhatsApp como leídos al abrir la orden
+  useEffect(() => {
+    const markAsRead = async () => {
+      if (order.hasUnreadMessages === true) {
+        try {
+          await updateOrder(order.id, {
+            hasUnreadMessages: false
+          });
+          console.log('✅ Mensajes de WhatsApp marcados como leídos');
+        } catch (error) {
+          console.error('❌ Error marcando mensajes como leídos:', error);
+        }
+      }
+    };
+
+    markAsRead();
+  }, [order.id]); // Solo ejecutar una vez al montar
 
   // Función que se ejecuta antes de cerrar el modal
   // Usamos useCallback para memoizar la función y evitar closures obsoletas
