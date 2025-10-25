@@ -69,6 +69,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[UX]refactorizar header del orderdetailview para agregar mas detalles de la orden
 -[feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 -[FEATURE]notificacion cuando un cliente responda el mensaje de wapp de orden lista y sonido de mensaje nuevo
 -[FEATURE]webhook para wapp, ui para mostrar y recibir wapp en orderdetailview

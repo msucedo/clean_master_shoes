@@ -405,7 +405,7 @@ const Dashboard = () => {
             <div className="order-detail-modal-header">
               <div className="order-header-main">
                 <span className="order-header-number">Orden #{headerData.orderNumber} - {headerData.client}</span>
-                <span className="order-header-date">{headerData.createdAt}</span>
+                <span className="order-header-date">Recibida {headerData.createdAt}</span>
               </div>
               <div className="order-header-author">
                 <select
