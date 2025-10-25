@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const saveOnCloseRef = useRef(null);
+  const [headerData, setHeaderData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -400,7 +401,29 @@ const Dashboard = () => {
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          title={`Orden #${selectedOrder.orderNumber || selectedOrder.id}`}
+          headerContent={headerData ? (
+            <div className="order-detail-modal-header">
+              <div className="order-header-main">
+                <span className="order-header-number">Orden #{headerData.orderNumber} - {headerData.client}</span>
+                <span className="order-header-date">{headerData.createdAt}</span>
+              </div>
+              <div className="order-header-author">
+                <select
+                  className="order-header-author-select"
+                  value={headerData.author}
+                  onChange={headerData.onAuthorChange}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="">Sin autor</option>
+                  {headerData.activeEmployees?.map(employee => (
+                    <option key={employee.id} value={employee.name}>
+                      {employee.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : undefined}
           size="large"
         >
           <OrderDetailView
@@ -413,6 +436,7 @@ const Dashboard = () => {
             onWhatsApp={handleWhatsApp}
             onEntregar={handleEntregar}
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
+            renderHeader={setHeaderData}
           />
         </Modal>
       )}

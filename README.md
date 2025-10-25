@@ -3,16 +3,13 @@ Clean master shoes
 // WIP 
 -[FIX]agregar en orderdetailview a la foto preview como en empleadoitem
 -[FIX]que una orden no pueda estar en proceso si no tiene autor
-- [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
-    -[FIX]Debuggeando porque falla
 
 // PRIORIDAD ALTA
 -[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
 -[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
--[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion
+-[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
--[FIX]volver a mostrar el emoji del servicio express en ordercard, y tambien mantener el tag urgente
 -[EPIC]Pantalla promociones
 -[CODE_REVIEW]Pedir code review para analizar app
 
@@ -29,6 +26,8 @@ Clean master shoes
 -[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 
 // BACKLOG
+-[FIX]agregar al header de orderdetailview, la funcion de fecha con hora y el campo autor
+-[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
@@ -70,9 +69,11 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 -[FEATURE]notificacion cuando un cliente responda el mensaje de wapp de orden lista y sonido de mensaje nuevo
 -[FEATURE]webhook para wapp, ui para mostrar y recibir wapp en orderdetailview
 -[FIX]se remueven 000 ceros del orden number
+-[FIX]volver a mostrar el emoji del servicio express en ordercard, y tambien mantener el tag urgente
 -[FEATURE]la lista de ordenes sin asignar de la tab empleados, hazle un sort de mas nuevas primero, de acorde al numero de orden, y que hasta arriba aparezcan las que tengan express, cambiar estado por fecha
 -[FEATURE]agrega la foto de la orden ahi mismo y 3. que al darle clic al boton asignar tambien actualices el estado de la orden a en proceso,
 -[FIX]no mostrar el item del servicio express, en orderdetailview, esconderlo y marcarlo siempre como completado, 2. agregar a ordercard el emoji del servicio express en caso que esa orden lo tenga

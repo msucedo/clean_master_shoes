@@ -8,7 +8,38 @@ import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
 
-const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose }) => {
+// Función para mostrar fecha relativa con hora
+const getRelativeTimeWithHour = (dateString) => {
+  if (!dateString) return 'Nunca';
+
+  const date = new Date(dateString);
+  const now = new Date();
+
+  // Crear fechas sin hora para comparar días de calendario
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffInMs = nowOnly - dateOnly;
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  // Obtener hora en formato HH:MM
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const timeStr = `${hours}:${minutes}`;
+
+  if (diffInDays === 0) return `hoy ${timeStr}`;
+  if (diffInDays === 1) return `ayer ${timeStr}`;
+  if (diffInDays === 2) return `hace dos días ${timeStr}`;
+  if (diffInDays === 3) return `hace tres días ${timeStr}`;
+  if (diffInDays < 7) return `hace ${diffInDays} días ${timeStr}`;
+  if (diffInDays < 14) return `hace 1 semana ${timeStr}`;
+  if (diffInDays < 30) return `hace ${Math.floor(diffInDays / 7)} semanas ${timeStr}`;
+  if (diffInDays < 60) return `hace 1 mes`;
+  if (diffInDays < 365) return `hace ${Math.floor(diffInDays / 30)} meses`;
+  return `hace ${Math.floor(diffInDays / 365)} años`;
+};
+
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader }) => {
   const { showSuccess, showInfo } = useNotification();
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
@@ -136,6 +167,20 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
     markAsRead();
   }, [order.id]); // Solo ejecutar una vez al montar
+
+  // Llamar a renderHeader si existe, pasándole la info necesaria
+  useEffect(() => {
+    if (renderHeader) {
+      renderHeader({
+        orderNumber: parseInt(order.orderNumber, 10),
+        client: order.client,
+        createdAt: getRelativeTimeWithHour(order.createdAt),
+        author: orderAuthor,
+        activeEmployees: activeEmployees,
+        onAuthorChange: handleAuthorChange
+      });
+    }
+  }, [renderHeader, order.orderNumber, order.client, order.createdAt, orderAuthor, activeEmployees]);
 
   // Función que se ejecuta antes de cerrar el modal
   // Usamos useCallback para memoizar la función y evitar closures obsoletas
