@@ -402,7 +402,7 @@ const Orders = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={selectedOrder ? `Orden #${selectedOrder.orderNumber || selectedOrder.id}` : 'Nueva Orden'}
+        title={selectedOrder ? `Orden #${parseInt(selectedOrder.orderNumber, 10)} - ${selectedOrder.client}` : 'Nueva Orden'}
         size="large"
       >
         {selectedOrder ? (

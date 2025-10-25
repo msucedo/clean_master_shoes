@@ -29,7 +29,6 @@ Clean master shoes
 -[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 
 // BACKLOG
--[FEATURE]notificacion cuando un cliente responda el mensaje de orden lista
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
@@ -71,6 +70,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]notificacion cuando un cliente responda el mensaje de wapp de orden lista y sonido de mensaje nuevo
 -[FEATURE]webhook para wapp, ui para mostrar y recibir wapp en orderdetailview
 -[FIX]se remueven 000 ceros del orden number
 -[FEATURE]la lista de ordenes sin asignar de la tab empleados, hazle un sort de mas nuevas primero, de acorde al numero de orden, y que hasta arriba aparezcan las que tengan express, cambiar estado por fecha
