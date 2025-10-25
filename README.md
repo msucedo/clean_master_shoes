@@ -1,6 +1,7 @@
 Clean master shoes
 
 // WIP 
+-[FIX]agregar en orderdetailview a la foto preview como en empleadoitem
 -[FIX]que una orden no pueda estar en proceso si no tiene autor
 - [feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
     -[FIX]Debuggeando porque falla
@@ -36,6 +37,7 @@ Clean master shoes
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 -[FEATURE]en la orden, guardar factura al generarla
 -[ALTERNATIVA]al crear una orden se asigne al empleado activo con menos ordenes
+-[FIX]validar flujos en iphone, UX en iphone
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
