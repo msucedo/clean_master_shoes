@@ -11,25 +11,45 @@
  * 3. Suscripciones: messages, message_status
  */
 
-const crypto = require('crypto');
-const admin = require('firebase-admin');
+import crypto from 'crypto';
 
-// Initialize Firebase Admin (solo si no está inicializado)
-if (!admin.apps.length) {
+// Lazy initialization para evitar crashes
+let adminInitialized = false;
+let db = null;
+
+async function getFirestore() {
+  if (db) return db;
+
   try {
-    const serviceAccount = JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}'
-    );
+    // Importación dinámica de firebase-admin
+    const admin = await import('firebase-admin');
+    const adminModule = admin.default || admin;
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+    if (!adminInitialized) {
+      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+      if (!serviceAccountKey) {
+        console.error('❌ FIREBASE_SERVICE_ACCOUNT_KEY not set');
+        return null;
+      }
+
+      const serviceAccount = JSON.parse(serviceAccountKey);
+
+      adminModule.initializeApp({
+        credential: adminModule.credential.cert(serviceAccount)
+      });
+
+      adminInitialized = true;
+      console.log('✅ Firebase Admin initialized');
+    }
+
+    db = adminModule.firestore();
+    return db;
   } catch (error) {
-    console.error('❌ Error initializing Firebase Admin:', error.message);
+    console.error('❌ Error initializing Firebase Admin:', error);
+    return null;
   }
 }
-
-const db = admin.firestore();
 
 /**
  * Verificar la firma del webhook de Meta
@@ -64,13 +84,19 @@ function verifyWebhookSignature(signature, body) {
  */
 async function findOrderByPhone(phoneNumber) {
   try {
+    const firestore = await getFirestore();
+    if (!firestore) {
+      console.error('❌ Firestore no disponible');
+      return null;
+    }
+
     // Limpiar número de teléfono (quitar +, espacios, etc)
     const cleanedPhone = phoneNumber.replace(/\D/g, '');
 
     console.log('🔍 Buscando orden para teléfono:', cleanedPhone);
 
     // Buscar en todas las órdenes activas
-    const ordersRef = db.collection('orders');
+    const ordersRef = firestore.collection('orders');
     const snapshot = await ordersRef.get();
 
     let matchingOrder = null;
@@ -125,7 +151,13 @@ async function findOrderByPhone(phoneNumber) {
  */
 async function saveIncomingMessage(orderId, messageData) {
   try {
-    const orderRef = db.collection('orders').doc(orderId);
+    const firestore = await getFirestore();
+    if (!firestore) {
+      console.error('❌ Firestore no disponible');
+      return;
+    }
+
+    const orderRef = firestore.collection('orders').doc(orderId);
     const orderDoc = await orderRef.get();
 
     if (!orderDoc.exists) {
@@ -161,7 +193,7 @@ async function saveIncomingMessage(orderId, messageData) {
 /**
  * Handler principal del webhook
  */
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const method = req.method;
 
   console.log(`📥 [Webhook] ${method} request received`);
@@ -265,4 +297,4 @@ module.exports = async function handler(req, res) {
 
   // Método no soportado
   return res.status(405).send('Method Not Allowed');
-};
+}
