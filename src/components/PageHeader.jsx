@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import PropTypes from 'prop-types';
 import './PageHeader.css';
 
@@ -13,47 +12,12 @@ const PageHeader = ({
   searchPlaceholder = 'Buscar...',
   filters = []
 }) => {
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-
-  const handleSearchToggle = () => {
-    if (!isSearchExpanded) {
-      setIsSearchExpanded(true);
-    }
-  };
-
-  const handleSearchBlur = () => {
-    if (!searchValue) {
-      setIsSearchExpanded(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      setIsSearchExpanded(false);
-      e.target.blur();
-    }
-  };
-
   return (
     <div className="page-header">
       <div className="header-main-row">
         {title && <h1 className="page-title">{title}</h1>}
 
         <div className="header-actions">
-          {showSearch && (
-            <div className={`search-box-compact ${isSearchExpanded ? 'expanded' : ''}`}>
-              <input
-                type="text"
-                className="search-input-compact"
-                placeholder="🔍"
-                value={searchValue}
-                onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-                onFocus={() => setIsSearchExpanded(true)}
-                onBlur={handleSearchBlur}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-          )}
           {buttonLabel && (
             <button className="btn-add-compact" onClick={onButtonClick} title={buttonLabel}>
               {buttonIcon || '+'}
@@ -62,8 +26,39 @@ const PageHeader = ({
         </div>
       </div>
 
+      {showSearch && (
+        <div className="search-row">
+          <div className="search-box-full">
+            <input
+              type="text"
+              className="search-input-full"
+              placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
       {filters.length > 0 && (
         <div className="filters-row">
+          {/* Select para móvil (oculto en desktop por CSS) */}
+          <select
+            className="filters-select-mobile"
+            onChange={(e) => {
+              const selectedFilter = filters.find(f => f.label === e.target.value);
+              if (selectedFilter) selectedFilter.onClick();
+            }}
+            value={filters.find(f => f.active)?.label || filters[0]?.label}
+          >
+            {filters.map((filter, idx) => (
+              <option key={idx} value={filter.label}>
+                {filter.icon && `${filter.icon} `}{filter.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Botones para desktop/tablet (ocultos en móvil por CSS) */}
           {filters.map((filter, idx) => (
             <button
               key={idx}

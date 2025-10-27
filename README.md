@@ -6,6 +6,7 @@ Clean master shoes
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
 // WIP
+-[]fixes iphoto
 
 // PRIORIDAD ALTA
 -[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
