@@ -1,8 +1,6 @@
 Clean master shoes
 
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
--[FIX]UX para iphone
-    -remover scroll horizontal de orders
 -[FIX]agregar en orderdetailview a la foto preview como en empleadoitem
 -[FIX]que una orden no pueda estar en proceso si no tiene autor
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
@@ -37,7 +35,6 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
--[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
 -[FEATURE]pagina de tracking de ordenes para la .com
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
@@ -75,6 +72,10 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
+-[FEATURE]agregar campo emoji a cada empleado, para asi representar al empleado, como el emoji de servicios y productos
+-[FEATURE]agregar en orderdetailview, en los dos autor, que la liste muestre tambien el emoji del empleado
+-[FIX]UX para iphone
 -[FIX]se remueve poder hacer zoom con dos dedos en el movil
 -[FIX]agregar al header de orderdetailview, la funcion de fecha con hora y el campo autor
 -[UX]refactorizar header del orderdetailview para agregar mas detalles de la orden

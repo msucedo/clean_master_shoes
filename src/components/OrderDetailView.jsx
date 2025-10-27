@@ -771,46 +771,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         </div>
       </div>
 
-      {/* Información de la Orden */}
-      <div className="order-details-grid">
-        <div className="detail-card">
-          <h3 className="detail-card-title">📋 Información de la Orden</h3>
-          <div className="detail-card-content">
-            <div className="detail-row">
-              <span className="detail-label">Fecha de Recepción:</span>
-              <span className="detail-value">
-                {order.createdAt ? new Date(order.createdAt).toLocaleDateString('es-ES', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : 'No disponible'}
-              </span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Número de Orden:</span>
-              <span className="detail-value">#{parseInt(order.orderNumber, 10)}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Autor de la Orden:</span>
-              <select
-                className={`author-select ${orderAuthor ? 'has-value' : ''}`}
-                value={orderAuthor}
-                onChange={handleAuthorChange}
-              >
-                <option value="">Sin asignar</option>
-                {activeEmployees.map(employee => (
-                  <option key={employee.id} value={employee.name}>
-                    {employee.name} - {employee.role}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Historial de Notificaciones de WhatsApp */}
       {order.whatsappNotifications && order.whatsappNotifications.length > 0 && (
         <div className="order-details-grid">

@@ -64,6 +64,13 @@
     margin-top: -4px;
 }
 
+.field-hint {
+    font-size: clamp(0.688rem, 2vw, 0.75rem);
+    color: #666;
+    margin-top: -4px;
+    font-style: italic;
+}
+
 .form-actions {
     display: flex;
     justify-content: space-between;

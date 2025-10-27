@@ -168,8 +168,8 @@ const EmpleadoItem = ({ empleado, onClick }) => {
   return (
     <div className="empleado-item-wrapper">
       <div className="empleado-item" onClick={() => onClick && onClick(empleado)}>
-        <div className={`empleado-avatar ${!isActive ? 'inactive' : ''}`}>
-          {getInitials(empleado.name)}
+        <div className={`empleado-avatar ${!isActive ? 'inactive' : ''} ${empleado.emoji ? 'with-emoji' : ''}`}>
+          {empleado.emoji || getInitials(empleado.name)}
         </div>
         <div className="empleado-info">
           <div className="empleado-name">{empleado.name}</div>

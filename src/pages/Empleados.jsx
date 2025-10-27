@@ -88,7 +88,8 @@ const Empleados = () => {
           role: formData.role,
           hireDate: formData.hireDate,
           status: formData.status || 'active',
-          notes: formData.notes || ''
+          notes: formData.notes || '',
+          emoji: formData.emoji || ''
         };
         await addEmployee(newEmpleado);
         showSuccess('Empleado agregado exitosamente');

@@ -418,7 +418,7 @@ const Dashboard = () => {
                   <option value="">Sin autor</option>
                   {headerData.activeEmployees?.map(employee => (
                     <option key={employee.id} value={employee.name}>
-                      {employee.name}
+                      {employee.emoji ? `${employee.emoji} ` : ''}{employee.name}
                     </option>
                   ))}
                 </select>

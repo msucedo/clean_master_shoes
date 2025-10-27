@@ -9,7 +9,8 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     role: '',
     hireDate: '',
     status: 'active',
-    notes: ''
+    notes: '',
+    emoji: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -23,7 +24,8 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         role: initialData.role || '',
         hireDate: initialData.hireDate || '',
         status: initialData.status || 'active',
-        notes: initialData.notes || ''
+        notes: initialData.notes || '',
+        emoji: initialData.emoji || ''
       });
     }
   }, [initialData]);
@@ -168,6 +170,20 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
             <option value="active">Activo</option>
             <option value="inactive">Inactivo</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="emoji">Emoji (opcional)</label>
+          <input
+            type="text"
+            id="emoji"
+            name="emoji"
+            value={formData.emoji}
+            onChange={handleChange}
+            placeholder="👨‍💼"
+            maxLength="4"
+          />
+          <span className="field-hint">Pega o escribe un emoji para representar al empleado</span>
         </div>
 
         <div className="form-group full-width">

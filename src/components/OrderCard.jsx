@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { subscribeToEmployees } from '../services/firebaseService';
 import './OrderCard.css';
 
 // Función para formatear fecha de entrega
@@ -30,6 +31,24 @@ const formatDeliveryDate = (dateString) => {
 
 // Componente Principal: OrderCard
 const OrderCard = ({ order, onOrderClick }) => {
+  const [employees, setEmployees] = useState([]);
+
+  // Suscribirse a empleados para obtener emoji
+  useEffect(() => {
+    const unsubscribe = subscribeToEmployees((employeesData) => {
+      setEmployees(employeesData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Obtener emoji del autor si existe
+  const authorEmoji = useMemo(() => {
+    if (!order.author) return null;
+    const author = employees.find(emp => emp.name === order.author);
+    return author?.emoji || null;
+  }, [order.author, employees]);
+
   // Obtener servicios activos (no cancelados)
   const activeServices = useMemo(() => {
     if (!order.services || order.services.length === 0) return [];
@@ -108,6 +127,11 @@ const OrderCard = ({ order, onOrderClick }) => {
         {whatsappStatus?.failed && (
           <div className="order-whatsapp-badge error" title={`WhatsApp falló: ${whatsappStatus.error || 'Error desconocido'}`}>
             ✗
+          </div>
+        )}
+        {authorEmoji && (
+          <div className="order-author-badge" title={`Autor: ${order.author}`}>
+            {authorEmoji}
           </div>
         )}
         <div className={`order-delivery-badge ${dateInfo.className}`}>
