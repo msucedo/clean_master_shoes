@@ -4,6 +4,7 @@ import './ImageUpload.css';
 const ImageUpload = ({ images = [], onChange }) => {
   const fileInputRef = useRef(null);
   const [previewUrls, setPreviewUrls] = useState(images);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Sync with parent when images prop changes
   useEffect(() => {
@@ -114,6 +115,14 @@ const ImageUpload = ({ images = [], onChange }) => {
     fileInputRef.current?.click();
   };
 
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
+
   return (
     <div className="image-upload">
       <div className="images-grid">
@@ -135,15 +144,24 @@ const ImageUpload = ({ images = [], onChange }) => {
         {/* Preview Images */}
         {previewUrls.map((url, index) => (
           <div key={index} className="image-preview">
-            <img src={url} alt={`Tenis ${index + 1}`} className="preview-img" />
+            <img
+              src={url}
+              alt={`Tenis ${index + 1}`}
+              className="preview-img"
+              onClick={() => openImageModal(url)}
+              style={{ cursor: 'pointer' }}
+            />
             <button
               type="button"
               className="remove-image-btn"
-              onClick={() => handleRemoveImage(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveImage(index);
+              }}
             >
               ✕
             </button>
-            <div className="image-overlay">
+            <div className="image-overlay" onClick={() => openImageModal(url)}>
               <div className="overlay-text">Foto {index + 1}</div>
             </div>
           </div>
@@ -159,6 +177,18 @@ const ImageUpload = ({ images = [], onChange }) => {
           }
         </span>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="image-modal" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={closeImageModal}>
+              ✕
+            </button>
+            <img src={selectedImage} alt="Vista ampliada" className="image-modal-img" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

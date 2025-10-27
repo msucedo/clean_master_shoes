@@ -1,14 +1,11 @@
 Clean master shoes
 
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
--[FIX]agregar en orderdetailview a la foto preview como en empleadoitem
 -[FIX]que una orden no pueda estar en proceso si no tiene autor
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
 // WIP
--[]fix notifications on mobile
--[]porfa aplica ahora para toda la app el cambio que hicimos al refactorizar algunos componentes del css cuando quitamos los media queries
 
 // PRIORIDAD ALTA
 -[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
@@ -72,9 +69,12 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]agregar en orderdetailview, a la foto preview como en empleadoitem
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
 -[FEATURE]agregar campo emoji a cada empleado, para asi representar al empleado, como el emoji de servicios y productos
 -[FEATURE]agregar en orderdetailview, en los dos autor, que la liste muestre tambien el emoji del empleado
+-[FIX]fix notifications colors on mobile
+-[FIX]porfa aplica ahora para toda la app el cambio que hicimos al refactorizar algunos componentes del css cuando quitamos los media queries
 -[FIX]UX para iphone
 -[FIX]se remueve poder hacer zoom con dos dedos en el movil
 -[FIX]agregar al header de orderdetailview, la funcion de fecha con hora y el campo autor
