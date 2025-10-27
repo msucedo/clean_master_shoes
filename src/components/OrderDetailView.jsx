@@ -39,8 +39,12 @@ const getRelativeTimeWithHour = (dateString) => {
   return `hace ${Math.floor(diffInDays / 365)} años`;
 };
 
-const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader }) => {
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader, readOnly = false }) => {
   const { showSuccess, showInfo } = useNotification();
+
+  // Determinar si la orden es de solo lectura
+  const isReadOnly = readOnly || order.orderStatus === 'completados';
+
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
@@ -177,10 +181,11 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         createdAt: getRelativeTimeWithHour(order.createdAt),
         author: orderAuthor,
         activeEmployees: activeEmployees,
-        onAuthorChange: handleAuthorChange
+        onAuthorChange: handleAuthorChange,
+        isReadOnly: isReadOnly
       });
     }
-  }, [renderHeader, order.orderNumber, order.client, order.createdAt, orderAuthor, activeEmployees]);
+  }, [renderHeader, order.orderNumber, order.client, order.createdAt, orderAuthor, activeEmployees, isReadOnly]);
 
   // Función que se ejecuta antes de cerrar el modal
   // Usamos useCallback para memoizar la función y evitar closures obsoletas
@@ -554,12 +559,32 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       <div className={`order-detail-flip-container ${showPaymentScreen ? 'flipped' : ''}`}>
         {/* Front - Vista normal */}
         <div className="order-detail-flip-front">
+
+      {/* Mensaje de Solo Lectura */}
+      {isReadOnly && (
+        <div style={{
+          padding: '12px 16px',
+          background: 'rgba(251, 191, 36, 0.1)',
+          border: '1px solid rgba(251, 191, 36, 0.3)',
+          borderRadius: '10px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span style={{ fontSize: '20px' }}>⚠️</span>
+          <span style={{ color: '#fbbf24', fontWeight: 600, fontSize: '14px' }}>
+            Esta orden está completada y no puede editarse
+          </span>
+        </div>
+      )}
+
       {/* Galería de Imágenes de la Orden */}
       <div className="order-gallery-section">
         <h3 className="section-title">📸 Galería de Imágenes de la Orden</h3>
         <ImageUpload
           images={orderImages}
-          onChange={handleOrderImagesChange}
+          onChange={isReadOnly ? undefined : handleOrderImagesChange}
         />
       </div>
 
@@ -571,8 +596,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
             <div
               key={service.id || index}
               className={`pair-detail-card pair-status-${service.status || 'pending'} ${flippingServices[service.id] ? 'flipping' : ''}`}
-              onClick={() => handleServiceClick(service.id, service.status)}
-              title="Click para cambiar estado"
+              onClick={isReadOnly ? undefined : () => handleServiceClick(service.id, service.status)}
+              title={isReadOnly ? "" : "Click para cambiar estado"}
+              style={isReadOnly ? { cursor: 'default' } : {}}
             >
               <div className="pair-card-header">
                 <div className="pair-header-left">
@@ -702,44 +728,46 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
               <span className="detail-label">Fecha de Entrega:</span>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', position: 'relative' }}>
                 <span className="detail-value">{formatDeliveryDateDisplay(localDeliveryDate)}</span>
-                <div style={{ position: 'relative' }}>
-                  <button
-                    className="btn-edit-date"
-                    style={{
-                      padding: '4px 8px',
-                      background: 'transparent',
-                      border: '1px solid var(--color-gray-700)',
-                      borderRadius: '4px',
-                      color: 'var(--color-gray-500)',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      position: 'relative',
-                      zIndex: 1
-                    }}
-                  >
-                    📅
-                  </button>
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    value={localDeliveryDate}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        handleSaveDeliveryDate(e.target.value);
-                      }
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      opacity: 0,
-                      cursor: 'pointer',
-                      zIndex: 2
-                    }}
-                  />
-                </div>
+                {!isReadOnly && (
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      className="btn-edit-date"
+                      style={{
+                        padding: '4px 8px',
+                        background: 'transparent',
+                        border: '1px solid var(--color-gray-700)',
+                        borderRadius: '4px',
+                        color: 'var(--color-gray-500)',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        position: 'relative',
+                        zIndex: 1
+                      }}
+                    >
+                      📅
+                    </button>
+                    <input
+                      ref={dateInputRef}
+                      type="date"
+                      value={localDeliveryDate}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleSaveDeliveryDate(e.target.value);
+                        }
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        opacity: 0,
+                        cursor: 'pointer',
+                        zIndex: 2
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <div className="detail-row">
@@ -748,6 +776,11 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
                 className={`order-status-select status-${orderStatus}`}
                 value={orderStatus}
                 onChange={(e) => handleOrderStatusChange(e.target.value)}
+                disabled={isReadOnly}
+                style={{
+                  opacity: isReadOnly ? 0.6 : 1,
+                  cursor: isReadOnly ? 'not-allowed' : 'pointer'
+                }}
               >
                 {orderStatuses.map(status => (
                   <option key={status.value} value={status.value}>
@@ -838,6 +871,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
               rows="4"
               value={generalNotes}
               onChange={handleGeneralNotesChange}
+              disabled={isReadOnly}
               style={{
                 width: '100%',
                 resize: 'vertical',
@@ -848,7 +882,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
                 borderRadius: '10px',
                 color: 'var(--color-white)',
                 fontSize: '15px',
-                lineHeight: '1.6'
+                lineHeight: '1.6',
+                opacity: isReadOnly ? 0.6 : 1,
+                cursor: isReadOnly ? 'not-allowed' : 'text'
               }}
             />
           </div>
@@ -856,7 +892,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       </div>
 
       {/* Botones de Cierre de Orden */}
-      {showDeliverButton && (
+      {showDeliverButton && !isReadOnly && (
         <div className="order-close-section">
           <button
             className={`btn-close-order ${!isFullyPaid ? 'btn-cobrar-large' : 'btn-entregar-large'}`}
@@ -874,41 +910,43 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       )}
 
       {/* Botones de Acción */}
-      <div className="order-actions-footer">
-        <div className="action-buttons-grid">
-          <button
-            className="action-btn btn-whatsapp"
-            onClick={handleWhatsApp}
-          >
-            <span className="action-icon">💬</span>
-            <span className="action-text">WhatsApp</span>
-          </button>
+      {!isReadOnly && (
+        <div className="order-actions-footer">
+          <div className="action-buttons-grid">
+            <button
+              className="action-btn btn-whatsapp"
+              onClick={handleWhatsApp}
+            >
+              <span className="action-icon">💬</span>
+              <span className="action-text">WhatsApp</span>
+            </button>
 
-          <button
-            className="action-btn btn-email"
-            onClick={() => onEmail && onEmail(order)}
-          >
-            <span className="action-icon">📧</span>
-            <span className="action-text">Enviar Email</span>
-          </button>
+            <button
+              className="action-btn btn-email"
+              onClick={() => onEmail && onEmail(order)}
+            >
+              <span className="action-icon">📧</span>
+              <span className="action-text">Enviar Email</span>
+            </button>
 
-          <button
-            className="action-btn btn-invoice"
-            onClick={handleGenerateInvoice}
-          >
-            <span className="action-icon">🧾</span>
-            <span className="action-text">Generar Factura</span>
-          </button>
+            <button
+              className="action-btn btn-invoice"
+              onClick={handleGenerateInvoice}
+            >
+              <span className="action-icon">🧾</span>
+              <span className="action-text">Generar Factura</span>
+            </button>
 
-          <button
-            className="action-btn btn-cancel"
-            onClick={() => onCancel && onCancel(order)}
-          >
-            <span className="action-icon">🗑️</span>
-            <span className="action-text">Cancelar Orden</span>
-          </button>
+            <button
+              className="action-btn btn-cancel"
+              onClick={() => onCancel && onCancel(order)}
+            >
+              <span className="action-icon">🗑️</span>
+              <span className="action-text">Cancelar Orden</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal de Imagen */}
       {selectedImage && (

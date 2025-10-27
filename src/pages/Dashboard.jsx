@@ -414,6 +414,11 @@ const Dashboard = () => {
                   value={headerData.author}
                   onChange={headerData.onAuthorChange}
                   onClick={(e) => e.stopPropagation()}
+                  disabled={headerData.isReadOnly}
+                  style={{
+                    opacity: headerData.isReadOnly ? 0.6 : 1,
+                    cursor: headerData.isReadOnly ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   <option value="">Sin autor</option>
                   {headerData.activeEmployees?.map(employee => (

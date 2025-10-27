@@ -203,23 +203,25 @@
 
 /* Botón de ver historial */
 .btn-view-history {
-    padding: clamp(0.5rem, 2vw, 0.625rem) clamp(0.75rem, 2vw, 0.875rem);
-    background: transparent;
-    color: #999;
-    border: 1px solid #2a2a2a;
-    border-radius: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(255, 0, 110, 0.05) 100%);
+    border: 1px solid rgba(255, 0, 110, 0.3);
+    border-radius: 8px;
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
-    font-size: var(--font-xs);
-    font-weight: 600;
     transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     white-space: nowrap;
-    min-height: clamp(2.5rem, 5vw, var(--touch-min));
 }
 
 .btn-view-history:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background: var(--bg-primary-10);
+    background: linear-gradient(135deg, rgba(255, 0, 110, 0.2) 0%, rgba(255, 0, 110, 0.1) 100%);
+    border-color: rgba(255, 0, 110, 0.5);
+    transform: translateY(-2px);
 }
 
 /* Sección de historial expandida */
@@ -304,12 +306,18 @@
     border-radius: 10px;
     padding: clamp(0.75rem, 2vw, 0.875rem) clamp(0.875rem, 2vw, 1rem);
     transition: all 0.2s;
+    cursor: pointer;
 }
 
 .client-order-item:hover {
     border-color: var(--color-primary);
     transform: translateX(4px);
     background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 8px rgba(255, 0, 110, 0.15);
+}
+
+.client-order-item:active {
+    transform: translateX(2px);
 }
 
 /* Info de orden */
@@ -386,12 +394,18 @@
     flex-wrap: wrap;
 }
 
-.client-order-services .service-icon {
-    font-size: clamp(0.813rem, 2vw, 0.875rem);
-    background: rgba(255, 255, 255, 0.05);
-    padding: clamp(0.25rem, 1vw, 0.375rem) clamp(0.5rem, 1.5vw, 0.625rem);
-    border-radius: 6px;
-    border: 1px solid #2a2a2a;
+.client-order-services .service-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--color-gray-800);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-primary);
+    width: fit-content;
+    transition: all 0.3s ease;
 }
 
 /* Total */

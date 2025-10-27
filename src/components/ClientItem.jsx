@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { subscribeToOrders } from '../services/firebaseService';
 import './ClientItem.css';
 
-const ClientItem = ({ client, onClick }) => {
+const ClientItem = ({ client, onClick, onOrderClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
@@ -110,8 +110,8 @@ const ClientItem = ({ client, onClick }) => {
     });
 
     return Object.entries(grouped).map(([icon, count]) => (
-      <span key={icon} className="service-icon">
-        {icon}{count > 1 ? ` ${count}` : ''}
+      <span key={icon} className="service-icon-badge">
+        {icon} {count}
       </span>
     ));
   };
@@ -143,6 +143,7 @@ const ClientItem = ({ client, onClick }) => {
   }, [historyFilter, activeOrders, completedOrders, cancelledOrders]);
 
   const hasDebt = client.debt > 0;
+  const totalOrders = activeOrders.length + completedOrders.length + cancelledOrders.length;
 
   return (
     <div className="client-item-wrapper">
@@ -180,7 +181,7 @@ const ClientItem = ({ client, onClick }) => {
             onClick={handleToggleHistory}
             title="Ver historial de órdenes"
           >
-            Ver Historial
+            {isExpanded ? '▼' : '▶'} Ver Historial ({totalOrders})
           </button>
         </div>
       </div>
@@ -211,7 +212,13 @@ const ClientItem = ({ client, onClick }) => {
           ) : (
             <div className="client-orders-list">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="client-order-item">
+                <div
+                  key={order.id}
+                  className="client-order-item"
+                  onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
+                  style={{ cursor: 'pointer' }}
+                  title="Click para ver detalles de la orden"
+                >
                   <div className="client-order-info">
                     <span className="client-order-number">#{parseInt(order.orderNumber, 10)}</span>
                     <span className="client-order-date">
