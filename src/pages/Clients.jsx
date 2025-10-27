@@ -8,6 +8,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToOrders,
   subscribeToClients,
+  subscribeToEmployees,
   addClient,
   updateClient,
   deleteClient,
@@ -24,6 +25,7 @@ const Clients = () => {
   const [editingClient, setEditingClient] = useState(null);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState([]);
   const [orders, setOrders] = useState({
     recibidos: [],
     proceso: [],
@@ -61,6 +63,15 @@ const Clients = () => {
   useEffect(() => {
     const unsubscribe = subscribeToOrders((ordersData) => {
       setOrders(ordersData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Subscribe to real-time employees for author emoji
+  useEffect(() => {
+    const unsubscribe = subscribeToEmployees((employeesData) => {
+      setEmployees(employeesData);
     });
 
     return () => unsubscribe();
@@ -427,6 +438,7 @@ const Clients = () => {
                   setIsModalOpen(true);
                 }}
                 onOrderClick={handleOrderClick}
+                employees={employees}
               />
             );
           })

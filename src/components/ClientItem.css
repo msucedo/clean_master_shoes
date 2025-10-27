@@ -323,15 +323,22 @@
 /* Info de orden */
 .client-order-info {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: var(--gap-sm);
+    gap: 8px;
 }
 
 .client-order-number {
     font-weight: 700;
     color: var(--color-primary);
     font-size: clamp(0.813rem, 2vw, 0.875rem);
+}
+
+.client-order-author-emoji {
+    font-size: clamp(1rem, 2.5vw, 1.125rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .client-order-date {

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { subscribeToOrders } from '../services/firebaseService';
 import './ClientItem.css';
 
-const ClientItem = ({ client, onClick, onOrderClick }) => {
+const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
@@ -40,6 +40,36 @@ const ClientItem = ({ client, onClick, onOrderClick }) => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  const getRelativeTimeWithHour = (dateString) => {
+    if (!dateString) return 'Nunca';
+
+    const date = new Date(dateString);
+    const now = new Date();
+
+    // Crear fechas sin hora para comparar días de calendario
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const nowOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffInMs = nowOnly - dateOnly;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    // Obtener hora en formato HH:MM
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
+    if (diffInDays === 0) return `hoy ${timeStr}`;
+    if (diffInDays === 1) return `ayer ${timeStr}`;
+    if (diffInDays === 2) return `hace dos días ${timeStr}`;
+    if (diffInDays === 3) return `hace tres días ${timeStr}`;
+    if (diffInDays < 7) return `hace ${diffInDays} días ${timeStr}`;
+    if (diffInDays < 14) return `hace 1 semana ${timeStr}`;
+    if (diffInDays < 30) return `hace ${Math.floor(diffInDays / 7)} semanas ${timeStr}`;
+    if (diffInDays < 60) return `hace 1 mes`;
+    if (diffInDays < 365) return `hace ${Math.floor(diffInDays / 30)} meses`;
+    return `hace ${Math.floor(diffInDays / 365)} años`;
   };
 
   // Subscribe to orders and filter by client
@@ -211,20 +241,31 @@ const ClientItem = ({ client, onClick, onOrderClick }) => {
             </div>
           ) : (
             <div className="client-orders-list">
-              {filteredOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="client-order-item"
-                  onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
-                  style={{ cursor: 'pointer' }}
-                  title="Click para ver detalles de la orden"
-                >
-                  <div className="client-order-info">
-                    <span className="client-order-number">#{parseInt(order.orderNumber, 10)}</span>
-                    <span className="client-order-date">
-                      {formatDate(order.completedDate || order.deliveryDate)}
-                    </span>
-                  </div>
+              {filteredOrders.map((order) => {
+                // Buscar emoji del autor
+                const authorEmployee = employees.find(emp => emp.name === order.author);
+                const authorEmoji = authorEmployee?.emoji || null;
+
+                return (
+                  <div
+                    key={order.id}
+                    className="client-order-item"
+                    onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
+                    style={{ cursor: 'pointer' }}
+                    title="Click para ver detalles de la orden"
+                  >
+                    <div className="client-order-info">
+                      <span className="client-order-number">#{parseInt(order.orderNumber, 10)}</span>
+                      {authorEmoji && (
+                        <span className="client-order-author-emoji" title={`Autor: ${order.author}`}>
+                          {authorEmoji}
+                        </span>
+                      )}
+                      <span className="client-order-date">
+                        <span>Recibido </span>
+                        {getRelativeTimeWithHour(order.createdAt)}
+                      </span>
+                    </div>
                   <div className="client-order-details">
                     <span className={`order-status status-${order.orderStatus}`}>
                       {order.orderStatus === 'recibidos' && '📥 Recibidos'}
@@ -245,7 +286,8 @@ const ClientItem = ({ client, onClick, onOrderClick }) => {
                     </span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

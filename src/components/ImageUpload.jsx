@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './ImageUpload.css';
 
-const ImageUpload = ({ images = [], onChange }) => {
+const ImageUpload = ({ images = [], onChange, readOnly = false }) => {
   const fileInputRef = useRef(null);
   const [previewUrls, setPreviewUrls] = useState(images);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -126,20 +126,22 @@ const ImageUpload = ({ images = [], onChange }) => {
   return (
     <div className="image-upload">
       <div className="images-grid">
-        {/* Upload Button */}
-        <div className="upload-box" onClick={handleUploadClick}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileSelect}
-            style={{ display: 'none' }}
-          />
-          <div className="upload-icon">📸</div>
-          <div className="upload-text">Subir Foto</div>
-          <div className="upload-hint">Click para seleccionar</div>
-        </div>
+        {/* Upload Button - Oculto en modo readOnly */}
+        {!readOnly && (
+          <div className="upload-box" onClick={handleUploadClick}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+            <div className="upload-icon">📸</div>
+            <div className="upload-text">Subir Foto</div>
+            <div className="upload-hint">Click para seleccionar</div>
+          </div>
+        )}
 
         {/* Preview Images */}
         {previewUrls.map((url, index) => (
@@ -151,16 +153,19 @@ const ImageUpload = ({ images = [], onChange }) => {
               onClick={() => openImageModal(url)}
               style={{ cursor: 'pointer' }}
             />
-            <button
-              type="button"
-              className="remove-image-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveImage(index);
-              }}
-            >
-              ✕
-            </button>
+            {/* Botón de eliminar - Oculto en modo readOnly */}
+            {!readOnly && (
+              <button
+                type="button"
+                className="remove-image-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveImage(index);
+                }}
+              >
+                ✕
+              </button>
+            )}
             <div className="image-overlay" onClick={() => openImageModal(url)}>
               <div className="overlay-text">Foto {index + 1}</div>
             </div>

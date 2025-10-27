@@ -43,7 +43,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const { showSuccess, showInfo } = useNotification();
 
   // Determinar si la orden es de solo lectura
-  const isReadOnly = readOnly || order.orderStatus === 'completados';
+  const isReadOnly = readOnly || ['completados', 'cancelado'].includes(order.orderStatus);
 
   // ===== DECLARACIÓN DE TODOS LOS ESTADOS =====
   const [selectedImage, setSelectedImage] = useState(null);
@@ -574,7 +574,11 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         }}>
           <span style={{ fontSize: '20px' }}>⚠️</span>
           <span style={{ color: '#fbbf24', fontWeight: 600, fontSize: '14px' }}>
-            Esta orden está completada y no puede editarse
+            {order.orderStatus === 'completados'
+              ? 'Esta orden está completada y no puede editarse'
+              : order.orderStatus === 'cancelado'
+              ? 'Esta orden está cancelada y no puede editarse'
+              : 'Esta orden no puede editarse'}
           </span>
         </div>
       )}
@@ -585,6 +589,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         <ImageUpload
           images={orderImages}
           onChange={isReadOnly ? undefined : handleOrderImagesChange}
+          readOnly={isReadOnly}
         />
       </div>
 
