@@ -1,20 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import EmpleadoItem from '../components/EmpleadoItem';
 import Modal from '../components/Modal';
 import EmpleadoForm from '../components/EmpleadoForm';
+import OrderDetailView from '../components/OrderDetailView';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToEmployees,
   addEmployee,
   updateEmployee,
-  deleteEmployee
+  deleteEmployee,
+  updateOrder
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Empleados.css';
 
 const Empleados = () => {
-  const { showSuccess, showError } = useNotification();
+  const { showSuccess, showError, showInfo } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +30,12 @@ const Empleados = () => {
     onConfirm: null,
     type: 'default'
   });
+
+  // Estados para modal de orden
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const saveOnCloseRef = useRef(null);
+  const [headerData, setHeaderData] = useState(null);
 
   // Subscribe to real-time employees updates
   useEffect(() => {
@@ -124,6 +132,147 @@ const Empleados = () => {
     });
   };
 
+  // Handlers para órdenes
+  const handleOrderClick = (order) => {
+    setSelectedOrder(order);
+    setIsOrderModalOpen(true);
+  };
+
+  const handleCloseOrderModal = () => {
+    console.log('🚪 [EMPLEADOS] Cerrando modal de orden', {
+      hasSaveOnClose: !!saveOnCloseRef.current
+    });
+
+    // Ejecutar guardado si existe (solo guarda si hay cambios)
+    if (saveOnCloseRef.current) {
+      console.log('💾 [EMPLEADOS] Ejecutando saveOnClose...');
+      saveOnCloseRef.current();
+      saveOnCloseRef.current = null; // Limpiar después de usar
+    }
+
+    // Cerrar modal
+    setIsOrderModalOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const handleSaveOrder = async (updatedOrder) => {
+    console.log('🔥 [FIREBASE] handleSaveOrder llamado con:', updatedOrder);
+    try {
+      const result = await updateOrder(updatedOrder.id, updatedOrder);
+      console.log('✅ [FIREBASE] Orden actualizada exitosamente');
+
+      // Siempre mostrar notificación de orden actualizada
+      showSuccess('Orden actualizada exitosamente ✓');
+
+      // Si hubo cambio a "enEntrega", mostrar segunda notificación según resultado del WhatsApp
+      if (result.whatsappResult) {
+        const whatsapp = result.whatsappResult;
+
+        if (whatsapp.success) {
+          showSuccess(`WhatsApp enviado a ${updatedOrder.client} ✓`);
+        } else if (whatsapp.skipped) {
+          showInfo('WhatsApp no configurado, enviar mensaje manualmente.');
+        } else {
+          // WhatsApp falló
+          showError(
+            `WhatsApp falló: ${whatsapp.error || 'Error desconocido'}. ` +
+            `Enviar mensaje manualmente a ${updatedOrder.phone}.`
+          );
+          console.error('❌ [UI] Detalles del error de WhatsApp:', whatsapp);
+        }
+      }
+
+      // Real-time listener will update the UI automatically
+    } catch (error) {
+      console.error('❌ [FIREBASE] Error saving order:', error);
+      showError('Error al guardar la orden. Por favor intenta de nuevo.');
+    }
+  };
+
+  const handleCancelOrder = (order) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Cancelar Orden',
+      message: `¿Estás seguro de cancelar la orden #${order.orderNumber || order.id}?`,
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          // Excluir campos temporales antes de guardar
+          const { currentStatus, ...cleanOrder } = order;
+
+          // Marcar orden como cancelada en lugar de borrarla
+          await updateOrder(order.id, {
+            ...cleanOrder,
+            orderStatus: 'cancelado',
+            cancelledAt: new Date().toISOString()
+          });
+
+          // IMPORTANTE: Limpiar saveOnCloseRef para evitar sobrescritura
+          saveOnCloseRef.current = null;
+
+          handleCloseOrderModal();
+          showSuccess('Orden cancelada exitosamente');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          // Real-time listener will update the UI automatically
+        } catch (error) {
+          console.error('Error cancelling order:', error);
+          showError('Error al cancelar la orden');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      }
+    });
+  };
+
+  const handleEmail = (order) => {
+    // TODO: Implementar envío de correo
+    showInfo(`Enviar correo a ${order.client}. Se seleccionará plantilla según etapa de la orden.`);
+  };
+
+  const handleWhatsApp = (order) => {
+    const phone = order.phone.replace(/\D/g, '');
+    const message = `Hola ${order.client}, tu orden #${order.orderNumber || order.id} está lista!`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    showSuccess('Abriendo WhatsApp...');
+  };
+
+  const handleEntregar = (order) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Entregar Orden',
+      message: `¿Marcar orden #${order.orderNumber || order.id} como entregada?`,
+      type: 'default',
+      onConfirm: async () => {
+        try {
+          // Excluir campos temporales antes de guardar
+          const { currentStatus, ...cleanOrder } = order;
+
+          // Actualizar orden con estado completado y asegurar que el pago esté marcado como completado
+          const completedOrder = {
+            ...cleanOrder,
+            orderStatus: 'completados',
+            completedDate: new Date().toISOString(),
+            paymentStatus: 'paid',
+            paymentMethod: order.paymentMethod === 'pending' ? 'cash' : order.paymentMethod
+          };
+
+          await updateOrder(order.id, completedOrder);
+
+          // IMPORTANTE: Limpiar saveOnCloseRef para evitar que sobrescriba el estado completado
+          saveOnCloseRef.current = null;
+
+          handleCloseOrderModal();
+          showSuccess(`Orden #${order.orderNumber || order.id} entregada exitosamente`);
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+          // Real-time listener will update the UI automatically
+        } catch (error) {
+          console.error('Error marking order as delivered:', error);
+          showError('Error al marcar la orden como entregada');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }
+      }
+    });
+  };
+
   const filteredEmpleados = filterEmpleados(empleados);
 
   return (
@@ -173,6 +322,9 @@ const Empleados = () => {
                 setEditingEmpleado(emp);
                 setIsModalOpen(true);
               }}
+              onOrderClick={handleOrderClick}
+              showSuccess={showSuccess}
+              showError={showError}
             />
           ))
         ) : (
@@ -202,6 +354,57 @@ const Empleados = () => {
           initialData={editingEmpleado}
         />
       </Modal>
+
+      {/* Modal para ver detalle de orden */}
+      {selectedOrder && (
+        <Modal
+          isOpen={isOrderModalOpen}
+          onClose={handleCloseOrderModal}
+          headerContent={headerData ? (
+            <div className="order-detail-modal-header">
+              <div className="order-header-main">
+                <span className="order-header-number">Orden #{headerData.orderNumber}</span>
+                <span className="order-header-client">{headerData.client}</span>
+                <span className="order-header-date">Recibida {headerData.createdAt}</span>
+              </div>
+              <div className="order-header-author">
+                <select
+                  className="order-header-author-select"
+                  value={headerData.author}
+                  onChange={headerData.onAuthorChange}
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={headerData.isReadOnly}
+                  style={{
+                    opacity: headerData.isReadOnly ? 0.6 : 1,
+                    cursor: headerData.isReadOnly ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <option value="">Sin autor</option>
+                  {headerData.activeEmployees?.map(employee => (
+                    <option key={employee.id} value={employee.name}>
+                      {employee.emoji ? `${employee.emoji} ` : ''}{employee.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : undefined}
+          size="large"
+        >
+          <OrderDetailView
+            order={selectedOrder}
+            currentTab={selectedOrder.currentStatus}
+            onClose={handleCloseOrderModal}
+            onSave={handleSaveOrder}
+            onCancel={handleCancelOrder}
+            onEmail={handleEmail}
+            onWhatsApp={handleWhatsApp}
+            onEntregar={handleEntregar}
+            onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
+            renderHeader={setHeaderData}
+          />
+        </Modal>
+      )}
 
       {/* Confirm Dialog */}
       <ConfirmDialog

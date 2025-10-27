@@ -241,12 +241,18 @@
     border-radius: 10px;
     padding: clamp(0.75rem, 2vw, 0.875rem) clamp(0.875rem, 2vw, 1rem);
     transition: all 0.2s;
+    cursor: pointer;
 }
 
 .empleado-order-item:hover {
     border-color: var(--color-primary);
     transform: translateX(4px);
     background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+}
+
+.empleado-order-item:active {
+    transform: translateX(2px);
 }
 
 .empleado-order-info {

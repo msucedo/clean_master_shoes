@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { subscribeToOrders, updateOrder } from '../services/firebaseService';
 import './EmpleadoItem.css';
 
-const EmpleadoItem = ({ empleado, onClick }) => {
+const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAssignOrders, setShowAssignOrders] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
@@ -128,15 +128,17 @@ const EmpleadoItem = ({ empleado, onClick }) => {
     setShowAssignOrders(!showAssignOrders);
   };
 
-  const handleAssignOrder = async (orderId) => {
+  const handleAssignOrder = async (order) => {
     try {
-      await updateOrder(orderId, {
+      await updateOrder(order.id, {
         author: empleado.name,
         orderStatus: 'proceso'
       });
+      showSuccess(`Orden #${parseInt(order.orderNumber, 10)} asignada a ${empleado.name} y puesta en proceso ✓`);
       // La suscripción en tiempo real actualizará automáticamente las listas
     } catch (error) {
       console.error('Error asignando orden:', error);
+      showError('Error al asignar orden. Por favor intenta de nuevo.');
     }
   };
 
@@ -217,7 +219,13 @@ const EmpleadoItem = ({ empleado, onClick }) => {
           ) : (
             <div className="empleado-orders-list">
               {activeOrders.map((order) => (
-                <div key={order.id} className="empleado-order-item">
+                <div
+                  key={order.id}
+                  className="empleado-order-item"
+                  onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
+                  style={{ cursor: 'pointer' }}
+                  title="Click para ver detalles de la orden"
+                >
                   <div className="empleado-order-info">
                     <span className="empleado-order-number">#{parseInt(order.orderNumber, 10)}</span>
                     {order.priority === 'high' && (
@@ -272,7 +280,13 @@ const EmpleadoItem = ({ empleado, onClick }) => {
           ) : (
             <div className="empleado-orders-list">
               {unassignedOrders.map((order) => (
-                <div key={order.id} className="empleado-order-item assign-order-item">
+                <div
+                  key={order.id}
+                  className="empleado-order-item assign-order-item"
+                  onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
+                  style={{ cursor: 'pointer' }}
+                  title="Click para ver detalles de la orden"
+                >
                   <div className="empleado-order-info">
                     <span className="empleado-order-number">#{parseInt(order.orderNumber, 10)}</span>
                     {order.priority === 'high' && (
@@ -302,7 +316,10 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                     </div>
                     <button
                       className="btn-assign-to-employee"
-                      onClick={() => handleAssignOrder(order.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAssignOrder(order);
+                      }}
                     >
                       ✓ Asignar
                     </button>
