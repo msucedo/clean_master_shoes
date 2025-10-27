@@ -1,26 +1,29 @@
 /* Settings Page */
 .settings-page {
   padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Header */
 .settings-page .page-header {
-  margin-bottom: 35px;
+  margin-bottom: var(--space-lg);
 }
 
 .settings-page .page-title {
-  font-size: 42px;
+  font-size: clamp(1.75rem, 5vw, 2.625rem);
   font-weight: 900;
   background: linear-gradient(135deg, #fff 0%, #999 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -2px;
-  margin-bottom: 5px;
+  letter-spacing: clamp(-1px, -0.15vw, -2px);
+  margin-bottom: var(--gap-xs);
 }
 
 .settings-page .page-subtitle {
-  font-size: 16px;
+  font-size: var(--font-base);
   color: #666;
   font-weight: 500;
 }
@@ -28,8 +31,8 @@
 /* Settings Sections */
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr));
+  gap: var(--gap-lg);
   max-width: 1400px;
 }
 
@@ -37,26 +40,26 @@
   background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border: 1px solid #2a2a2a;
   border-radius: 20px;
-  padding: 30px;
+  padding: clamp(1.5rem, 4vw, 1.875rem);
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 25px;
-  padding-bottom: 20px;
+  gap: var(--gap-md);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
   border-bottom: 1px solid #2a2a2a;
 }
 
 .section-icon {
-  width: 50px;
-  height: 50px;
+  width: clamp(2.5rem, 6vw, 3.125rem);
+  height: clamp(2.5rem, 6vw, 3.125rem);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
 }
 
 .section-icon.profile {
@@ -80,25 +83,25 @@
 }
 
 .section-title {
-  font-size: 20px;
+  font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 800;
   color: #fff;
-  margin-bottom: 5px;
+  margin-bottom: var(--gap-xs);
 }
 
 .section-subtitle {
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   color: #666;
 }
 
 /* Form Groups */
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: var(--gap-sm);
 }
 
 .form-label {
   display: block;
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   font-weight: 700;
   color: #999;
   text-transform: uppercase;
@@ -107,14 +110,15 @@
 
 .form-input {
   width: 100%;
-  padding: 14px 18px;
+  padding: clamp(0.75rem, 2vw, 0.875rem) clamp(0.875rem, 3vw, 1.125rem);
   background: #0a0a0a;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
-  font-size: 15px;
+  font-size: clamp(0.875rem, 2vw, 0.938rem);
   color: #fff;
   font-weight: 500;
   transition: all 0.3s;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .form-input:focus {
@@ -130,7 +134,7 @@
 /* Upload Area */
 .upload-area {
   width: 100%;
-  padding: 40px;
+  padding: clamp(2rem, 5vw, 2.5rem);
   background: #0a0a0a;
   border: 2px dashed #2a2a2a;
   border-radius: 12px;
@@ -145,26 +149,26 @@
 }
 
 .upload-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
+  font-size: clamp(2rem, 6vw, 3rem);
+  margin-bottom: var(--gap-md);
 }
 
 .upload-text {
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   color: #999;
   font-weight: 600;
 }
 
 .upload-subtext {
-  font-size: 12px;
+  font-size: clamp(0.688rem, 2vw, 0.75rem);
   color: #666;
-  margin-top: 8px;
+  margin-top: var(--gap-xs);
 }
 
 /* Logo Preview */
 .logo-preview {
   width: 100%;
-  height: 200px;
+  height: clamp(10rem, 25vw, 12.5rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +187,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
+  padding: clamp(0.875rem, 3vw, 1.125rem) 0;
   border-bottom: 1px solid #2a2a2a;
 }
 
@@ -196,21 +200,21 @@
 }
 
 .toggle-label {
-  font-size: 15px;
+  font-size: clamp(0.875rem, 2vw, 0.938rem);
   font-weight: 600;
   color: #fff;
-  margin-bottom: 5px;
+  margin-bottom: var(--gap-xs);
 }
 
 .toggle-description {
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   color: #666;
 }
 
 .toggle-switch {
   position: relative;
-  width: 56px;
-  height: 32px;
+  width: clamp(3rem, 7vw, 3.5rem);
+  height: clamp(1.75rem, 4vw, 2rem);
 }
 
 .toggle-switch input {
@@ -234,10 +238,10 @@
 .toggle-slider:before {
   position: absolute;
   content: '';
-  height: 24px;
-  width: 24px;
-  left: 4px;
-  bottom: 4px;
+  height: clamp(1.25rem, 3vw, 1.5rem);
+  width: clamp(1.25rem, 3vw, 1.5rem);
+  left: clamp(0.25rem, 0.5vw, 0.313rem);
+  bottom: clamp(0.25rem, 0.5vw, 0.313rem);
   background-color: #666;
   transition: 0.3s;
   border-radius: 50%;
@@ -248,7 +252,7 @@ input:checked + .toggle-slider {
 }
 
 input:checked + .toggle-slider:before {
-  transform: translateX(24px);
+  transform: translateX(clamp(1.25rem, 3vw, 1.5rem));
   background-color: white;
 }
 
@@ -257,14 +261,15 @@ input:checked + .toggle-slider:before {
   background: var(--gradient-primary);
   color: white;
   border: none;
-  padding: 14px 28px;
+  padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1.5rem, 4vw, 1.75rem);
   border-radius: 12px;
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .btn-primary:hover {
@@ -276,14 +281,15 @@ input:checked + .toggle-slider:before {
   background: transparent;
   color: #999;
   border: 1px solid #2a2a2a;
-  padding: 14px 28px;
+  padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1.5rem, 4vw, 1.75rem);
   border-radius: 12px;
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .btn-secondary:hover {
@@ -296,15 +302,16 @@ input:checked + .toggle-slider:before {
   background: transparent;
   color: var(--color-primary);
   border: 1px solid var(--color-primary);
-  padding: 14px 28px;
+  padding: clamp(0.75rem, 2vw, 0.875rem) clamp(1.5rem, 4vw, 1.75rem);
   border-radius: 12px;
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   width: 100%;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .btn-danger:hover {
@@ -314,37 +321,44 @@ input:checked + .toggle-slider:before {
 
 .btn-group {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: var(--gap-sm);
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.btn-group button {
+  flex: 1 1 auto;
+  min-width: clamp(120px, 30vw, 150px);
 }
 
 .logout-section {
-  margin-top: 30px;
-  padding-top: 30px;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
   border-top: 1px solid #2a2a2a;
 }
 
 /* Integration Card */
 .integration-item {
-  padding: 20px;
+  padding: clamp(1rem, 3vw, 1.25rem);
   background: #0a0a0a;
   border-radius: 12px;
   border: 1px solid #2a2a2a;
-  margin-bottom: 15px;
+  margin-bottom: var(--gap-md);
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: clamp(1rem, 3vw, 1.25rem);
 }
 
 .integration-icon {
-  width: 60px;
-  height: 60px;
+  width: clamp(3rem, 8vw, 3.75rem);
+  height: clamp(3rem, 8vw, 3.75rem);
   border-radius: 12px;
   background: linear-gradient(135deg, #00ff88 0%, #00d9a3 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: clamp(1.5rem, 4vw, 1.75rem);
+  flex-shrink: 0;
 }
 
 .integration-icon.clip {
@@ -361,17 +375,18 @@ input:checked + .toggle-slider:before {
 
 .integration-info {
   flex: 1;
+  min-width: 0;
 }
 
 .integration-name {
-  font-size: 16px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   font-weight: 700;
   color: #fff;
-  margin-bottom: 5px;
+  margin-bottom: var(--gap-xs);
 }
 
 .integration-status {
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   color: #666;
 }
 
@@ -380,15 +395,17 @@ input:checked + .toggle-slider:before {
 }
 
 .btn-connect {
-  padding: 10px 20px;
+  padding: clamp(0.5rem, 2vw, 0.625rem) clamp(1rem, 3vw, 1.25rem);
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #999;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
+  white-space: nowrap;
 }
 
 .btn-connect:hover {
@@ -409,28 +426,28 @@ input:checked + .toggle-slider:before {
 .backup-info {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--gap-lg);
 }
 
 .backup-description {
   color: #ccc;
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   line-height: 1.6;
   margin: 0;
 }
 
 .backup-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 15px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr));
+  gap: var(--gap-md);
+  padding: clamp(1rem, 3vw, 1.25rem);
   background: #0f0f0f;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
 }
 
 .backup-stats .stat-item {
-  padding: 24px 2px;
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(0.125rem, 0.5vw, 0.25rem);
   display: flow;
 }
 
@@ -439,23 +456,23 @@ input:checked + .toggle-slider:before {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: clamp(0.688rem, 2vw, 0.75rem);
   color: #888;
-  margin-bottom: 5px;
+  margin-bottom: var(--gap-xs);
 }
 
 .stat-value {
-  font-size: 20px;
+  font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 700;
   color: #fff;
 }
 
 .backup-note {
-  padding: 15px;
+  padding: clamp(0.875rem, 3vw, 1rem);
   background: #1a2332;
   border: 1px solid #2a3f5f;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   color: #88b4e3;
   line-height: 1.5;
 }
@@ -464,33 +481,4 @@ input:checked + .toggle-slider:before {
   color: #fff;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .settings-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .settings-page .page-title {
-    font-size: 32px;
-  }
-
-  .btn-group {
-    flex-direction: column;
-  }
-
-  .btn-group button {
-    width: 100%;
-  }
-
-  .backup-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .backup-stats {
-    grid-template-columns: 1fr;
-  }
-}
+/* Responsive - No media queries needed with intrinsic CSS */

@@ -182,7 +182,6 @@ const ClientItem = ({ client, onClick }) => {
           >
             Ver Historial
           </button>
-          <button className="btn-action whatsapp" title="WhatsApp (próximamente)">💬</button>
         </div>
       </div>
 
@@ -191,32 +190,18 @@ const ClientItem = ({ client, onClick }) => {
         <div className="client-history-section">
           <div className="history-header">
             <h4>Historial de Órdenes de {client.name}</h4>
-            <div className="history-filters">
-              <button
-                className={historyFilter === 'all' ? 'active' : ''}
-                onClick={() => setHistoryFilter('all')}
-              >
+            <select
+              className="history-filter-select"
+              value={historyFilter}
+              onChange={(e) => setHistoryFilter(e.target.value)}
+            >
+              <option value="all">
                 Todas ({activeOrders.length + completedOrders.length + cancelledOrders.length})
-              </button>
-              <button
-                className={historyFilter === 'active' ? 'active' : ''}
-                onClick={() => setHistoryFilter('active')}
-              >
-                Activas ({activeOrders.length})
-              </button>
-              <button
-                className={historyFilter === 'completed' ? 'active' : ''}
-                onClick={() => setHistoryFilter('completed')}
-              >
-                Completadas ({completedOrders.length})
-              </button>
-              <button
-                className={historyFilter === 'cancelled' ? 'active' : ''}
-                onClick={() => setHistoryFilter('cancelled')}
-              >
-                Canceladas ({cancelledOrders.length})
-              </button>
-            </div>
+              </option>
+              <option value="active">Activas ({activeOrders.length})</option>
+              <option value="completed">Completadas ({completedOrders.length})</option>
+              <option value="cancelled">Canceladas ({cancelledOrders.length})</option>
+            </select>
           </div>
 
           {filteredOrders.length === 0 ? (
@@ -226,14 +211,14 @@ const ClientItem = ({ client, onClick }) => {
           ) : (
             <div className="client-orders-list">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="order-item">
-                  <div className="order-info">
-                    <span className="order-number">#{parseInt(order.orderNumber, 10)}</span>
-                    <span className="order-date">
+                <div key={order.id} className="client-order-item">
+                  <div className="client-order-info">
+                    <span className="client-order-number">#{parseInt(order.orderNumber, 10)}</span>
+                    <span className="client-order-date">
                       {formatDate(order.completedDate || order.deliveryDate)}
                     </span>
                   </div>
-                  <div className="order-details">
+                  <div className="client-order-details">
                     <span className={`order-status status-${order.orderStatus}`}>
                       {order.orderStatus === 'recibidos' && '📥 Recibidos'}
                       {order.orderStatus === 'proceso' && '🔧 En Proceso'}
@@ -242,10 +227,10 @@ const ClientItem = ({ client, onClick }) => {
                       {order.orderStatus === 'completados' && '✅ Completado'}
                       {order.orderStatus === 'cancelado' && '❌ Cancelado'}
                     </span>
-                    <div className="order-services">
+                    <div className="client-order-services">
                       {getServiceIcons(order.services)}
                     </div>
-                    <span className="order-total">${order.totalPrice}</span>
+                    <span className="client-order-total">${order.totalPrice}</span>
                     <span className={`payment-status status-${order.paymentStatus}`}>
                       {order.paymentStatus === 'paid' && '✓ Pagado'}
                       {order.paymentStatus === 'partial' && '⚠ Parcial'}

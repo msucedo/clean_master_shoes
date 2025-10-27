@@ -3,7 +3,7 @@
   background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border: 2px solid #2a2a2a;
   border-radius: 16px;
-  margin-bottom: 20px;
+  margin-bottom: var(--gap-lg);
   overflow: hidden;
   transition: all 0.3s;
 }
@@ -18,7 +18,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: clamp(1rem, 3vw, 1.25rem) clamp(1.25rem, 4vw, 1.5rem);
   cursor: pointer;
   background: rgba(255, 255, 255, 0.02);
   transition: all 0.3s;
@@ -31,45 +31,46 @@
 .pair-header-left {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: clamp(0.625rem, 2vw, 0.938rem);
   flex: 1;
   flex-wrap: wrap;
 }
 
 .pair-number {
-  font-size: 16px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.5px;
 }
 
 .pair-model-preview {
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   font-weight: 600;
   color: var(--color-primary);
-  padding: 4px 12px;
+  padding: clamp(0.25rem, 1vw, 0.375rem) clamp(0.625rem, 2vw, 0.75rem);
   background: var(--bg-primary-10);
   border-radius: 8px;
 }
 
 .pair-service-preview {
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   color: #999;
   font-weight: 500;
+  flex: 1 1 100%;
 }
 
 .pair-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--gap-sm);
 }
 
 .pair-price {
-  font-size: 18px;
+  font-size: clamp(1rem, 3vw, 1.125rem);
   font-weight: 900;
   color: #10b981;
   letter-spacing: -0.5px;
-  min-width: 80px;
+  min-width: clamp(3.75rem, 10vw, 5rem);
   text-align: right;
 }
 
@@ -77,11 +78,12 @@
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #999;
-  padding: 8px 12px;
+  padding: clamp(0.5rem, 2vw, 0.625rem) clamp(0.625rem, 2vw, 0.75rem);
   border-radius: 8px;
-  font-size: 16px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   cursor: pointer;
   transition: all 0.3s;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .btn-remove-pair:hover {
@@ -95,12 +97,13 @@
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #999;
-  padding: 8px 12px;
+  padding: clamp(0.5rem, 2vw, 0.625rem) clamp(0.625rem, 2vw, 0.75rem);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   cursor: pointer;
   transition: all 0.3s;
-  min-width: 40px;
+  min-width: clamp(2.5rem, 6vw, var(--touch-min));
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .btn-toggle-pair:hover {
@@ -110,7 +113,7 @@
 
 /* Pair Content */
 .pair-content {
-  padding: 24px;
+  padding: clamp(1.25rem, 3vw, 1.5rem);
   border-top: 1px solid #2a2a2a;
   animation: slideDown 0.3s ease;
 }
@@ -129,13 +132,13 @@
 /* Service Cards in Pair */
 .pair-content .service-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-top: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--gap-sm);
+  margin-top: var(--gap-sm);
 }
 
 .pair-content .service-card-option {
-  padding: 16px;
+  padding: clamp(0.875rem, 2vw, 1rem);
   background: #0a0a0a;
   border: 2px solid #2a2a2a;
   border-radius: 12px;
@@ -158,52 +161,53 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--gap-xs);
 }
 
 .pair-content .service-card-name {
-  font-size: 14px;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   font-weight: 700;
   color: #fff;
 }
 
 .pair-content .service-card-price {
-  font-size: 16px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   font-weight: 900;
   color: #10b981;
 }
 
 .pair-content .service-card-duration {
-  font-size: 12px;
+  font-size: clamp(0.688rem, 2vw, 0.75rem);
   color: #666;
   font-weight: 500;
 }
 
 /* Form Elements in Pair */
 .pair-content .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-md);
 }
 
 .pair-content .form-label {
   display: block;
-  font-size: 13px;
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
   font-weight: 700;
   color: #999;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  margin-bottom: var(--gap-sm);
 }
 
 .pair-content .form-input {
   width: 100%;
-  padding: 14px 18px;
+  padding: clamp(0.75rem, 2vw, 0.875rem) clamp(0.875rem, 3vw, 1.125rem);
   background: #0a0a0a;
   border: 2px solid #2a2a2a;
   border-radius: 12px;
-  font-size: 15px;
+  font-size: clamp(0.875rem, 2vw, 0.938rem);
   color: #fff;
   font-weight: 500;
   transition: all 0.3s;
+  min-height: clamp(2.5rem, 6vw, var(--touch-min));
 }
 
 .pair-content .form-input:focus {
@@ -222,54 +226,19 @@
 
 .pair-content .form-textarea {
   resize: vertical;
-  min-height: 60px;
+  min-height: clamp(3.75rem, 10vw, 5rem);
 }
 
 .pair-content .error-message {
   display: block;
   color: var(--color-primary);
-  font-size: 12px;
+  font-size: clamp(0.688rem, 2vw, 0.75rem);
   font-weight: 600;
-  margin-top: 8px;
+  margin-top: var(--gap-xs);
 }
 
 .pair-content .required {
   color: var(--color-primary);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .pair-header {
-    padding: 16px 20px;
-  }
-
-  .pair-header-left {
-    gap: 10px;
-  }
-
-  .pair-number {
-    font-size: 14px;
-  }
-
-  .pair-model-preview {
-    font-size: 12px;
-  }
-
-  .pair-service-preview {
-    font-size: 12px;
-    flex: 1 1 100%;
-  }
-
-  .pair-price {
-    font-size: 16px;
-    min-width: 60px;
-  }
-
-  .pair-content {
-    padding: 20px;
-  }
-
-  .pair-content .service-cards {
-    grid-template-columns: 1fr;
-  }
-}
+/* Responsive - No media queries needed with intrinsic CSS */

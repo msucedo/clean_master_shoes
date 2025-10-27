@@ -407,7 +407,8 @@ const Orders = () => {
         headerContent={selectedOrder && headerData ? (
           <div className="order-detail-modal-header">
             <div className="order-header-main">
-              <span className="order-header-number">Orden #{headerData.orderNumber} - {headerData.client}</span>
+              <span className="order-header-number">Orden #{headerData.orderNumber}</span>
+              <span className="order-header-client">{headerData.client}</span>
               <span className="order-header-date">Recibida {headerData.createdAt}</span>
             </div>
             <div className="order-header-author">

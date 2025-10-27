@@ -69,13 +69,13 @@
 
 /* Section Title */
 .section-title {
-  font-size: 20px;
+  font-size: var(--font-lg);
   font-weight: 800;
   color: var(--color-white);
   margin: 0 0 16px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--gap-sm);
 }
 
 /* Gallery Section */
@@ -153,8 +153,8 @@
 
 .pairs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
+  gap: var(--gap-md);
 }
 
 .pair-detail-card {
@@ -475,8 +475,8 @@
 /* Details Grid */
 .order-details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--gap-md);
 }
 
 .detail-card {
@@ -537,7 +537,7 @@
 }
 
 .detail-value.price-large {
-  font-size: 32px;
+  font-size: var(--font-2xl);
   font-weight: 900;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
@@ -546,7 +546,7 @@
 }
 
 .detail-value.price-highlight {
-  font-size: 24px;
+  font-size: var(--font-xl);
   font-weight: 900;
   color: #10b981;
   letter-spacing: -0.5px;
@@ -742,11 +742,12 @@
 
 /* Author Select (used in Order Information) */
 .author-select {
-  padding: 10px 40px 10px 16px;
+  padding: clamp(0.625rem, 2vw, 1rem) 2.5rem clamp(0.625rem, 2vw, 1rem) 1rem;
+  min-height: var(--touch-min);
   border: 2px solid rgba(139, 92, 246, 0.3);
   background-color: rgba(139, 92, 246, 0.05);
   border-radius: 10px;
-  font-size: 14px;
+  font-size: var(--font-sm);
   font-weight: 700;
   color: #8b5cf6;
   cursor: pointer;
@@ -792,24 +793,26 @@
 
 .action-buttons-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--gap-md);
 }
 
 .action-btn {
-  padding: 16px 20px;
+  padding: var(--space-sm) var(--space-md);
+  min-height: var(--touch-min);
   background: var(--color-black);
   border: 2px solid var(--color-gray-800);
   border-radius: 12px;
   color: var(--color-gray-500);
-  font-size: 14px;
+  font-size: var(--font-sm);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: var(--gap-sm);
 }
 
 .action-btn:hover {
@@ -928,74 +931,34 @@
   object-fit: contain;
 }
 
-/* Responsive */
+/* Responsive - Minimal overrides (most sizing is now fluid) */
 @media (max-width: 768px) {
   .order-detail-view {
-    gap: 16px;
-  }
-
-  .order-header {
-    flex-wrap: wrap;
-    padding: 20px;
-  }
-
-  .order-client-name {
-    font-size: 24px;
-  }
-
-  .priority-badge-large {
-    flex: 1 1 100%;
-    text-align: center;
+    gap: var(--gap-md);
   }
 
   .order-main-gallery {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
-  }
-
-  .pairs-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .order-details-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .action-buttons-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .section-title {
-    font-size: 18px;
+    gap: var(--gap-sm);
   }
 
   .image-modal-close {
     top: 10px;
     right: 10px;
   }
+
+  /* Grids ya son intrínsecos - no necesitan override */
+  /* Font-sizes ya son fluidos - no necesitan override */
+  /* Padding ya es fluido - no necesita override */
 }
 
 @media (max-width: 480px) {
-  .order-header {
-    padding: 16px;
-  }
-
-  .btn-close-detail {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
-
-  .order-client-name {
-    font-size: 20px;
-  }
-
-  .order-phone {
-    font-size: 14px;
-  }
-
+  /* Ultra-small screens - grids become single column */
   .action-buttons-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Todo lo demás ya escala fluidamente */
 }
 
 /* WhatsApp Notification History Styles */

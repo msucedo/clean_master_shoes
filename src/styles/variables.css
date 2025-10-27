@@ -71,4 +71,34 @@
     /* Transitions */
     --transition-base: all 0.3s;
     --transition-fast: all 0.2s;
+
+    /* ========================================
+       FLUID RESPONSIVE SYSTEM (2025)
+       Auto-adapts without media queries
+       ======================================== */
+
+    /* Fluid Typography - Scales smoothly from mobile (320px) to desktop (1920px) */
+    --font-xs: clamp(0.75rem, 1.5vw, 0.875rem);          /* 12-14px */
+    --font-sm: clamp(0.875rem, 2vw, 1rem);               /* 14-16px */
+    --font-base: clamp(1rem, 2.5vw, 1.125rem);           /* 16-18px */
+    --font-lg: clamp(1.125rem, 3vw, 1.5rem);             /* 18-24px */
+    --font-xl: clamp(1.5rem, 4vw + 0.5rem, 1.75rem);     /* 24-28px */
+    --font-2xl: clamp(1.5rem, 5vw + 1rem, 3rem);         /* 24-48px */
+
+    /* Fluid Spacing - Padding/Margin that adapts to viewport */
+    --space-xs: clamp(0.5rem, 2vw, 1rem);                /* 8-16px */
+    --space-sm: clamp(1rem, 3vw, 1.5rem);                /* 16-24px */
+    --space-md: clamp(1.25rem, 4vw, 2rem);               /* 20-32px */
+    --space-lg: clamp(1.5rem, 5vw, 2.5rem);              /* 24-40px */
+    --space-xl: clamp(2rem, 6vw, 3rem);                  /* 32-48px */
+
+    /* Touch Targets - Apple HIG & Material Design compliant */
+    --touch-min: clamp(2.75rem, 5vw, 3.5rem);            /* 44-56px (min 44px - Apple) */
+    --touch-comfortable: clamp(3rem, 6vw, 4rem);         /* 48-64px (comfortable) */
+
+    /* Fluid Gaps - For Grid/Flexbox spacing */
+    --gap-xs: clamp(0.5rem, 1.5vw, 0.75rem);             /* 8-12px */
+    --gap-sm: clamp(0.75rem, 2vw, 1rem);                 /* 12-16px */
+    --gap-md: clamp(1rem, 2vw, 1.5rem);                  /* 16-24px */
+    --gap-lg: clamp(1.5rem, 3vw, 2rem);                  /* 24-32px */
 }

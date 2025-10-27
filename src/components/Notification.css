@@ -5,7 +5,7 @@
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--gap-sm);
     max-width: 400px;
     pointer-events: none;
 }
@@ -13,90 +13,129 @@
 .notification {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
+    gap: var(--gap-sm);
+    padding: var(--space-sm) var(--space-md);
     background: var(--color-gray-900);
-    border: 2px solid var(--color-gray-800);
+    border: 2px solid;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     animation: slideInRight 0.3s ease-out;
     pointer-events: all;
     min-width: 300px;
 }
 
 .notification-icon {
-    font-size: 24px;
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
     flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .notification-message {
     flex: 1;
-    font-size: 14px;
+    font-size: var(--font-sm);
     font-weight: 600;
-    color: var(--color-white);
-    line-height: 1.4;
+    color: #ffffff;
+    line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .notification-close {
-    background: none;
-    border: none;
-    color: var(--color-gray-500);
-    font-size: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: clamp(1rem, 3vw, 1.25rem);
     cursor: pointer;
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: var(--touch-min);
+    height: var(--touch-min);
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 8px;
     transition: all 0.2s;
     flex-shrink: 0;
+    backdrop-filter: blur(4px);
 }
 
 .notification-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+.notification-close:active {
+    transform: scale(0.95);
 }
 
 /* Success */
 .notification-success {
     border-color: #10b981;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4),
+                0 0 0 1px rgba(16, 185, 129, 0.3) inset;
 }
 
 .notification-success .notification-icon {
-    color: #10b981;
+    color: #ffffff;
+}
+
+.notification-success .notification-message {
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Error */
 .notification-error {
-    border-color: #ef4444;
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+    border-color: #e11d48;
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+    box-shadow: 0 8px 30px rgba(225, 29, 72, 0.4),
+                0 0 0 1px rgba(225, 29, 72, 0.3) inset;
 }
 
 .notification-error .notification-icon {
-    color: #ef4444;
+    color: #ffffff;
+}
+
+.notification-error .notification-message {
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Warning */
 .notification-warning {
     border-color: #f59e0b;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4),
+                0 0 0 1px rgba(245, 158, 11, 0.3) inset;
 }
 
 .notification-warning .notification-icon {
-    color: #f59e0b;
+    color: #ffffff;
+}
+
+.notification-warning .notification-message {
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Info */
 .notification-info {
     border-color: #3b82f6;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4),
+                0 0 0 1px rgba(59, 130, 246, 0.3) inset;
 }
 
 .notification-info .notification-icon {
-    color: #3b82f6;
+    color: #ffffff;
+}
+
+.notification-info .notification-message {
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Animations */

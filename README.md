@@ -1,14 +1,20 @@
 Clean master shoes
 
-// WIP 
+// OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
+-[FIX]UX para iphone
+    -remover scroll horizontal de orders
 -[FIX]agregar en orderdetailview a la foto preview como en empleadoitem
 -[FIX]que una orden no pueda estar en proceso si no tiene autor
+-[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
+-[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
+
+// WIP
+-[]fix notifications on mobile
+-[]porfa aplica ahora para toda la app el cambio que hicimos al refactorizar algunos componentes del css cuando quitamos los media queries
 
 // PRIORIDAD ALTA
 -[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
 -[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
--[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
--[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
 -[EPIC]Pantalla promociones
 -[CODE_REVIEW]Pedir code review para analizar app
@@ -26,7 +32,8 @@ Clean master shoes
 -[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
 
 // BACKLOG
--[FIX]agregar al header de orderdetailview, la funcion de fecha con hora y el campo autor
+-[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden
+-[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
@@ -36,7 +43,6 @@ Clean master shoes
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 -[FEATURE]en la orden, guardar factura al generarla
 -[ALTERNATIVA]al crear una orden se asigne al empleado activo con menos ordenes
--[FIX]validar flujos en iphone, UX en iphone
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
@@ -69,6 +75,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]se remueve poder hacer zoom con dos dedos en el movil
+-[FIX]agregar al header de orderdetailview, la funcion de fecha con hora y el campo autor
 -[UX]refactorizar header del orderdetailview para agregar mas detalles de la orden
 -[feature/wapp]Al momento de actualizar el estado de una orden a "En entrega" mandar un wapp al cliente de que esta listo su pedido
 -[FEATURE]notificacion cuando un cliente responda el mensaje de wapp de orden lista y sonido de mensaje nuevo

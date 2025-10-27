@@ -1,6 +1,5 @@
 /* Service Card */
 .service-card {
-  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border: 1px solid #2a2a2a;
   border-radius: 20px;
   padding: 25px;
@@ -158,6 +157,7 @@
   background: #0a0a0a;
   border-radius: 12px;
   margin-bottom: 20px;
+  border: 1px solid #2a2a2a;
 }
 
 .service-stat {

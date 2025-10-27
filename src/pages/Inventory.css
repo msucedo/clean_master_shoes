@@ -1,28 +1,30 @@
 .inventory-page {
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header */
 .page-header {
-    margin-bottom: 35px;
+    margin-bottom: var(--space-lg);
 }
 
 /* Inventory Stats */
 .inventory-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: var(--gap-lg);
+    margin-bottom: var(--space-lg);
 }
 
 .stat-item {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
     border: 1px solid #2a2a2a;
     border-radius: 16px;
-    padding: 24px;
+    padding: clamp(1.25rem, 3vw, 1.5rem);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: clamp(0.875rem, 2vw, 1rem);
     transition: all 0.3s;
 }
 
@@ -32,7 +34,7 @@
 }
 
 .stat-icon {
-    font-size: 40px;
+    font-size: clamp(2rem, 5vw, 2.5rem);
     opacity: 0.8;
 }
 
@@ -41,14 +43,14 @@
 }
 
 .stat-value {
-    font-size: 28px;
+    font-size: clamp(1.5rem, 4vw, 1.75rem);
     font-weight: 900;
     color: #fff;
-    margin-bottom: 4px;
+    margin-bottom: var(--gap-xs);
 }
 
 .stat-label {
-    font-size: 13px;
+    font-size: clamp(0.75rem, 2vw, 0.813rem);
     font-weight: 600;
     color: #666;
     text-transform: uppercase;
@@ -58,20 +60,23 @@
 /* Stock Filters */
 .stock-filters {
     display: flex;
-    gap: 12px;
-    margin-bottom: 30px;
+    gap: var(--gap-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
 }
 
 .stock-filter-btn {
-    padding: 12px 24px;
-    background: #1a1a1a;
+    padding: clamp(0.625rem, 2vw, 0.75rem) clamp(1.25rem, 3vw, 1.5rem);
+    background: transparent;
     border: 1px solid #2a2a2a;
     border-radius: 10px;
     color: #999;
-    font-size: 14px;
+    font-size: var(--font-sm);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+    flex: 1 1 auto;
+    min-width: clamp(100px, 20vw, 120px);
 }
 
 .stock-filter-btn:hover,
@@ -84,74 +89,34 @@
 /* Inventory Grid */
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: var(--gap-lg);
 }
 
 /* Empty State */
 .empty-state {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 80px 20px;
+    padding: clamp(3rem, 8vw, 5rem) var(--space-md);
     color: #666;
 }
 
 .empty-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
+    font-size: clamp(3rem, 10vw, 5rem);
+    margin-bottom: var(--space-md);
     opacity: 0.3;
 }
 
 .empty-text {
-    font-size: 20px;
+    font-size: clamp(1rem, 3vw, 1.25rem);
     font-weight: 700;
-    margin-bottom: 10px;
+    margin-bottom: var(--gap-sm);
     color: #999;
 }
 
 .empty-subtext {
-    font-size: 15px;
+    font-size: var(--font-sm);
     color: #666;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .inventory-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-    }
-}
-
-@media (max-width: 768px) {
-    .inventory-stats {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .stat-item {
-        padding: 20px;
-    }
-
-    .stat-icon {
-        font-size: 32px;
-    }
-
-    .stat-value {
-        font-size: 24px;
-    }
-
-    .stock-filters {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .stock-filter-btn {
-        flex: 1;
-        min-width: 100px;
-    }
-
-    .inventory-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-}
+/* Responsive - No media queries needed with intrinsic CSS */

@@ -1,6 +1,9 @@
 /* Reports Page */
 .reports-page {
   padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Header */

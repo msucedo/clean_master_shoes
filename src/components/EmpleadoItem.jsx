@@ -180,12 +180,13 @@ const EmpleadoItem = ({ empleado, onClick }) => {
             <div className="empleado-meta-value">{empleado.phone}</div>
             <div className="empleado-meta-label">Teléfono</div>
           </div>
-        </div>
-        <div className="empleado-hire-date">{getRelativeTime(empleado.hireDate)}</div>
-        <div className="empleado-status">
           <span className={`status-badge ${empleado.status || 'active'}`}>
             {empleado.status === 'active' ? 'Activo' : 'Inactivo'}
           </span>
+        </div>
+        <div className="empleado-hire-date">{getRelativeTime(empleado.hireDate)}</div>
+        <div className="empleado-status">
+          
           <button
             className="btn-view-orders"
             onClick={handleToggleOrders}
@@ -216,20 +217,20 @@ const EmpleadoItem = ({ empleado, onClick }) => {
           ) : (
             <div className="empleado-orders-list">
               {activeOrders.map((order) => (
-                <div key={order.id} className="order-item">
-                  <div className="order-info">
-                    <span className="order-number">#{parseInt(order.orderNumber, 10)}</span>
+                <div key={order.id} className="empleado-order-item">
+                  <div className="empleado-order-info">
+                    <span className="empleado-order-number">#{parseInt(order.orderNumber, 10)}</span>
                     {order.priority === 'high' && (
                       <div className="order-priority-badge">Urgente</div>
                     )}
-                    <span className="order-client">{order.client}</span>
+                    <span className="empleado-order-client">{order.client}</span>
                   </div>
-                  <div className="order-details">
+                  <div className="empleado-order-details">
                     {order.orderImages && order.orderImages.length > 0 && (
                       <img
                         src={order.orderImages[0]}
                         alt="Orden"
-                        className="order-thumbnail"
+                        className="empleado-order-thumbnail"
                         onClick={(e) => {
                           e.stopPropagation();
                           openImageModal(order.orderImages[0]);
@@ -237,7 +238,7 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                         style={{ cursor: 'pointer' }}
                       />
                     )}
-                    <span className="order-created-date">
+                    <span className="empleado-order-created-date">
                       <span>Recibido </span>
                       {getRelativeTimeWithHour(order.createdAt)}
                     </span>
@@ -247,7 +248,7 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                       {order.orderStatus === 'listos' && '✅ Listos'}
                       {order.orderStatus === 'enEntrega' && '🚚 En Entrega'}
                     </span>
-                    <div className="order-services">
+                    <div className="empleado-order-services">
                       {getServiceIcons(order.services)}
                     </div>
                   </div>
@@ -271,20 +272,20 @@ const EmpleadoItem = ({ empleado, onClick }) => {
           ) : (
             <div className="empleado-orders-list">
               {unassignedOrders.map((order) => (
-                <div key={order.id} className="order-item assign-order-item">
-                  <div className="order-info">
-                    <span className="order-number">#{parseInt(order.orderNumber, 10)}</span>
+                <div key={order.id} className="empleado-order-item assign-order-item">
+                  <div className="empleado-order-info">
+                    <span className="empleado-order-number">#{parseInt(order.orderNumber, 10)}</span>
                     {order.priority === 'high' && (
                       <div className="order-priority-badge">Urgente</div>
                     )}
-                    <span className="order-client">{order.client}</span>
+                    <span className="empleado-order-client">{order.client}</span>
                   </div>
-                  <div className="order-details">
+                  <div className="empleado-order-details">
                     {order.orderImages && order.orderImages.length > 0 && (
                       <img
                         src={order.orderImages[0]}
                         alt="Orden"
-                        className="order-thumbnail"
+                        className="empleado-order-thumbnail"
                         onClick={(e) => {
                           e.stopPropagation();
                           openImageModal(order.orderImages[0]);
@@ -292,11 +293,11 @@ const EmpleadoItem = ({ empleado, onClick }) => {
                         style={{ cursor: 'pointer' }}
                       />
                     )}
-                    <span className="order-created-date">
+                    <span className="empleado-order-created-date">
                       <span>Recibido </span>
                       {getRelativeTimeWithHour(order.createdAt)}
                     </span>
-                    <div className="order-services">
+                    <div className="empleado-order-services">
                       {getServiceIcons(order.services)}
                     </div>
                     <button
