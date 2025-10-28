@@ -1,0 +1,309 @@
+/* Overlay del Modal */
+.delivery-calendar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal Container */
+.delivery-calendar-modal {
+    background: #1a1a1a;
+    border: 2px solid #2a2a2a;
+    border-radius: 16px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header */
+.delivery-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 2px solid #2a2a2a;
+    background: #0a0a0a;
+}
+
+.delivery-calendar-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.calendar-close-btn {
+    background: transparent;
+    border: none;
+    color: #999;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.calendar-close-btn:hover {
+    background: #2a2a2a;
+    color: #fff;
+}
+
+/* Content - 3 Columnas */
+.delivery-calendar-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 24px;
+}
+
+/* Columna de Día */
+.calendar-day-column {
+    background: #0a0a0a;
+    border: 2px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header de Día */
+.calendar-day-header {
+    padding: 10px 8px;
+    background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(233, 30, 99, 0.05) 100%);
+    border: 2px solid #FF006E;
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 10px;
+}
+
+.calendar-day-header.weekend {
+    background: transparent;
+    border: 2px solid #f59e0b;
+}
+
+.day-number {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.day-name {
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.9;
+    text-transform: capitalize;
+}
+
+.weekend-badge {
+    font-size: 9px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 3px 6px;
+    border-radius: 10px;
+    margin-top: 2px;
+}
+
+/* Lista de Órdenes */
+.calendar-day-orders {
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 120px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Scrollbar styling */
+.calendar-day-orders::-webkit-scrollbar {
+    width: 6px;
+}
+
+.calendar-day-orders::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.calendar-day-orders::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 3px;
+}
+
+.calendar-day-orders::-webkit-scrollbar-thumb:hover {
+    background: #4a4a4a;
+}
+
+/* Item de Orden */
+.calendar-order-item {
+    padding: 4px 8px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.calendar-order-item:hover {
+    border-color: #667eea;
+    background: #252525;
+}
+
+.calendar-order-number {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.calendar-order-services {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.calendar-service-emoji {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.calendar-order-status-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-left: auto;
+}
+
+.calendar-order-status-badge.status-blue {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.calendar-order-status-badge.status-orange {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.calendar-order-status-badge.status-green {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.calendar-order-status-badge.status-purple {
+    background: rgba(139, 92, 246, 0.15);
+    color: #8b5cf6;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.calendar-order-status-badge.status-success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.calendar-order-status-badge.status-red {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.calendar-order-status-badge.status-gray {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Día Vacío */
+.calendar-empty-day {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* Contador de Órdenes */
+.calendar-day-count {
+    padding: 8px 10px;
+    background: #1a1a1a;
+    border-top: 1px solid #2a2a2a;
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    font-weight: 600;
+}
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+    .delivery-calendar-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .delivery-calendar-content {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .calendar-day-orders {
+        min-height: 100px;
+        max-height: 120px;
+    }
+
+    .delivery-calendar-header h3 {
+        font-size: 16px;
+    }
+}

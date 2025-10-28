@@ -226,6 +226,41 @@
     margin-top: 4px;
 }
 
+/* Date Input with Button Mobile */
+.date-input-with-button-mobile {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.date-input-with-button-mobile .form-input-mobile {
+    flex: 1;
+}
+
+.view-dates-btn-mobile {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    background: #0a0a0a;
+    border: 2px solid #2a2a2a;
+    border-radius: 10px;
+    color: #999;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-dates-btn-mobile:active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--bg-primary-10);
+    transform: scale(0.95);
+}
+
 /* Services Grid */
 .services-grid-mobile {
     display: grid;

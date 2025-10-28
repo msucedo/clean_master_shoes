@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ClientAutocomplete from './ClientAutocomplete';
 import PaymentScreen from './PaymentScreen';
+import DeliveryCalendarModal from './DeliveryCalendarModal';
 import './OrderFormMobile.css';
 
 // Función para generar IDs únicos
@@ -13,6 +14,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null); // Empleado seleccionado para asignación automática
+  const [showCalendarModal, setShowCalendarModal] = useState(false); // Controla modal de calendario de entregas
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -577,13 +579,23 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                 <label className="form-label-mobile">
                   Fecha de Entrega <span className="required">*</span>
                 </label>
-                <input
-                  type="date"
-                  name="deliveryDate"
-                  className={`form-input-mobile ${errors.deliveryDate ? 'error' : ''}`}
-                  value={formData.deliveryDate}
-                  onChange={handleChange}
-                />
+                <div className="date-input-with-button-mobile">
+                  <input
+                    type="date"
+                    name="deliveryDate"
+                    className={`form-input-mobile ${errors.deliveryDate ? 'error' : ''}`}
+                    value={formData.deliveryDate}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="view-dates-btn-mobile"
+                    onClick={() => setShowCalendarModal(true)}
+                    title="Ver calendario de entregas"
+                  >
+                    📅
+                  </button>
+                </div>
                 {errors.deliveryDate && <span className="error-message-mobile">{errors.deliveryDate}</span>}
               </div>
             </div>
@@ -650,6 +662,13 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
           </div>
         </form>
       )}
+
+      {/* Modal de Calendario de Entregas */}
+      <DeliveryCalendarModal
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        allOrders={allOrders}
+      />
     </div>
   );
 };

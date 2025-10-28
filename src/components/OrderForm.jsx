@@ -5,6 +5,7 @@ import OtherItem from './OtherItem';
 import ImageUpload from './ImageUpload';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
+import DeliveryCalendarModal from './DeliveryCalendarModal';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -22,6 +23,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   const [isSubmitting, setIsSubmitting] = useState(false); // Estado de envío con animación
   const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden (array de URLs base64)
   const [selectedEmployee, setSelectedEmployee] = useState(null); // Empleado seleccionado para asignación automática
+  const [showCalendarModal, setShowCalendarModal] = useState(false); // Controla modal de calendario de entregas
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -544,6 +546,13 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
         />
       )}
 
+      {/* Modal de Calendario de Entregas */}
+      <DeliveryCalendarModal
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        allOrders={allOrders}
+      />
+
       {/* Renderizado condicional: PaymentScreen o Formulario */}
       {showPaymentScreen ? (
         <PaymentScreen
@@ -791,13 +800,23 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
                   <label className="form-label">
                     Fecha de Entrega <span className="required">*</span>
                   </label>
-                  <input
-                    type="date"
-                    name="deliveryDate"
-                    className={`form-input ${errors.deliveryDate ? 'error' : ''}`}
-                    value={formData.deliveryDate}
-                    onChange={handleChange}
-                  />
+                  <div className="date-input-with-button">
+                    <input
+                      type="date"
+                      name="deliveryDate"
+                      className={`form-input ${errors.deliveryDate ? 'error' : ''}`}
+                      value={formData.deliveryDate}
+                      onChange={handleChange}
+                    />
+                    <button
+                      type="button"
+                      className="view-dates-btn"
+                      onClick={() => setShowCalendarModal(true)}
+                      title="Ver calendario de entregas"
+                    >
+                      📅 Ver fechas
+                    </button>
+                  </div>
                   {errors.deliveryDate && <span className="error-message">{errors.deliveryDate}</span>}
                 </div>
 
