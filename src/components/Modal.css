@@ -62,7 +62,7 @@
 }
 
 .modal-header {
-    padding: var(--space-lg) var(--space-md) var(--space-sm) var(--space-md);
+    padding: var(--space-sm) var(--space-md) var(--space-sm) var(--space-md);
     border-bottom: 1px solid #2a2a2a;
     display: flex;
     align-items: center;
@@ -123,7 +123,7 @@
 }
 
 .modal-body {
-    padding: var(--space-md);
+    padding: var(--space-sm);
     overflow-y: auto;
     flex: 1;
 }

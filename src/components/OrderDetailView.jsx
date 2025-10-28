@@ -3,7 +3,7 @@ import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
-import { subscribeToEmployees, getBusinessProfile, updateOrder } from '../services/firebaseService';
+import { getBusinessProfile, updateOrder } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { useNotification } from '../contexts/NotificationContext';
 import './OrderDetailView.css';
@@ -39,7 +39,7 @@ const getRelativeTimeWithHour = (dateString) => {
   return `hace ${Math.floor(diffInDays / 365)} años`;
 };
 
-const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader, readOnly = false }) => {
+const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader, readOnly = false, employees = [] }) => {
   const { showSuccess, showInfo } = useNotification();
 
   // Determinar si la orden es de solo lectura
@@ -127,15 +127,10 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   }, [localServices, localProducts]);
 
   // ===== USE EFFECTS PARA SINCRONIZACIÓN =====
-  // Cargar empleados activos
+  // Actualizar empleados activos cuando cambien las props
   useEffect(() => {
-    const unsubscribe = subscribeToEmployees((employees) => {
-      const active = employees.filter(emp => emp.status === 'active');
-      setActiveEmployees(active);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    setActiveEmployees(employees);
+  }, [employees]);
 
   // Actualizar ref cada vez que cambien los estados locales
   useEffect(() => {

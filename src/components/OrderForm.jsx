@@ -12,7 +12,7 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
+const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], allOrders = {} }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPayment, setShowPayment] = useState(false); // Controla si se muestra el carrito o el pago
@@ -21,6 +21,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [variablePriceServices, setVariablePriceServices] = useState([]); // Servicios con precio por definir
   const [isSubmitting, setIsSubmitting] = useState(false); // Estado de envío con animación
   const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden (array de URLs base64)
+  const [selectedEmployee, setSelectedEmployee] = useState(null); // Empleado seleccionado para asignación automática
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -92,6 +93,33 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
   const calculateTotalItems = () => {
     return cart.reduce((total, item) => total + (item.quantity || 1), 0);
   };
+
+  // Calcular número de órdenes activas por empleado (recibidos + proceso)
+  const getEmployeeOrderCount = (employeeName) => {
+    const recibidos = allOrders.recibidos || [];
+    const proceso = allOrders.proceso || [];
+
+    const activeOrders = [...recibidos, ...proceso];
+    return activeOrders.filter(order => order.author === employeeName).length;
+  };
+
+  // Obtener empleados con su conteo de órdenes, ordenados por menos órdenes
+  const getEmployeesWithOrderCount = () => {
+    return employees.map(emp => ({
+      ...emp,
+      orderCount: getEmployeeOrderCount(emp.name)
+    })).sort((a, b) => a.orderCount - b.orderCount);
+  };
+
+  // Auto-seleccionar empleado con menos órdenes cuando hay empleados disponibles
+  useEffect(() => {
+    if (employees.length > 0 && selectedEmployee === null) {
+      const employeesWithCount = getEmployeesWithOrderCount();
+      if (employeesWithCount.length > 0) {
+        setSelectedEmployee(employeesWithCount[0]);
+      }
+    }
+  }, [employees, allOrders]);
 
   // Agregar servicio o producto al carrito
   const handleAddToCart = (item, type = 'service') => {
@@ -347,7 +375,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
       totalPrice: calculateTotalPrice(),
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
-      priority: hasExpressService() ? 'high' : 'normal' // Asignar automáticamente
+      priority: hasExpressService() ? 'high' : 'normal', // Asignar automáticamente
+      author: selectedEmployee ? selectedEmployee.name : '' // Asignar empleado seleccionado
     };
 
     // Esperar 1.5s para mostrar animación antes de cerrar
@@ -702,6 +731,30 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null }) => {
                   <span className="total-value">${calculateTotalPrice()}</span>
                 </div>
               </div>
+
+              {/* Sección de Asignación de Empleado */}
+              {employees.length > 0 && (
+                <div className="employee-assignment-section">
+                  <div className="employee-assignment-header">
+                    <span className="assignment-label">Asignar a:</span>
+                    <span className="assignment-hint">(Opcional)</span>
+                  </div>
+                  <div className="employee-selection-grid">
+                    {getEmployeesWithOrderCount().map((emp) => (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        className={`employee-card ${selectedEmployee?.id === emp.id ? 'selected' : ''}`}
+                        onClick={() => setSelectedEmployee(selectedEmployee?.id === emp.id ? null : emp)}
+                        title={`${emp.name} - ${emp.orderCount} órdenes activas`}
+                      >
+                        <span className="employee-emoji">{emp.emoji || '👤'}</span>
+                        <span className="employee-order-count">{emp.orderCount}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="cart-actions">
                 <button type="button" className="btn-secondary" onClick={onCancel}>

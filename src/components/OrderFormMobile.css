@@ -396,6 +396,89 @@
     -webkit-text-fill-color: transparent;
 }
 
+/* Employee Assignment Section Mobile */
+.employee-assignment-section-mobile {
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 2px solid #2a2a2a;
+}
+
+.employee-assignment-header-mobile {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.employee-assignment-header-mobile .assignment-label-mobile {
+    font-size: 13px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+}
+
+.employee-assignment-header-mobile .assignment-hint-mobile {
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+}
+
+.employee-selection-grid-mobile {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 8px;
+}
+
+.employee-card-mobile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    background: #1a1a1a;
+    border: 2px solid #2a2a2a;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 50px;
+}
+
+.employee-card-mobile:active {
+    background: #252525;
+    border-color: #3a3a3a;
+    transform: scale(0.95);
+}
+
+.employee-card-mobile.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.employee-emoji-mobile {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.employee-order-count-mobile {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: #ff6b6b;
+    padding: 2px 5px;
+    border-radius: 8px;
+    min-width: 18px;
+    text-align: center;
+}
+
+.employee-card-mobile.selected .employee-order-count-mobile {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 /* Payment Methods */
 .payment-methods-mobile {
     display: grid;

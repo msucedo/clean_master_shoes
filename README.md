@@ -6,38 +6,43 @@ Clean master shoes
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
 // WIP
--[]fixes iphoto
+-[FEATURE]Asignaciones automaticas de ordenes nuevas
+    -criterios para asignación:el empleado activo, con menos ordenes en recibidos + en proceso
+    -en una nueva orden, al estar agregando los servicios, los productos...habilitar una nueva sección debajo de productos con los emojis de los empleados, el seleccionado sera el que quede automaticamente asignado a la orden al crearla, aun lado del emoji añade un numero con la suma de las ordenes de recibidos y en proceso, por default selecciona el empleado que tenga menos pero el usuario tendra la libertad de cambiar de empleado
+-[FEATURE]Fechas disponibles para entrega de acuerdo a la cantidad de ordenes trabajandose en este momento
+    -Hacer una formula, como entrada agregar: la suma de ordenes en recibidas + en proceso, tambien el numero de ordenes activas totales, tambien el numero de empleados activos, tambien el numero de ordenes con fecha de entrega hoy, tambien el numero de servicios agrgeados a la orden, tomando en cuenta si son varios items del mismo servicio. esta formula va dar de output una fecha estimada que se mostrara como default como ya ahorita se muestra el campo, solo que asegurarse de usar ahi esa formula.
+    -Aun lado de ese campo fecha con la nueva formula, quiero que agregues una pequeña tabla de "proximos 3 días", con tres columnas, digamos si hoy es 27, las columnas deberian ser: mañana, 29, 30. en cada columna pon una fila con el estado y el numero de ordenes, todos los estados por columna porfa, la idea es que esto sea pequeño con la letra esa gris que usas en el header de orderdetailview para mostrar la fecha, asi el usuario se daria una idea de cuantas ordenes estaran en juego en los proximos 3 dias
+-[FEATURE]en una orden nueva, cuando toques el input para escribir el nombre del cliente automaticamente desplegar la lista de clientes, ordenada alfabeticamente
+-[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
+    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
+-[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden
 
 // PRIORIDAD ALTA
--[EPIC]Agregar pantalla de login, creacion de usuario unico administrador, que pueda tener varias sesiones abiertas el mismo usuario
+-[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
+-[EPIC]Agregar pantalla de login, usar credenciales de google, cada empleado debera validar su correo gmail, y solo esas cuentas de empleado seran las que esten habilitadas para iniciar sesión
+-[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para agregarle permisos a la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario
+-[ALTERNATIVA]Pantalla para validar acciones que SOLO el admin puede hacer: crear una orden?no, borrar una orden?si, crear un servicio?si,...el admin en teoeria puede entrar aqui y decidir que si o que no tomar en cuenta solo el admin pueda hacer.
 -[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
 -[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
 -[EPIC]Pantalla promociones
 -[CODE_REVIEW]Pedir code review para analizar app
 
 // PRIORIDAD MEDIA
--[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
--[fix]poder actualizarse el costo a un servicio cotizado desde orderdetailview, que se logre como si fuera el update del precio de un servicio en una orden pero solo este habilitado hacer esto cuando el servicio tenga 0, no quiero que las demas ordenes puedan cambiar el costo del servicio desde orderdetailview, solo cuando sea 0, y este cambio al cerrar el modal se deberia mandar a firebase porque se actualizo la orden
 
 // PRIORIDAD BAJA
 -[FIX]no poder agendar ordenes con fechas pasadas
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
-- [FEATURE]Seleccionar multiples ordenes a la vez - la etiqueta de fecha de la orden, si la presionas, deberia animarse con un flip y que se llene el background del mismo color pero solido, y en ese momento esa orden queda seleccionada, despues si abro otra orden diferente, y le cambio el estado a esa 2da orden, entonces como la primera estaba seleccionada entonces tambien a esa primera se le asigna el mismo estado, asi podemos mover mas de una orden a la vez entre estados
-    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
--[ALTERNATIVA]si todos los servicios estan en completado, automaticamente cambia a listos la orden
+-[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
--[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden
--[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
--[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
+-[FEATURE]Validar funcionalidades offline
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]pagina de tracking de ordenes para la .com
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 -[FEATURE]en la orden, guardar factura al generarla
--[ALTERNATIVA]al crear una orden se asigne al empleado activo con menos ordenes
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
@@ -70,6 +75,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]fixes iphoto, multiple fixes ux movil related
 -[FIX]agregar en orderdetailview, a la foto preview como en empleadoitem
 -[FEATURE]Agregar un emoji de una usuario a ordercard cuando la orden ya tenga un autor
 -[FEATURE]agregar campo emoji a cada empleado, para asi representar al empleado, como el emoji de servicios y productos

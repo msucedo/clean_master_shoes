@@ -8,7 +8,8 @@ import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToOrders,
-  updateOrder
+  updateOrder,
+  subscribeToEmployees
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Orders.css';
@@ -31,6 +32,7 @@ const Orders = () => {
   const [orders, setOrders] = useState(EMPTY_ORDERS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [employees, setEmployees] = useState([]);
   const saveOnCloseRef = useRef(null);
   const [headerData, setHeaderData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
@@ -61,6 +63,18 @@ const Orders = () => {
       setOrders(ordersData);
       setLoading(false);
       setError(null);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  // Subscribe to real-time employees updates
+  useEffect(() => {
+    const unsubscribe = subscribeToEmployees((employeesData) => {
+      // Filtrar solo empleados activos
+      const activeEmployees = employeesData.filter(emp => emp.status === 'active');
+      setEmployees(activeEmployees);
     });
 
     // Cleanup subscription on unmount
@@ -307,7 +321,8 @@ const Orders = () => {
         generalNotes: formData.generalNotes || '',
         // Usar paymentStatus si viene desde OrderForm, sino calcularlo
         paymentStatus: formData.paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
-        orderStatus: 'recibidos'
+        orderStatus: 'recibidos',
+        author: formData.author || '' // Asignar empleado seleccionado
       };
 
       const { addOrder } = await import('../services/firebaseService');
@@ -447,6 +462,7 @@ const Orders = () => {
             onEntregar={handleEntregar}
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
             renderHeader={setHeaderData}
+            employees={employees}
           />
         ) : (
           isSmartphone ? (
@@ -454,12 +470,16 @@ const Orders = () => {
               onSubmit={handleSubmitOrder}
               onCancel={handleCloseModal}
               initialData={null}
+              employees={employees}
+              allOrders={orders}
             />
           ) : (
             <OrderForm
               onSubmit={handleSubmitOrder}
               onCancel={handleCloseModal}
               initialData={null}
+              employees={employees}
+              allOrders={orders}
             />
           )
         )}
