@@ -29,16 +29,24 @@ const ClientAutocomplete = ({ value, onChange, onSelectClient, error }) => {
   }, []);
 
   useEffect(() => {
+    let filtered;
+
     if (value.trim() === '') {
-      setFilteredClients(clients);
+      // Mostrar todos los clientes cuando está vacío
+      filtered = [...clients];
     } else {
-      const filtered = clients.filter(client =>
+      // Filtrar clientes por nombre o teléfono
+      filtered = clients.filter(client =>
         client.name.toLowerCase().includes(value.toLowerCase()) ||
         client.phone.includes(value)
       );
-      setFilteredClients(filtered);
     }
-  }, [value]);
+
+    // Ordenar alfabéticamente por nombre
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    setFilteredClients(filtered);
+  }, [value, clients]);
 
   const handleInputChange = (e) => {
     onChange(e);
