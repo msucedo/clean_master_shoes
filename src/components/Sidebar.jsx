@@ -59,7 +59,7 @@ const Sidebar = () => {
           {showLogoutMenu && (
             <div className="sidebar-logout-dropdown">
               <button onClick={logout} className="sidebar-logout-btn">
-                <span className="sidebar-logout-icon">🚪</span>
+                <span className="sidebar-logout-icon">✕</span>
                 <span>Cerrar Sesión</span>
               </button>
             </div>

@@ -215,6 +215,51 @@
         width: 80px;
     }
 
+    /* Ocultar logo del tenis en móvil */
+    .logo {
+        display: none;
+    }
+
+    /* Mostrar avatar del empleado en móvil (reemplaza el logo) */
+    .sidebar-employee-wrapper {
+        margin-bottom: 20px;
+    }
+
+    .sidebar-employee-info {
+        flex-direction: column;
+        padding: 12px 8px;
+        gap: 4px;
+        justify-content: center;
+    }
+
+    .sidebar-employee-avatar {
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
+    }
+
+    .sidebar-employee-details,
+    .sidebar-employee-chevron {
+        display: none;
+    }
+
+    /* Mostrar dropdown de logout en móvil */
+    .sidebar-logout-dropdown {
+        display: block;
+        margin-top: 8px;
+    }
+
+    .sidebar-logout-dropdown .sidebar-logout-btn {
+        padding: 10px 8px;
+        font-size: 11px;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sidebar-logout-icon {
+        font-size: 20px;
+    }
+
     .menu-item {
         justify-content: center;
     }
@@ -224,21 +269,6 @@
     }
 
     .logo-text {
-        display: none;
-    }
-
-    .sidebar-employee-info {
-        flex-direction: column;
-        padding: 8px;
-        gap: 4px;
-    }
-
-    .sidebar-employee-details,
-    .sidebar-employee-chevron {
-        display: none;
-    }
-
-    .sidebar-logout-dropdown {
         display: none;
     }
 }
