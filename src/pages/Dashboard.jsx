@@ -4,7 +4,7 @@ import OrderCard from '../components/OrderCard';
 import Modal from '../components/Modal';
 import OrderDetailView from '../components/OrderDetailView';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { subscribeToOrders, updateOrder } from '../services/firebaseService';
+import { subscribeToOrders, updateOrder, subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Dashboard.css';
 
@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState([]);
   const saveOnCloseRef = useRef(null);
   const [headerData, setHeaderData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
@@ -38,6 +39,18 @@ const Dashboard = () => {
     const unsubscribe = subscribeToOrders((ordersData) => {
       setOrders(ordersData);
       setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  // Subscribe to real-time employees updates
+  useEffect(() => {
+    const unsubscribe = subscribeToEmployees((employeesData) => {
+      // Filtrar solo empleados activos
+      const activeEmployees = employeesData.filter(emp => emp.status === 'active');
+      setEmployees(activeEmployees);
     });
 
     // Cleanup subscription on unmount
@@ -443,6 +456,7 @@ const Dashboard = () => {
             onEntregar={handleEntregar}
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
             renderHeader={setHeaderData}
+            employees={employees}
           />
         </Modal>
       )}
