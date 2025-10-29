@@ -402,6 +402,7 @@ const Empleados = () => {
             onEntregar={handleEntregar}
             onBeforeClose={(fn) => { saveOnCloseRef.current = fn; }}
             renderHeader={setHeaderData}
+            employees={empleados}
           />
         </Modal>
       )}
