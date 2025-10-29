@@ -8,6 +8,7 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
   const [completedOrders, setCompletedOrders] = useState([]);
   const [cancelledOrders, setCancelledOrders] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('all');
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const getInitials = (name) => {
     const names = name.split(' ');
@@ -151,6 +152,14 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
     setIsExpanded(!isExpanded);
   };
 
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
+
   // Filter orders based on history filter
   const filteredOrders = useMemo(() => {
     let orders = [];
@@ -267,6 +276,18 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
                       </span>
                     </div>
                   <div className="client-order-details">
+                    {order.orderImages && order.orderImages.length > 0 && (
+                      <img
+                        src={order.orderImages[0]}
+                        alt="Orden"
+                        className="client-order-thumbnail"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openImageModal(order.orderImages[0]);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    )}
                     <span className={`order-status status-${order.orderStatus}`}>
                       {order.orderStatus === 'recibidos' && '📥 Recibidos'}
                       {order.orderStatus === 'proceso' && '🔧 En Proceso'}
@@ -290,6 +311,18 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div className="image-modal" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={closeImageModal}>
+              ✕
+            </button>
+            <img src={selectedImage} alt="Vista ampliada" className="image-modal-img" />
+          </div>
         </div>
       )}
     </div>
