@@ -34,6 +34,7 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr));
   gap: var(--gap-lg);
   max-width: 1400px;
+  padding-bottom: var(--space-md);
 }
 
 .settings-section {

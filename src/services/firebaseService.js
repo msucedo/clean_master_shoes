@@ -520,6 +520,30 @@ export const subscribeToEmployees = (callback) => {
 };
 
 /**
+ * Get employee by email
+ * @param {string} email - Employee email
+ * @returns {Promise<Object|null>} Employee data or null if not found
+ */
+export const getEmployeeByEmail = async (email) => {
+  try {
+    const employeesRef = collection(db, 'employees');
+    const q = query(employeesRef, where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    // Return first matching employee (should be unique)
+    const doc = querySnapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  } catch (error) {
+    console.error('Error getting employee by email:', error);
+    throw error;
+  }
+};
+
+/**
  * Add a new employee
  * @param {Object} employeeData - Employee data
  * @returns {Promise<string>} Document ID of the created employee

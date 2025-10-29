@@ -91,6 +91,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
     gap: var(--gap-lg);
+    padding-bottom: var(--space-md);
 }
 
 /* Empty State */

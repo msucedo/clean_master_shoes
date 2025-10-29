@@ -68,6 +68,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]subscrisibrse en dashboard a employeslists porque lo remivos de orderdetailview y lo pusimos en orders
 -[FEATURE]Fechas disponibles para entrega de acuerdo a la cantidad de ordenes trabajandose en este momento
     -Hacer una formula, como entrada agregar: la suma de ordenes en recibidas + en proceso, tambien el numero de ordenes activas totales, tambien el numero de empleados activos, tambien el numero de ordenes con fecha de entrega hoy, tambien el numero de servicios agrgeados a la orden, tomando en cuenta si son varios items del mismo servicio. esta formula va dar de output una fecha estimada que se mostrara como default como ya ahorita se muestra el campo, solo que asegurarse de usar ahi esa formula.
     -Aun lado de ese campo fecha con la nueva formula, quiero que agregues una pequeña tabla de "proximos 3 días", con tres columnas, digamos si hoy es 27, las columnas deberian ser: mañana, 29, 30. en cada columna pon una fila con el estado y el numero de ordenes, todos los estados por columna porfa, la idea es que esto sea pequeño con la letra esa gris que usas en el header de orderdetailview para mostrar la fecha, asi el usuario se daria una idea de cuantas ordenes estaran en juego en los proximos 3 dias

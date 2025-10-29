@@ -41,7 +41,7 @@ const LoadingScreen = ({ onLoadingComplete }) => {
         {/* Logo y título */}
         <div className="loading-logo">
           <h1 className="loading-title">Clean Master Shoes</h1>
-          <p className="loading-subtitle">Sistema de Gestión</p>
+          <p className="loading-subtitle">Iniciando sesión</p>
         </div>
 
         {/* Barra de progreso */}

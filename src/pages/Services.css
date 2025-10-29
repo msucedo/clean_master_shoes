@@ -63,4 +63,8 @@
   gap: var(--gap-lg);
 }
 
+.services-page .services-grid {
+  padding-bottom: var(--space-md);
+}
+
 /* Responsive - No media queries needed with intrinsic CSS */

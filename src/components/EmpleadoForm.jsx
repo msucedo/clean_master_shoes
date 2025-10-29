@@ -43,8 +43,10 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
       newErrors.phone = 'El teléfono debe tener 10 dígitos';
     }
 
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'El email no es válido';
+    if (!formData.email.trim()) {
+      newErrors.email = 'El email es requerido';
+    } else if (!/^[^\s@]+@gmail\.com$/.test(formData.email)) {
+      newErrors.email = 'Debe ser un correo de Gmail (@gmail.com)';
     }
 
     if (!formData.role.trim()) {
@@ -119,7 +121,7 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Email (Gmail) *</label>
           <input
             type="email"
             id="email"
@@ -127,7 +129,7 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
             value={formData.email}
             onChange={handleChange}
             className={errors.email ? 'error' : ''}
-            placeholder="empleado@ejemplo.com"
+            placeholder="empleado@gmail.com"
           />
           {errors.email && <span className="error-message">{errors.email}</span>}
         </div>

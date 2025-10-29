@@ -6,10 +6,12 @@ import OrderDetailView from '../components/OrderDetailView';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { subscribeToOrders, updateOrder, subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { showSuccess, showError, showInfo } = useNotification();
+  const { employee } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [orders, setOrders] = useState({
     recibidos: [],
@@ -70,6 +72,12 @@ const Dashboard = () => {
     const year = today.getFullYear();
 
     return `${dayName}, ${day} de ${month} ${year}`;
+  };
+
+  // Obtener solo el primer nombre
+  const getFirstName = (fullName) => {
+    if (!fullName) return '';
+    return fullName.split(' ')[0];
   };
 
   const handleNewOrder = () => {
@@ -368,7 +376,9 @@ const Dashboard = () => {
       <div className="hero-section">
         <div className="welcome-text">
           <div className="welcome-greeting">{getCurrentDate()}</div>
-          <h1 className="welcome-title">Bienvenido de nuevo</h1>
+          <h1 className="welcome-title">
+            Bienvenido de nuevo{employee ? `, ${getFirstName(employee.name)}` : ''}
+          </h1>
         </div>
       </div>
 
