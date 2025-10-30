@@ -14,7 +14,7 @@
 }
 
 .service-header {
-  display: flex;
+  display: grid;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 20px;

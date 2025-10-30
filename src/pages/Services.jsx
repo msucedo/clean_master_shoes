@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Modal from '../components/Modal';
 import ServiceForm from '../components/ServiceForm';
 import ServiceCard from '../components/ServiceCard';
@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToServices,
+  subscribeToOrders,
   addService,
   updateService,
   deleteService
@@ -21,6 +22,13 @@ const Services = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [services, setServices] = useState([]);
+  const [orders, setOrders] = useState({
+    recibidos: [],
+    proceso: [],
+    listos: [],
+    enEntrega: [],
+    completados: []
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
@@ -45,7 +53,69 @@ const Services = () => {
     return () => unsubscribe();
   }, []);
 
-  const filteredServices = services.filter(service =>
+  // Subscribe to real-time orders updates
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders((ordersData) => {
+      setOrders(ordersData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Calcular estadísticas de servicios basadas en órdenes
+  const servicesWithStats = useMemo(() => {
+    // Obtener el mes y año actuales
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Combinar todas las órdenes
+    const allOrders = [
+      ...orders.recibidos,
+      ...orders.proceso,
+      ...orders.listos,
+      ...orders.enEntrega,
+      ...orders.completados
+    ];
+
+    // Calcular estadísticas para cada servicio
+    return services.map(service => {
+      let thisMonth = 0;
+      let total = 0;
+
+      allOrders.forEach(order => {
+        if (order.services && Array.isArray(order.services)) {
+          // Contar cuántas veces aparece este servicio en la orden
+          const serviceCount = order.services.filter(
+            s => s.serviceName === service.name
+          ).length;
+
+          if (serviceCount > 0) {
+            total += serviceCount;
+
+            // Verificar si la orden es del mes actual
+            const orderDate = new Date(order.createdAt);
+            const orderMonth = orderDate.getMonth();
+            const orderYear = orderDate.getFullYear();
+
+            if (orderMonth === currentMonth && orderYear === currentYear) {
+              thisMonth += serviceCount;
+            }
+          }
+        }
+      });
+
+      return {
+        ...service,
+        stats: {
+          thisMonth,
+          total
+        }
+      };
+    });
+  }, [services, orders]);
+
+  const filteredServices = servicesWithStats.filter(service =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.description.toLowerCase().includes(searchTerm.toLowerCase())
   );

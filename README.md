@@ -3,7 +3,6 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para validar acciones criticas en la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario
 
 // PRIORIDAD ALTA
 -[FEATURE]en la orden, guardar factura al generarla
@@ -28,7 +27,6 @@ Clean master shoes
 // BACKLOG
 -[FEATURE]actualizar mensaje enviado por wapp
 -[FEATURE]Validar funcionalidades offline
--[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[FEATURE]pagina de tracking de ordenes para la .com
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
@@ -64,6 +62,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para validar acciones criticas en la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario
+-[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[EPIC]Agregar pantalla de login, usar credenciales de google, cada empleado debera validar su correo gmail, y solo esas cuentas de empleado seran las que esten habilitadas para iniciar sesión
 -[FIX]added photos to history lists from clients tab
 -[FIX]subscrisibrse en dashboard a employeslists porque lo remivos de orderdetailview y lo pusimos en orders
