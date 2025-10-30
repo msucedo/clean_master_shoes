@@ -1,24 +1,18 @@
 Clean master shoes
 
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
--[FIX]que una orden no pueda estar en proceso si no tiene autor
+
+// WIP
+-[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para validar acciones criticas en la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario
+-[FEATURE]en la orden, guardar factura al generarla
+-[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden
+-[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
-// WIP
--[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
-    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
--[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden
-
 // PRIORIDAD ALTA
--[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
--[EPIC]Agregar pantalla de login, usar credenciales de google, cada empleado debera validar su correo gmail, y solo esas cuentas de empleado seran las que esten habilitadas para iniciar sesión
--[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para agregarle permisos a la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario
--[ALTERNATIVA]Pantalla para validar acciones que SOLO el admin puede hacer: crear una orden?no, borrar una orden?si, crear un servicio?si,...el admin en teoeria puede entrar aqui y decidir que si o que no tomar en cuenta solo el admin pueda hacer.
--[feature/security_pin_para_admin]Agregar un lock a ciertas acciones de la app que solo se puedan hacer si hay un pin de confirmacion
--[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega
+-[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega, tipo esa pantalla de en espera
 -[EPIC]Pantalla promociones
--[CODE_REVIEW]Pedir code review para analizar app
 
 // PRIORIDAD MEDIA
 
@@ -27,15 +21,16 @@ Clean master shoes
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
+-[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
+    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 
 // BACKLOG
+-[FEATURE]actualizar mensaje enviado por wapp
 -[FEATURE]Validar funcionalidades offline
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
--[ALTERNATIVA]boton nueva orden desde el sidebar
 -[FEATURE]pagina de tracking de ordenes para la .com
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
--[FEATURE]en la orden, guardar factura al generarla
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
@@ -68,6 +63,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[EPIC]Agregar pantalla de login, usar credenciales de google, cada empleado debera validar su correo gmail, y solo esas cuentas de empleado seran las que esten habilitadas para iniciar sesión
+-[FIX]added photos to history lists from clients tab
 -[FIX]subscrisibrse en dashboard a employeslists porque lo remivos de orderdetailview y lo pusimos en orders
 -[FEATURE]Fechas disponibles para entrega de acuerdo a la cantidad de ordenes trabajandose en este momento
     -Hacer una formula, como entrada agregar: la suma de ordenes en recibidas + en proceso, tambien el numero de ordenes activas totales, tambien el numero de empleados activos, tambien el numero de ordenes con fecha de entrega hoy, tambien el numero de servicios agrgeados a la orden, tomando en cuenta si son varios items del mismo servicio. esta formula va dar de output una fecha estimada que se mostrara como default como ya ahorita se muestra el campo, solo que asegurarse de usar ahi esa formula.
