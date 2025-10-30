@@ -1,0 +1,67 @@
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 140, 0, 0.15) 100%);
+  border: 1.5px solid rgba(255, 215, 0, 0.4);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFD700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.admin-badge:hover {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 140, 0, 0.2) 100%);
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.25);
+}
+
+.admin-badge-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.admin-badge-text {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sidebar-employee-admin .admin-badge.inline {
+  margin-left: 0px;
+}
+
+/* Variante inline (para usar dentro de textos) */
+.admin-badge.inline {
+  padding: 4px 8px;
+  font-size: 11px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+.admin-badge.inline .admin-badge-icon {
+  font-size: 14px;
+}
+
+.admin-badge.inline .admin-badge-text {
+  font-size: 10px;
+}
+
+/* Variante small */
+.admin-badge.small {
+  padding: 3px 6px;
+  font-size: 10px;
+  gap: 4px;
+}
+
+.admin-badge.small .admin-badge-icon {
+  font-size: 12px;
+}
+
+.admin-badge.small .admin-badge-text {
+  font-size: 9px;
+}

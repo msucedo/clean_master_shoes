@@ -13,10 +13,12 @@ import {
   updateOrder
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './Empleados.css';
 
 const Empleados = () => {
   const { showSuccess, showError, showInfo } = useNotification();
+  const isAdmin = useAdminCheck();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,6 +74,12 @@ const Empleados = () => {
   };
 
   const handleOpenNewEmpleado = () => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden agregar empleados');
+      return;
+    }
+
     setEditingEmpleado(null);
     setIsModalOpen(true);
   };
@@ -111,6 +119,12 @@ const Empleados = () => {
   };
 
   const handleDeleteEmpleado = (empleadoId) => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden eliminar empleados');
+      return;
+    }
+
     setConfirmDialog({
       isOpen: true,
       title: 'Eliminar Empleado',
@@ -125,7 +139,8 @@ const Empleados = () => {
           // Real-time listener will update the UI automatically
         } catch (error) {
           console.error('Error deleting employee:', error);
-          showError('Error al eliminar el empleado');
+          // Mostrar el mensaje de error específico del backend
+          showError(error.message || 'Error al eliminar el empleado');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         }
       }
@@ -190,6 +205,12 @@ const Empleados = () => {
   };
 
   const handleCancelOrder = (order) => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden cancelar órdenes');
+      return;
+    }
+
     setConfirmDialog({
       isOpen: true,
       title: 'Cancelar Orden',
@@ -319,6 +340,11 @@ const Empleados = () => {
               key={empleado.id}
               empleado={empleado}
               onClick={(emp) => {
+                // Verificar permisos de admin
+                if (!isAdmin) {
+                  showError('Solo los administradores pueden editar empleados');
+                  return;
+                }
                 setEditingEmpleado(emp);
                 setIsModalOpen(true);
               }}

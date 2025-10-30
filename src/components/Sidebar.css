@@ -104,6 +104,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 4px;
 }
 
 .sidebar-employee-chevron {
@@ -238,7 +239,7 @@
         font-size: 24px;
     }
 
-    .sidebar-employee-details,
+    .sidebar-employee-name, .sidebar-employee-role, .sidebar-employee-details .admin-badge-text,
     .sidebar-employee-chevron {
         display: none;
     }
@@ -270,5 +271,13 @@
 
     .logo-text {
         display: none;
+    }
+
+    .sidebar-employee-admin {
+        display: inline;
+    }
+
+    .admin-badge.inline{
+        margin-left: 0px;;
     }
 }

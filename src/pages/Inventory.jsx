@@ -11,10 +11,12 @@ import {
   deleteProduct
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './Inventory.css';
 
 const Inventory = () => {
   const { showSuccess, showError } = useNotification();
+  const isAdmin = useAdminCheck();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
@@ -73,6 +75,12 @@ const Inventory = () => {
   };
 
   const handleOpenNewProduct = () => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden agregar productos al inventario');
+      return;
+    }
+
     setEditingProduct(null);
     setIsModalOpen(true);
   };
@@ -102,6 +110,12 @@ const Inventory = () => {
   };
 
   const handleDeleteProduct = (productId) => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden eliminar productos del inventario');
+      return;
+    }
+
     setConfirmDialog({
       isOpen: true,
       title: 'Eliminar Producto',
@@ -216,6 +230,11 @@ const Inventory = () => {
               key={product.id}
               product={product}
               onClick={(prod) => {
+                // Verificar permisos de admin
+                if (!isAdmin) {
+                  showError('Solo los administradores pueden editar productos del inventario');
+                  return;
+                }
                 setEditingProduct(prod);
                 setIsModalOpen(true);
               }}

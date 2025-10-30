@@ -520,6 +520,26 @@ export const subscribeToEmployees = (callback) => {
 };
 
 /**
+ * Get count of active admin employees
+ * @returns {Promise<number>} Count of active admins
+ */
+export const getAdminCount = async () => {
+  try {
+    const employeesRef = collection(db, 'employees');
+    const q = query(
+      employeesRef,
+      where('isAdmin', '==', true),
+      where('status', '==', 'active')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.size;
+  } catch (error) {
+    console.error('Error getting admin count:', error);
+    throw error;
+  }
+};
+
+/**
  * Get employee by email
  * @param {string} email - Employee email
  * @returns {Promise<Object|null>} Employee data or null if not found
@@ -551,11 +571,20 @@ export const getEmployeeByEmail = async (email) => {
 export const addEmployee = async (employeeData) => {
   try {
     const employeesRef = collection(db, 'employees');
+
+    // Check if this is the first employee
+    const querySnapshot = await getDocs(employeesRef);
+    const isFirstEmployee = querySnapshot.empty;
+
     const docRef = await addDoc(employeesRef, {
       ...employeeData,
+      // First employee is automatically admin
+      isAdmin: isFirstEmployee ? true : (employeeData.isAdmin || false),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
+
+    console.log(`✅ [EMPLOYEE] Empleado creado - isAdmin: ${isFirstEmployee ? true : (employeeData.isAdmin || false)}`);
 
     return docRef.id;
   } catch (error) {
@@ -571,11 +600,35 @@ export const addEmployee = async (employeeData) => {
  */
 export const updateEmployee = async (employeeId, employeeData) => {
   try {
+    // Get current employee data
     const employeeRef = doc(db, 'employees', employeeId);
+    const employeeSnap = await getDoc(employeeRef);
+
+    if (!employeeSnap.exists()) {
+      throw new Error('Empleado no encontrado');
+    }
+
+    const currentData = employeeSnap.data();
+
+    // VALIDACIÓN: Si intenta quitar admin y es el único admin activo
+    if (
+      currentData.isAdmin === true &&
+      currentData.status === 'active' &&
+      (employeeData.isAdmin === false || employeeData.status === 'inactive')
+    ) {
+      const adminCount = await getAdminCount();
+
+      if (adminCount <= 1) {
+        throw new Error('No se puede desactivar el último administrador. Debe haber al menos un administrador activo en el sistema.');
+      }
+    }
+
     await updateDoc(employeeRef, {
       ...employeeData,
       updatedAt: new Date().toISOString()
     });
+
+    console.log(`✅ [EMPLOYEE] Empleado actualizado: ${employeeId}`);
   } catch (error) {
     console.error('Error updating employee:', error);
     throw error;
@@ -588,8 +641,27 @@ export const updateEmployee = async (employeeId, employeeData) => {
  */
 export const deleteEmployee = async (employeeId) => {
   try {
+    // Get current employee data
     const employeeRef = doc(db, 'employees', employeeId);
+    const employeeSnap = await getDoc(employeeRef);
+
+    if (!employeeSnap.exists()) {
+      throw new Error('Empleado no encontrado');
+    }
+
+    const currentData = employeeSnap.data();
+
+    // VALIDACIÓN: No se puede eliminar al último admin activo
+    if (currentData.isAdmin === true && currentData.status === 'active') {
+      const adminCount = await getAdminCount();
+
+      if (adminCount <= 1) {
+        throw new Error('No se puede eliminar el último administrador. Debe haber al menos un administrador activo en el sistema.');
+      }
+    }
+
     await deleteDoc(employeeRef);
+    console.log(`✅ [EMPLOYEE] Empleado eliminado: ${employeeId}`);
   } catch (error) {
     console.error('Error deleting employee:', error);
     throw error;

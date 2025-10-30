@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './ServiceForm.css';
 
 const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
+  const isAdmin = useAdminCheck();
   const [showMenu, setShowMenu] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -99,8 +101,8 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
 
   return (
     <div className="service-form">
-      {/* Menu Button (only show when editing) */}
-      {initialData && (
+      {/* Menu Button (only show when editing and user is admin) */}
+      {initialData && isAdmin && (
         <div className="service-menu-container">
           <button
             className="service-menu-button"

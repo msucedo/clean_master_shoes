@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './EmpleadoForm.css';
 
 const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
+  const isCurrentUserAdmin = useAdminCheck();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -10,7 +13,8 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     hireDate: '',
     status: 'active',
     notes: '',
-    emoji: ''
+    emoji: '',
+    isAdmin: false
   });
 
   const [errors, setErrors] = useState({});
@@ -25,7 +29,8 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         hireDate: initialData.hireDate || '',
         status: initialData.status || 'active',
         notes: initialData.notes || '',
-        emoji: initialData.emoji || ''
+        emoji: initialData.emoji || '',
+        isAdmin: initialData.isAdmin || false
       });
     }
   }, [initialData]);
@@ -174,6 +179,27 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
           </select>
         </div>
 
+        {/* Campo Administrador - Solo visible para admins */}
+        {isCurrentUserAdmin && (
+          <div className="form-group">
+            <label htmlFor="isAdmin" className="checkbox-label">
+              <input
+                type="checkbox"
+                id="isAdmin"
+                name="isAdmin"
+                checked={formData.isAdmin}
+                onChange={(e) => setFormData(prev => ({ ...prev, isAdmin: e.target.checked }))}
+              />
+              <span className="checkbox-text">
+                👑 Administrador
+              </span>
+            </label>
+            <span className="field-hint">
+              Los administradores pueden eliminar, cancelar órdenes y agregar servicios/inventario
+            </span>
+          </div>
+        )}
+
         <div className="form-group">
           <label htmlFor="emoji">Emoji (opcional)</label>
           <input
@@ -203,7 +229,7 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
 
       <div className="form-actions">
         <div className="form-actions-left">
-          {initialData && (
+          {initialData && isCurrentUserAdmin && (
             <button
               type="button"
               className="btn-delete"

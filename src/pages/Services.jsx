@@ -11,10 +11,12 @@ import {
   deleteService
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './Services.css';
 
 const Services = () => {
   const { showSuccess, showError } = useNotification();
+  const isAdmin = useAdminCheck();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -55,11 +57,23 @@ const Services = () => {
   };
 
   const handleAddService = () => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden agregar servicios');
+      return;
+    }
+
     setSelectedService(null);
     setIsModalOpen(true);
   };
 
   const handleEditService = (service) => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden editar servicios');
+      return;
+    }
+
     setSelectedService(service);
     setIsModalOpen(true);
   };
@@ -96,6 +110,12 @@ const Services = () => {
   };
 
   const handleDeleteService = (serviceId) => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden eliminar servicios');
+      return;
+    }
+
     setConfirmDialog({
       isOpen: true,
       title: 'Eliminar Servicio',

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useAdminCheck } from '../contexts/AuthContext';
 import ImageUpload from './ImageUpload';
 import './InventoryForm.css';
 
 const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
+  const isAdmin = useAdminCheck();
   const [formData, setFormData] = useState({
     name: '',
     category: 'Tenis',
@@ -310,7 +312,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
 
       <div className="form-actions">
         <div className="form-actions-left">
-          {initialData && (
+          {initialData && isAdmin && (
             <button
               type="button"
               className="btn-delete"

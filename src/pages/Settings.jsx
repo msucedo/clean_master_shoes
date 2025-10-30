@@ -3,10 +3,12 @@ import PageHeader from '../components/PageHeader';
 import { downloadBackup, getBackupInfo } from '../utils/backup';
 import { saveBusinessProfile, getBusinessProfile } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './Settings.css';
 
 const Settings = () => {
   const { showSuccess, showError } = useNotification();
+  const isAdmin = useAdminCheck();
 
   // Business Profile State
   const [businessName, setBusinessName] = useState('Clean Master Shoes');
@@ -79,6 +81,12 @@ const Settings = () => {
   };
 
   const handleSaveProfile = async () => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden guardar cambios de configuración');
+      return;
+    }
+
     setSaving(true);
     try {
       const profileData = {

@@ -15,10 +15,12 @@ import {
   updateOrder
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './Clients.css';
 
 const Clients = () => {
   const { showSuccess, showError, showInfo } = useNotification();
+  const isAdmin = useAdminCheck();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -172,6 +174,12 @@ const Clients = () => {
   };
 
   const handleOpenNewClient = () => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden agregar clientes');
+      return;
+    }
+
     setEditingClient(null);
     setIsModalOpen(true);
   };
@@ -208,6 +216,12 @@ const Clients = () => {
   };
 
   const handleDeleteClient = (clientId) => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden eliminar clientes');
+      return;
+    }
+
     setConfirmDialog({
       isOpen: true,
       title: 'Eliminar Cliente',
@@ -434,6 +448,11 @@ const Clients = () => {
                 key={client.id}
                 client={enrichedClient}
                 onClick={(client) => {
+                  // Verificar permisos de admin
+                  if (!isAdmin) {
+                    showError('Solo los administradores pueden editar clientes');
+                    return;
+                  }
                   setEditingClient(client);
                   setIsModalOpen(true);
                 }}

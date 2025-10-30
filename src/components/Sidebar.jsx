@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AdminBadge from './AdminBadge';
 import './Sidebar.css';
 
 const Sidebar = () => {
@@ -47,8 +48,11 @@ const Sidebar = () => {
               {employee.emoji || getInitials(employee.name)}
             </div>
             <div className="sidebar-employee-details">
-              <div className="sidebar-employee-name">{employee.name}</div>
+              <div className="sidebar-employee-name">
+                {employee.name}
+              </div>
               <div className="sidebar-employee-role">{employee.role || 'Sin rol asignado'}</div>
+              <div className='sidebar-employee-admin'>{employee.isAdmin && <AdminBadge inline small />}</div>
             </div>
             <div className="sidebar-employee-chevron">
               {showLogoutMenu ? '▲' : '▼'}

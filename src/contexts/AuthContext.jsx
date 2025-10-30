@@ -13,6 +13,15 @@ export const useAuth = () => {
   return context;
 };
 
+/**
+ * Custom hook para verificar si el usuario actual es admin
+ * @returns {boolean} true si el usuario es admin y está activo
+ */
+export const useAdminCheck = () => {
+  const { employee } = useAuth();
+  return employee?.isAdmin === true && employee?.status === 'active';
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Firebase user
   const [employee, setEmployee] = useState(null); // Employee data from Firestore

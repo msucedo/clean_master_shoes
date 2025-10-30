@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { subscribeToOrders, updateOrder } from '../services/firebaseService';
+import AdminBadge from './AdminBadge';
 import './EmpleadoItem.css';
 
 const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError }) => {
@@ -174,7 +175,10 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
           {empleado.emoji || getInitials(empleado.name)}
         </div>
         <div className="empleado-info">
-          <div className="empleado-name">{empleado.name}</div>
+          <div className="empleado-name">
+            {empleado.name}
+            {empleado.isAdmin && <AdminBadge inline small />}
+          </div>
           <div className="empleado-role">{empleado.role || 'Sin rol asignado'}</div>
         </div>
         <div className="empleado-meta">

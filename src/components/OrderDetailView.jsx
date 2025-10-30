@@ -6,6 +6,7 @@ import VariablePriceModal from './VariablePriceModal';
 import { getBusinessProfile, updateOrder } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAdminCheck } from '../contexts/AuthContext';
 import './OrderDetailView.css';
 
 // Función para mostrar fecha relativa con hora
@@ -41,6 +42,7 @@ const getRelativeTimeWithHour = (dateString) => {
 
 const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader, readOnly = false, employees = [] }) => {
   const { showSuccess, showInfo } = useNotification();
+  const isAdmin = useAdminCheck();
 
   // Determinar si la orden es de solo lectura
   const isReadOnly = readOnly || ['completados', 'cancelado'].includes(order.orderStatus);
@@ -937,13 +939,15 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
               <span className="action-text">Generar Factura</span>
             </button>
 
-            <button
-              className="action-btn btn-cancel"
-              onClick={() => onCancel && onCancel(order)}
-            >
-              <span className="action-icon">🗑️</span>
-              <span className="action-text">Cancelar Orden</span>
-            </button>
+            {isAdmin && (
+              <button
+                className="action-btn btn-cancel"
+                onClick={() => onCancel && onCancel(order)}
+              >
+                <span className="action-icon">🗑️</span>
+                <span className="action-text">Cancelar Orden</span>
+              </button>
+            )}
           </div>
         </div>
       )}
