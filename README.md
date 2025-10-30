@@ -3,12 +3,13 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]fotos iphoto
+-[]utilizar una base de datos limpia para prod
 
 // PRIORIDAD ALTA
 -[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
-
 -[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega, tipo esa pantalla de en espera
 -[EPIC]Pantalla promociones
 
@@ -60,6 +61,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]factura no se descarga en movil ni ipad
 -[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden, y tambien notifica no solo de orden creada si no tambien cliente agregado con exito, en difeentes notificaciones
 -[FEATURE]en la orden, guardar factura al generarla
 -[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para validar acciones criticas en la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario

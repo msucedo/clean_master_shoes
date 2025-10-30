@@ -458,26 +458,76 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     }
   };
 
+  // Función helper para convertir data URI a Blob
+  const dataURItoBlob = (dataURI) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  };
+
   // Handler para descargar factura guardada
-  const handleDownloadInvoice = () => {
+  const handleDownloadInvoice = async () => {
     try {
       if (localInvoice && localInvoice.pdfData) {
-        // Crear un link temporal para descargar
-        const link = document.createElement('a');
-        link.href = localInvoice.pdfData;
-
         // Generar nombre de archivo
         const orderNum = order.orderNumber || order.id.substring(0, 8);
         const clientName = order.client.replace(/\s+/g, '_');
         const date = new Date(order.createdAt).toLocaleDateString('es-MX').replace(/\//g, '-');
-        link.download = `Factura_${orderNum}_${clientName}_${date}.pdf`;
+        const fileName = `Factura_${orderNum}_${clientName}_${date}.pdf`;
 
-        // Disparar descarga
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Detectar si es móvil o tablet (menos de 768px)
+        const isMobile = window.innerWidth < 768;
 
-        showSuccess('Factura descargada exitosamente');
+        if (isMobile) {
+          // En móviles: intentar usar Web Share API
+          if (navigator.share && navigator.canShare) {
+            try {
+              // Convertir data URI a Blob
+              const blob = dataURItoBlob(localInvoice.pdfData);
+              const file = new File([blob], fileName, { type: 'application/pdf' });
+
+              // Verificar si se puede compartir
+              if (navigator.canShare({ files: [file] })) {
+                // IMPORTANTE: En iOS/iPadOS no se debe incluir title, text o url junto con files
+                // Esto causa que iOS cree archivos de texto adicionales no deseados
+                await navigator.share({
+                  files: [file]
+                });
+                showSuccess('Factura compartida exitosamente');
+                return;
+              }
+            } catch (shareError) {
+              console.log('Web Share API no disponible o cancelada:', shareError);
+              // Si falla, continuar con el método de abrir en nueva ventana
+            }
+          }
+
+          // Si Web Share API no está disponible o falló, abrir en nueva ventana
+          // El usuario puede usar las opciones del navegador para descargar
+          const newWindow = window.open(localInvoice.pdfData, '_blank');
+          if (newWindow) {
+            showSuccess('Factura abierta. Usa las opciones del navegador para descargar o compartir');
+          } else {
+            showInfo('Por favor, permite las ventanas emergentes para ver la factura');
+          }
+        } else {
+          // En escritorio: descarga directa tradicional
+          const link = document.createElement('a');
+          link.href = localInvoice.pdfData;
+          link.download = fileName;
+
+          // Disparar descarga
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          showSuccess('Factura descargada exitosamente');
+        }
       } else {
         showInfo('No hay factura guardada para esta orden');
       }
