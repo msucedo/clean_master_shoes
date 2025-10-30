@@ -6,7 +6,7 @@ import VariablePriceModal from './VariablePriceModal';
 import { getBusinessProfile, updateOrder } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { useNotification } from '../contexts/NotificationContext';
-import { useAdminCheck } from '../contexts/AuthContext';
+import { useAdminCheck, useAuth } from '../contexts/AuthContext';
 import './OrderDetailView.css';
 
 // Función para mostrar fecha relativa con hora
@@ -43,6 +43,7 @@ const getRelativeTimeWithHour = (dateString) => {
 const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader, readOnly = false, employees = [] }) => {
   const { showSuccess, showInfo } = useNotification();
   const isAdmin = useAdminCheck();
+  const { user } = useAuth();
 
   // Determinar si la orden es de solo lectura
   const isReadOnly = readOnly || ['completados', 'cancelado'].includes(order.orderStatus);
@@ -81,6 +82,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     type: 'default'
   });
   const [flippingServices, setFlippingServices] = useState({});
+  const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -398,19 +400,78 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     });
   };
 
-  // Handler para entregar - guarda todos los cambios y marca como entregada
+  // Handler para generar factura - genera PDF y lo guarda en Firebase
   const handleGenerateInvoice = async () => {
     try {
       const businessProfile = await getBusinessProfile();
       const pdf = await generateInvoicePDF(order, businessProfile);
 
+      // Convertir PDF a base64 para guardar en Firebase
+      const pdfBase64 = pdf.output('datauristring');
+
+      // Guardar factura en la orden
+      const invoiceData = {
+        pdfData: pdfBase64,
+        generatedAt: new Date().toISOString(),
+        generatedBy: user?.email || 'unknown'
+      };
+
+      // Actualizar orden en Firebase con la factura
+      await updateOrder(order.id, {
+        invoice: invoiceData
+      });
+
       // Abrir PDF en nueva pestaña (sin imprimir automáticamente)
       window.open(pdf.output('bloburl'), '_blank');
 
-      showSuccess('Factura generada exitosamente');
+      showSuccess('Factura generada y guardada exitosamente');
     } catch (error) {
       console.error('Error generating invoice:', error);
       showInfo('Error al generar la factura');
+    }
+  };
+
+  // Handler para ver factura guardada
+  const handleViewSavedInvoice = () => {
+    try {
+      if (order.invoice && order.invoice.pdfData) {
+        // Abrir modal de preview
+        setIsPdfPreviewOpen(true);
+      } else {
+        showInfo('No hay factura guardada para esta orden');
+      }
+    } catch (error) {
+      console.error('Error viewing saved invoice:', error);
+      showInfo('Error al abrir la factura guardada');
+    }
+  };
+
+  // Handler para descargar factura guardada
+  const handleDownloadInvoice = () => {
+    try {
+      if (order.invoice && order.invoice.pdfData) {
+        // Crear un link temporal para descargar
+        const link = document.createElement('a');
+        link.href = order.invoice.pdfData;
+
+        // Generar nombre de archivo
+        const orderNum = order.orderNumber || order.id.substring(0, 8);
+        const clientName = order.client.replace(/\s+/g, '_');
+        const date = new Date(order.createdAt).toLocaleDateString('es-MX').replace(/\//g, '-');
+        link.download = `Factura_${orderNum}_${clientName}_${date}.pdf`;
+
+        // Disparar descarga
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showSuccess('Factura descargada exitosamente');
+      } else {
+        showInfo('No hay factura guardada para esta orden');
+      }
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      showInfo('Error al descargar la factura');
     }
   };
 
@@ -931,12 +992,26 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
               <span className="action-text">Enviar Email</span>
             </button>
 
+            {/* Botón para ver factura guardada (si existe) */}
+            {order.invoice && order.invoice.pdfData && (
+              <button
+                className="action-btn btn-invoice"
+                onClick={handleViewSavedInvoice}
+              >
+                <span className="action-icon">📄</span>
+                <span className="action-text">Ver Factura Guardada</span>
+              </button>
+            )}
+
+            {/* Botón para generar/regenerar factura */}
             <button
               className="action-btn btn-invoice"
               onClick={handleGenerateInvoice}
             >
               <span className="action-icon">🧾</span>
-              <span className="action-text">Generar Factura</span>
+              <span className="action-text">
+                {order.invoice && order.invoice.pdfData ? 'Regenerar Factura' : 'Generar Factura'}
+              </span>
             </button>
 
             {isAdmin && (
@@ -989,6 +1064,40 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       />
     </div>
   </div>
+
+      {/* Modal de Preview de Factura */}
+      {isPdfPreviewOpen && order.invoice && order.invoice.pdfData && (
+        <div className="pdf-preview-modal-overlay" onClick={() => setIsPdfPreviewOpen(false)}>
+          <div className="pdf-preview-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="pdf-preview-header">
+              <h3>Vista Previa de Factura</h3>
+              <div className="pdf-preview-actions">
+                <button
+                  className="pdf-preview-btn pdf-download-btn"
+                  onClick={handleDownloadInvoice}
+                >
+                  ⬇️ Descargar PDF
+                </button>
+                <button
+                  className="pdf-preview-btn pdf-close-btn"
+                  onClick={() => setIsPdfPreviewOpen(false)}
+                >
+                  ✕ Cerrar
+                </button>
+              </div>
+            </div>
+            <div className="pdf-preview-body">
+              <iframe
+                src={order.invoice.pdfData}
+                width="100%"
+                height="600px"
+                title="Factura PDF Preview"
+                style={{ border: 'none', borderRadius: '8px' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

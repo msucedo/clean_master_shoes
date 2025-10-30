@@ -1041,3 +1041,132 @@
   font-weight: 500;
   font-family: 'Courier New', monospace;
 }
+
+/* PDF Preview Modal */
+.pdf-preview-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.pdf-preview-modal-content {
+  background: var(--color-card);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pdf-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.pdf-preview-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pdf-preview-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pdf-preview-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-download-btn {
+  background: var(--color-primary);
+  color: white;
+}
+
+.pdf-download-btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.pdf-close-btn {
+  background: var(--color-gray-700);
+  color: var(--color-text);
+}
+
+.pdf-close-btn:hover {
+  background: var(--color-gray-600);
+}
+
+.pdf-preview-body {
+  flex: 1;
+  padding: 24px;
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pdf-preview-modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .pdf-preview-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .pdf-preview-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .pdf-preview-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pdf-preview-body {
+    padding: 16px;
+  }
+
+  .pdf-preview-body iframe {
+    height: 500px !important;
+  }
+}
