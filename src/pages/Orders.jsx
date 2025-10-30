@@ -9,7 +9,11 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import {
   subscribeToOrders,
   updateOrder,
-  subscribeToEmployees
+  subscribeToEmployees,
+  findClientByPhone,
+  findClientByName,
+  addClient,
+  updateClient
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './Orders.css';
@@ -40,6 +44,7 @@ const Orders = () => {
     title: '',
     message: '',
     onConfirm: null,
+    onCancel: null,
     type: 'default'
   });
   // Detectar si es smartphone (< 768px)
@@ -304,7 +309,52 @@ const Orders = () => {
 
   const handleSubmitOrder = async (formData) => {
     try {
-      // Create new order with services format
+      // Validar si el cliente existe antes de crear la orden
+      const clientByPhone = await findClientByPhone(formData.phone);
+      const clientByName = await findClientByName(formData.client);
+
+      let shouldCreateClient = false;
+
+      // Caso 1: Si el teléfono existe, continuar normalmente (cliente conocido)
+      if (clientByPhone) {
+        // Cliente existente, no hacer nada
+      }
+      // Caso 2: Si el nombre existe pero con teléfono diferente
+      else if (clientByName && clientByName.phone !== formData.phone) {
+        // Mostrar confirmación para actualizar teléfono ANTES de crear la orden
+        await new Promise((resolve, reject) => {
+          setConfirmDialog({
+            isOpen: true,
+            title: 'Actualizar Teléfono del Cliente',
+            message: `El cliente "${formData.client}" ya existe con el teléfono ${clientByName.phone}. ¿Deseas actualizar su número a ${formData.phone}?`,
+            type: 'default',
+            onConfirm: async () => {
+              try {
+                setConfirmDialog({ ...confirmDialog, isOpen: false });
+                // Actualizar cliente ANTES de crear la orden
+                await updateClient(clientByName.id, { phone: formData.phone });
+                showSuccess('Teléfono actualizado exitosamente');
+                resolve();
+              } catch (error) {
+                console.error('Error updating client phone:', error);
+                showError('Error al actualizar el teléfono');
+                reject(error);
+              }
+            },
+            onCancel: () => {
+              // Usuario decidió no actualizar, continuar sin cambios
+              setConfirmDialog({ ...confirmDialog, isOpen: false });
+              resolve();
+            }
+          });
+        });
+      }
+      // Caso 3: Si ni el teléfono ni el nombre existen
+      else if (!clientByPhone && !clientByName) {
+        shouldCreateClient = true;
+      }
+
+      // Crear la orden
       const newOrder = {
         orderNumber: generateOrderId(), // Número de orden visible para el usuario
         client: formData.client,
@@ -327,8 +377,22 @@ const Orders = () => {
 
       const { addOrder } = await import('../services/firebaseService');
       await addOrder(newOrder);
-      handleCloseModal();
+
+      // Después de crear la orden exitosamente
       showSuccess('Orden creada exitosamente');
+
+      // Crear cliente solo si es completamente nuevo
+      if (shouldCreateClient) {
+        const newClient = {
+          name: formData.client,
+          phone: formData.phone,
+          email: formData.email || ''
+        };
+        await addClient(newClient);
+        showSuccess('Cliente agregado exitosamente');
+      }
+
+      handleCloseModal();
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error creating order:', error);
@@ -492,7 +556,7 @@ const Orders = () => {
         message={confirmDialog.message}
         type={confirmDialog.type}
         onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onCancel={confirmDialog.onCancel || (() => setConfirmDialog({ ...confirmDialog, isOpen: false }))}
       />
     </div>
   );

@@ -417,6 +417,55 @@ export const subscribeToClients = (callback) => {
 };
 
 /**
+ * Find client by phone number
+ * @param {string} phone - Phone number to search
+ * @returns {Promise<Object|null>} Client object if found, null otherwise
+ */
+export const findClientByPhone = async (phone) => {
+  try {
+    const clientsRef = collection(db, 'clients');
+    const q = query(clientsRef, where('phone', '==', phone));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  } catch (error) {
+    console.error('Error finding client by phone:', error);
+    throw error;
+  }
+};
+
+/**
+ * Find client by name (case-insensitive)
+ * @param {string} name - Client name to search
+ * @returns {Promise<Object|null>} Client object if found, null otherwise
+ */
+export const findClientByName = async (name) => {
+  try {
+    const clientsRef = collection(db, 'clients');
+    const querySnapshot = await getDocs(clientsRef);
+
+    // Buscar manualmente porque Firestore no soporta búsqueda case-insensitive directa
+    let foundClient = null;
+    querySnapshot.forEach((doc) => {
+      const clientData = doc.data();
+      if (clientData.name && clientData.name.toLowerCase() === name.toLowerCase()) {
+        foundClient = { id: doc.id, ...clientData };
+      }
+    });
+
+    return foundClient;
+  } catch (error) {
+    console.error('Error finding client by name:', error);
+    throw error;
+  }
+};
+
+/**
  * Add a new client
  * @param {Object} clientData - Client data
  * @returns {Promise<string>} Document ID of the created client
