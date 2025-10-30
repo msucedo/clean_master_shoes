@@ -3,10 +3,9 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden, y tambien notifica no solo de orden creada si no tambien cliente agregado con exito, en difeentes notificaciones
 
 // PRIORIDAD ALTA
--[FEATURE]en la orden, guardar factura al generarla
--[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden
 -[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
@@ -62,6 +61,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]en la orden, guardar factura al generarla
 -[FEATURE]agregar campo "administrador", los empleados con este campo activado tendran permisos de admin, validar siempre debe haber al menos un empleado con admin activado, este campo se va usar para validar acciones criticas en la app. solo el admin puede: cancelar o borrar cualquier cosa, solo el admin puede asignar otros admin, solo el admin puede agregar servicio e inventario
 -[FEATURE]habilitar metricas de la tab servicios en cada serviceitem
 -[EPIC]Agregar pantalla de login, usar credenciales de google, cada empleado debera validar su correo gmail, y solo esas cuentas de empleado seran las que esten habilitadas para iniciar sesión
