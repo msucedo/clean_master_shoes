@@ -83,6 +83,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   });
   const [flippingServices, setFlippingServices] = useState({});
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
+  const [localInvoice, setLocalInvoice] = useState(order.invoice || null);
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -421,10 +422,21 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         invoice: invoiceData
       });
 
-      // Abrir PDF en nueva pestaña (sin imprimir automáticamente)
-      window.open(pdf.output('bloburl'), '_blank');
+      // Actualizar estado local para que los botones se actualicen inmediatamente
+      setLocalInvoice(invoiceData);
 
-      showSuccess('Factura generada y guardada exitosamente');
+      // Detectar si es móvil (menos de 768px)
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile) {
+        // En móvil: abrir modal de preview automáticamente
+        setIsPdfPreviewOpen(true);
+        showSuccess('Factura generada y guardada exitosamente');
+      } else {
+        // En escritorio: abrir en nueva pestaña
+        window.open(pdf.output('bloburl'), '_blank');
+        showSuccess('Factura generada y guardada exitosamente');
+      }
     } catch (error) {
       console.error('Error generating invoice:', error);
       showInfo('Error al generar la factura');
@@ -434,7 +446,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   // Handler para ver factura guardada
   const handleViewSavedInvoice = () => {
     try {
-      if (order.invoice && order.invoice.pdfData) {
+      if (localInvoice && localInvoice.pdfData) {
         // Abrir modal de preview
         setIsPdfPreviewOpen(true);
       } else {
@@ -449,10 +461,10 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   // Handler para descargar factura guardada
   const handleDownloadInvoice = () => {
     try {
-      if (order.invoice && order.invoice.pdfData) {
+      if (localInvoice && localInvoice.pdfData) {
         // Crear un link temporal para descargar
         const link = document.createElement('a');
-        link.href = order.invoice.pdfData;
+        link.href = localInvoice.pdfData;
 
         // Generar nombre de archivo
         const orderNum = order.orderNumber || order.id.substring(0, 8);
@@ -993,7 +1005,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
             </button>
 
             {/* Botón para ver factura guardada (si existe) */}
-            {order.invoice && order.invoice.pdfData && (
+            {localInvoice && localInvoice.pdfData && (
               <button
                 className="action-btn btn-invoice"
                 onClick={handleViewSavedInvoice}
@@ -1010,7 +1022,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
             >
               <span className="action-icon">🧾</span>
               <span className="action-text">
-                {order.invoice && order.invoice.pdfData ? 'Regenerar Factura' : 'Generar Factura'}
+                {localInvoice && localInvoice.pdfData ? 'Regenerar Factura' : 'Generar Factura'}
               </span>
             </button>
 
@@ -1066,7 +1078,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   </div>
 
       {/* Modal de Preview de Factura */}
-      {isPdfPreviewOpen && order.invoice && order.invoice.pdfData && (
+      {isPdfPreviewOpen && localInvoice && localInvoice.pdfData && (
         <div className="pdf-preview-modal-overlay" onClick={() => setIsPdfPreviewOpen(false)}>
           <div className="pdf-preview-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="pdf-preview-header">
@@ -1088,7 +1100,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
             </div>
             <div className="pdf-preview-body">
               <iframe
-                src={order.invoice.pdfData}
+                src={localInvoice.pdfData}
                 width="100%"
                 height="600px"
                 title="Factura PDF Preview"
