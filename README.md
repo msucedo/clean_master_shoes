@@ -5,6 +5,7 @@ Clean master shoes
 // WIP
 -[]fotos iphoto
 -[]utilizar una base de datos limpia para prod
+-[]conectar el numero real de wapp
 
 // PRIORIDAD ALTA
 -[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas

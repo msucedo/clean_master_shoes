@@ -101,7 +101,7 @@
 }
 
 .empleado-status {
-    min-width: 200px;
+    min-width: 145px;
     text-align: center;
     display: grid;
     flex-direction: column;
@@ -387,7 +387,7 @@
     }
 
     .empleado-status {
-        width: 100%;
+        min-width: 145px;
         margin-top: 15px;
         text-align: left;
     }
