@@ -99,7 +99,6 @@ export const AuthProvider = ({ children }) => {
   // Login with Google
   const loginWithGoogle = async () => {
     try {
-      setLoading(true);
       setError(null);
 
       console.log('🚀 [AUTH] Iniciando login con Google...');
@@ -116,7 +115,6 @@ export const AuthProvider = ({ children }) => {
       return result.user;
     } catch (err) {
       console.error('❌ [AUTH] Error en login:', err);
-      setLoading(false);
 
       // Manejar errores específicos de Google Auth
       if (err.code === 'auth/popup-closed-by-user') {

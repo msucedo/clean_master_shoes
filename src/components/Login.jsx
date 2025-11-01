@@ -19,7 +19,7 @@ const Login = () => {
       <div className="login-content">
         {/* Logo y título */}
         <div className="login-logo">
-          <h1 className="login-title">Clean Master Shoes</h1>
+          <img src="/logo.png" alt="Clean Master Shoes" className="login-title" />
           <p className="login-subtitle">Sistema de Gestión</p>
         </div>
 

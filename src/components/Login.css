@@ -32,15 +32,11 @@
 }
 
 .login-title {
-  font-size: 42px;
-  font-weight: 800;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  letter-spacing: -1px;
-  filter: drop-shadow(0 0 20px rgba(255, 0, 110, 0.3));
+  width: 280px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+  filter: drop-shadow(0 0 30px rgba(255, 182, 193, 0.4));
 }
 
 .login-subtitle {
@@ -288,7 +284,7 @@
 /* Responsive */
 @media (max-width: 480px) {
   .login-title {
-    font-size: 32px;
+    width: 200px;
   }
 
   .login-subtitle {

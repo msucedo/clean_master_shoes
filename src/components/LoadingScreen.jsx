@@ -40,7 +40,7 @@ const LoadingScreen = ({ onLoadingComplete }) => {
       <div className="loading-content">
         {/* Logo y título */}
         <div className="loading-logo">
-          <h1 className="loading-title">Clean Master Shoes</h1>
+          <img src="/logo.png" alt="Clean Master Shoes" className="loading-title" />
           <p className="loading-subtitle">Iniciando sesión</p>
         </div>
 
