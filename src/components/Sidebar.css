@@ -38,6 +38,14 @@
     height: auto;
     margin: 0 auto;
     filter: drop-shadow(0 0 20px rgba(255, 182, 193, 0.4));
+    background: transparent;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+.logo-icon-mobile {
+    display: none;
 }
 
 /* Employee Info Section - Replicating EmpleadoItem card style */
@@ -228,6 +236,14 @@
 
     .logo-icon {
         width: 60px;
+    }
+
+    .logo-icon-desktop {
+        display: none;
+    }
+
+    .logo-icon-mobile {
+        display: block;
     }
 
     /* Mostrar avatar del empleado en móvil (reemplaza el logo) */
