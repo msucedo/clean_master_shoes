@@ -3,11 +3,10 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]fotos iphoto
--[]utilizar una base de datos limpia para prod
--[]conectar el numero real de wapp
 
 // PRIORIDAD ALTA
+-[]agregar logo
+-[]validar no sea necesario iniciar sesion a cada rato
 -[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
@@ -62,6 +61,11 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]corte de caja
+-[FEATURE]porfa que al entrar en la tab reportes entre preseleccionado el filtro hoy y el boton corte de caja
+-[FIX]fotos iphoto
+-[FEATURE]utilizar una base de datos limpia para prod
+-[FEATURE]conectar el numero real de wapp
 -[FIX]factura no se descarga en movil ni ipad
 -[FEATURE]al crear una orden, si el cliente no esta registrado, validar con el numero de telefono si esta rgistrado o no, si no esta entonces registralo al crear la orden, y tambien notifica no solo de orden creada si no tambien cliente agregado con exito, en difeentes notificaciones
 -[FEATURE]en la orden, guardar factura al generarla

@@ -202,7 +202,7 @@
 /* Expenses Summary */
 .ccd-expenses-summary {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid #2a2a2a;
@@ -211,8 +211,7 @@
   margin-bottom: 20px;
 }
 
-.ccd-expense-total,
-.ccd-expense-final {
+.ccd-expense-total {
   font-size: 15px;
   font-weight: 600;
   color: #999;
@@ -223,20 +222,6 @@
   font-weight: 800;
   color: #f59e0b;
   margin-left: 10px;
-}
-
-.ccd-expense-final span {
-  font-size: 18px;
-  font-weight: 800;
-  margin-left: 10px;
-}
-
-.ccd-expense-final span.positive {
-  color: #10b981;
-}
-
-.ccd-expense-final span.negative {
-  color: #ef4444;
 }
 
 /* Expenses List */
@@ -341,6 +326,270 @@
   letter-spacing: 0.5px;
 }
 
+/* ========== NUEVOS ESTILOS: Conteo de Ingresos ========== */
+
+/* Subsecciones */
+.ccd-subsection {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.ccd-subsection:last-child {
+  border-bottom: none;
+}
+
+.ccd-subsection-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px 0;
+}
+
+.ccd-value-display {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+}
+
+/* Billetes y Monedas */
+.ccd-denomination-group {
+  margin-bottom: 20px;
+}
+
+.ccd-group-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px 0;
+}
+
+.ccd-bill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ccd-bill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.ccd-bill-item {
+  color:white;
+}
+
+.ccd-bill-calc {
+  color: #00ff88;
+  font-weight: 600;
+}
+
+/* Pagos */
+.ccd-payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ccd-payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #999;
+}
+
+.ccd-payment-item span:last-child {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Subtotales */
+.ccd-subtotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+}
+
+.ccd-subtotal span:last-child {
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+}
+
+/* Total */
+.ccd-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
+  border-radius: 12px;
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(255, 0, 110, 0.4);
+}
+
+.ccd-total span:last-child {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+/* Comparación */
+.ccd-comparison-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ccd-comparison-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+}
+
+.ccd-comparison-item.total {
+  background: rgba(255, 0, 110, 0.1);
+  border: 2px solid #FF006E;
+  font-weight: 700;
+}
+
+.ccd-comp-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+}
+
+.ccd-comparison-item.total .ccd-comp-label {
+  color: #fff;
+  font-size: 15px;
+}
+
+.ccd-comp-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.ccd-comp-diff {
+  font-size: 14px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 8px;
+  min-width: 90px;
+  text-align: center;
+}
+
+.ccd-comp-diff.positive {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.ccd-comp-diff.negative {
+  background: rgba(255, 0, 110, 0.15);
+  color: #FF006E;
+  border: 1px solid rgba(255, 0, 110, 0.3);
+}
+
+/* Resultados */
+.ccd-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.ccd-result-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+}
+
+.ccd-result-item.highlight {
+  background: rgba(255, 0, 110, 0.05);
+  border: 2px solid #FF006E;
+}
+
+.ccd-result-icon {
+  font-size: 32px;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
+  border-radius: 12px;
+}
+
+.ccd-result-info {
+  flex: 1;
+}
+
+.ccd-result-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.ccd-result-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+}
+
+.ccd-result-value.expense {
+  color: #FF006E;
+}
+
+.ccd-result-value.positive {
+  color: #00ff88;
+}
+
+.ccd-result-value.negative {
+  color: #FF006E;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .ccd-stats-grid {
@@ -348,9 +597,7 @@
   }
 
   .ccd-expenses-summary {
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
+    padding: 16px;
   }
 
   .ccd-title {

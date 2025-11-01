@@ -87,32 +87,32 @@ const CashClosureDetail = ({ closure, onClose }) => {
           <div className="ccd-stat-card total">
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Total Ingresos</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.ingresos.total)}</div>
+              <div className="ccd-stat-label">Total Ingresos + Dinero inicial en caja</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.total || 0)}</div>
             </div>
           </div>
 
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Efectivo</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.ingresos.efectivo)}</div>
+              <div className="ccd-stat-label">Ingresos de Efectivo + Dinero inicial en caja</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.efectivo || 0)}</div>
             </div>
           </div>
 
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💳</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Tarjeta</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.ingresos.tarjeta)}</div>
+              <div className="ccd-stat-label">Ingresos de Tarjeta</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.tarjeta || 0)}</div>
             </div>
           </div>
 
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">🏦</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Transferencia</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.ingresos.transferencia)}</div>
+              <div className="ccd-stat-label">Ingresos de Transferencia</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.transferencia || 0)}</div>
             </div>
           </div>
 
@@ -123,37 +123,204 @@ const CashClosureDetail = ({ closure, onClose }) => {
               <div className="ccd-stat-value">{closure.totalOrdenes}</div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="ccd-stat-card">
-            <div className="ccd-stat-icon">⚠️</div>
-            <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Por Cobrar</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.saldoPorCobrar)}</div>
+      {/* Conteo de Ingresos */}
+      <div className="ccd-section">
+        <h3 className="ccd-section-title">📊 Conteo de Ingresos</h3>
+
+        {/* Dinero Inicial */}
+        {closure.dineroInicial !== undefined && (
+          <div className="ccd-subsection">
+            <h4 className="ccd-subsection-title">💰 Dinero Inicial en Caja</h4>
+            <div className="ccd-value-display">
+              {formatCurrency(closure.dineroInicial)}
+            </div>
+          </div>
+        )}
+
+        {/* Efectivo */}
+        {closure.conteoIngresos && closure.conteoIngresos.efectivo && (
+          <div className="ccd-subsection">
+            <h4 className="ccd-subsection-title">💵 Efectivo (Órdenes + caja inicial)</h4>
+
+            {/* Billetes */}
+            {closure.conteoIngresos.efectivo.billetes && (
+              <div className="ccd-denomination-group">
+                <h5 className="ccd-group-label">Billetes</h5>
+                <div className="ccd-bill-list">
+                  {Object.entries(closure.conteoIngresos.efectivo.billetes).map(([denom, cant]) => (
+                    cant > 0 && (
+                      <div key={denom} className="ccd-bill-item">
+                        <span>💵 ${denom}</span>
+                        <span className="ccd-bill-calc">
+                          {cant} × ${denom} = {formatCurrency(parseFloat(denom) * cant)}
+                        </span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Monedas */}
+            {closure.conteoIngresos.efectivo.monedas && (
+              <div className="ccd-denomination-group">
+                <h5 className="ccd-group-label">Monedas</h5>
+                <div className="ccd-bill-list">
+                  {Object.entries(closure.conteoIngresos.efectivo.monedas).map(([denom, cant]) => (
+                    cant > 0 && (
+                      <div key={denom} className="ccd-bill-item">
+                        <span>🪙 ${denom}</span>
+                        <span className="ccd-bill-calc">
+                          {cant} × ${denom} = {formatCurrency(parseFloat(denom) * cant)}
+                        </span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="ccd-subtotal">
+              <span>Total Efectivo:</span>
+              <span>{formatCurrency(closure.conteoIngresos.efectivo.total)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Tarjeta */}
+        {closure.conteoIngresos && closure.conteoIngresos.tarjeta && (
+          <div className="ccd-subsection">
+            <h4 className="ccd-subsection-title">💳 Tarjeta (Terminal/TPV)</h4>
+            {closure.conteoIngresos.tarjeta.cobros && closure.conteoIngresos.tarjeta.cobros.length > 0 && (
+              <div className="ccd-payments-list">
+                {closure.conteoIngresos.tarjeta.cobros.map((monto, index) => (
+                  monto > 0 && (
+                    <div key={index} className="ccd-payment-item">
+                      <span>Cobro #{index + 1}:</span>
+                      <span>{formatCurrency(monto)}</span>
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
+            <div className="ccd-subtotal">
+              <span>Total Tarjeta:</span>
+              <span>{formatCurrency(closure.conteoIngresos.tarjeta.total)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Transferencia */}
+        {closure.conteoIngresos && closure.conteoIngresos.transferencia && (
+          <div className="ccd-subsection">
+            <h4 className="ccd-subsection-title">🏦 Transferencia (Banco/App)</h4>
+            {closure.conteoIngresos.transferencia.transferencias && closure.conteoIngresos.transferencia.transferencias.length > 0 && (
+              <div className="ccd-payments-list">
+                {closure.conteoIngresos.transferencia.transferencias.map((monto, index) => (
+                  monto > 0 && (
+                    <div key={index} className="ccd-payment-item">
+                      <span>Transferencia #{index + 1}:</span>
+                      <span>{formatCurrency(monto)}</span>
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
+            <div className="ccd-subtotal">
+              <span>Total Transferencia:</span>
+              <span>{formatCurrency(closure.conteoIngresos.transferencia.total)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Total Conteo */}
+        {closure.conteoIngresos && closure.conteoIngresos.totalGeneral !== undefined && (
+          <div className="ccd-total">
+            <span>💰 TOTAL CONTEO DE INGRESOS:</span>
+            <span>{formatCurrency(closure.conteoIngresos.totalGeneral)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Dinero en Sistema */}
+      {closure.dineroEnSistema && (
+        <div className="ccd-section">
+          <h3 className="ccd-section-title">💻 Dinero en Caja (Sistema)</h3>
+          <div className="ccd-comparison-list">
+            <div className="ccd-comparison-item">
+              <span className="ccd-comp-label">💵 Efectivo:</span>
+              <span className="ccd-comp-amount">{formatCurrency(closure.dineroEnSistema.efectivo)}</span>
+              {closure.diferencias && (
+                <span className={`ccd-comp-diff ${closure.diferencias.efectivo >= 0 ? 'positive' : 'negative'}`}>
+                  {closure.diferencias.efectivo >= 0 ? '+' : ''}{formatCurrency(closure.diferencias.efectivo)}
+                </span>
+              )}
+            </div>
+            <div className="ccd-comparison-item">
+              <span className="ccd-comp-label">💳 Tarjeta:</span>
+              <span className="ccd-comp-amount">{formatCurrency(closure.dineroEnSistema.tarjeta)}</span>
+              {closure.diferencias && (
+                <span className={`ccd-comp-diff ${closure.diferencias.tarjeta >= 0 ? 'positive' : 'negative'}`}>
+                  {closure.diferencias.tarjeta >= 0 ? '+' : ''}{formatCurrency(closure.diferencias.tarjeta)}
+                </span>
+              )}
+            </div>
+            <div className="ccd-comparison-item">
+              <span className="ccd-comp-label">🏦 Transferencia:</span>
+              <span className="ccd-comp-amount">{formatCurrency(closure.dineroEnSistema.transferencia)}</span>
+              {closure.diferencias && (
+                <span className={`ccd-comp-diff ${closure.diferencias.transferencia >= 0 ? 'positive' : 'negative'}`}>
+                  {closure.diferencias.transferencia >= 0 ? '+' : ''}{formatCurrency(closure.diferencias.transferencia)}
+                </span>
+              )}
+            </div>
+            <div className="ccd-comparison-item total">
+              <span className="ccd-comp-label">💰 Total:</span>
+              <span className="ccd-comp-amount">{formatCurrency(closure.dineroEnSistema.total)}</span>
+              {closure.diferencias && (
+                <span className={`ccd-comp-diff ${closure.diferencias.total >= 0 ? 'positive' : 'negative'}`}>
+                  {closure.diferencias.total >= 0 ? '+' : ''}{formatCurrency(closure.diferencias.total)}
+                </span>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Cash Count */}
-      <div className="ccd-section">
-        <h3 className="ccd-section-title">💵 Conteo de Efectivo</h3>
-        <div className="ccd-cash-summary">
-          <div className="ccd-cash-row">
-            <span>Efectivo Esperado:</span>
-            <span className="ccd-cash-amount">{formatCurrency(closure.efectivo.esperado)}</span>
-          </div>
-          <div className="ccd-cash-row">
-            <span>Efectivo Contado:</span>
-            <span className="ccd-cash-amount">{formatCurrency(closure.efectivo.contado)}</span>
-          </div>
-          <div className={`ccd-cash-row difference ${closure.efectivo.diferencia >= 0 ? 'positive' : 'negative'}`}>
-            <span>Diferencia:</span>
-            <span className="ccd-cash-amount">
-              {closure.efectivo.diferencia >= 0 ? '+' : ''}{formatCurrency(closure.efectivo.diferencia)}
-            </span>
+      {/* Resultados */}
+      {closure.resultados && (
+        <div className="ccd-section">
+          <h3 className="ccd-section-title">📈 Resultados</h3>
+          <div className="ccd-results-grid">
+            <div className="ccd-result-item">
+              <div className="ccd-result-icon">💰</div>
+              <div className="ccd-result-info">
+                <div className="ccd-result-label">Ingresos Totales</div>
+                <div className="ccd-result-value">{formatCurrency(closure.resultados.ingresosTotal)}</div>
+              </div>
+            </div>
+            <div className="ccd-result-item">
+              <div className="ccd-result-icon">📝</div>
+              <div className="ccd-result-info">
+                <div className="ccd-result-label">Gastos Totales</div>
+                <div className="ccd-result-value expense">{formatCurrency(closure.resultados.gastosTotal)}</div>
+              </div>
+            </div>
+            <div className="ccd-result-item highlight">
+              <div className="ccd-result-icon">🎯</div>
+              <div className="ccd-result-info">
+                <div className="ccd-result-label">Ganancia del Día</div>
+                <div className={`ccd-result-value ${closure.resultados.gananciaDia >= 0 ? 'positive' : 'negative'}`}>
+                  {formatCurrency(closure.resultados.gananciaDia)}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Expenses */}
       <div className="ccd-section">
@@ -163,8 +330,8 @@ const CashClosureDetail = ({ closure, onClose }) => {
             Total Gastos: <span>{formatCurrency(closure.gastos.total)}</span>
           </div>
           <div className="ccd-expense-final">
-            Efectivo Final: <span className={closure.netoFinal >= 0 ? 'positive' : 'negative'}>
-              {formatCurrency(closure.netoFinal)}
+            Ganancia del Día: <span className={(closure.resultados?.gananciaDia || 0) >= 0 ? 'positive' : 'negative'}>
+              {formatCurrency(closure.resultados?.gananciaDia || 0)}
             </span>
           </div>
         </div>

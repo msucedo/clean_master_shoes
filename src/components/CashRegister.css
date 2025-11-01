@@ -152,10 +152,6 @@
   background: linear-gradient(90deg, #00d9ff 0%, #0099cc 100%);
 }
 
-.cr-stat-card.pending::before {
-  background: linear-gradient(90deg, #FF006E 0%, #E91E63 100%);
-}
-
 .cr-stat-icon {
   font-size: 32px;
   width: 50px;
@@ -184,10 +180,6 @@
 
 .cr-stat-card.orders .cr-stat-icon {
   background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
-}
-
-.cr-stat-card.pending .cr-stat-icon {
-  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
 }
 
 .cr-stat-info {
@@ -316,7 +308,7 @@
 
 .cr-expenses-summary {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 20px 25px;
   background: #0a0a0a;
@@ -325,8 +317,7 @@
   border: 1px solid #2a2a2a;
 }
 
-.cr-expense-total,
-.cr-expense-final {
+.cr-expense-total {
   font-size: 15px;
   font-weight: 600;
   color: #999;
@@ -337,20 +328,6 @@
   font-size: 20px;
   font-weight: 900;
   margin-left: 10px;
-}
-
-.cr-expense-final span {
-  font-size: 20px;
-  font-weight: 900;
-  margin-left: 10px;
-}
-
-.cr-expense-final span.positive {
-  color: #00ff88;
-}
-
-.cr-expense-final span.negative {
-  color: #FF006E;
 }
 
 .cr-expenses-list {
@@ -476,99 +453,6 @@
   box-shadow: 0 10px 30px rgba(255, 0, 110, 0.5);
 }
 
-/* Orders Table */
-.cr-orders-table-wrapper {
-  overflow-x: auto;
-}
-
-.cr-orders-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.cr-orders-table thead {
-  background: #0a0a0a;
-  border-bottom: 2px solid #2a2a2a;
-}
-
-.cr-orders-table th {
-  padding: 16px 18px;
-  text-align: left;
-  font-weight: 700;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.cr-orders-table td {
-  padding: 16px 18px;
-  border-bottom: 1px solid #2a2a2a;
-  color: #999;
-}
-
-.cr-orders-table tbody tr {
-  transition: all 0.2s;
-}
-
-.cr-orders-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.cr-order-number {
-  font-weight: 700;
-  color: #FF006E;
-  font-size: 15px;
-}
-
-.cr-order-client {
-  font-weight: 600;
-  color: #fff;
-}
-
-.cr-order-total,
-.cr-order-advance,
-.cr-order-remaining {
-  font-weight: 700;
-  text-align: right;
-  color: #fff;
-}
-
-.cr-order-method {
-  text-align: center;
-  color: #888;
-}
-
-.cr-payment-badge {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cr-payment-badge.paid {
-  background: rgba(0, 255, 136, 0.15);
-  color: #00ff88;
-  border: 1px solid rgba(0, 255, 136, 0.3);
-}
-
-.cr-payment-badge.partial {
-  background: rgba(255, 215, 0, 0.15);
-  color: #ffd700;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.cr-payment-badge.pending {
-  background: rgba(255, 0, 110, 0.15);
-  color: #FF006E;
-  border: 1px solid rgba(255, 0, 110, 0.3);
-}
-
 /* Notes Section */
 .cr-notes-textarea {
   width: 100%;
@@ -630,6 +514,466 @@
   box-shadow: none;
 }
 
+/* ========== NUEVOS ESTILOS: Conteo de Ingresos ========== */
+
+/* Subsecciones */
+.cr-subsection {
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.nocash {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.cr-subsection:last-child {
+  border-bottom: none;
+}
+
+.cr-subsection-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Dinero Inicial */
+.cr-inicial-input {
+  max-width: 400px;
+}
+
+/* Billetes y Monedas */
+.cr-denomination-group {
+  margin-bottom: 24px;
+}
+
+.cr-subsection-conteoBilletesMonedas {
+  display: flex;
+  gap:15px;
+}
+
+.cr-group-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.cr-bill-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cr-bill-row {
+  display: grid;
+  grid-template-columns: 63px 40px 56px 40px 30px 110px;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.cr-bill-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: #3a3a3a;
+}
+
+.cr-bill-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.cr-bill-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: #fff;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.cr-bill-input:focus {
+  outline: none;
+  border-color: #FF006E;
+  box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
+}
+
+.cr-bill-btn-increment,
+.cr-bill-btn-decrement {
+  width: 100%;
+  height: 36px;
+  font-size: 18px;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.cr-bill-btn-increment {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 217, 163, 0.15) 100%);
+}
+
+.cr-bill-btn-increment:hover {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.25) 0%, rgba(0, 217, 163, 0.25) 100%);
+  border-color: #00ff88;
+  transform: scale(1.05);
+}
+
+.cr-bill-btn-increment:active {
+  transform: scale(0.95);
+}
+
+.cr-bill-btn-decrement {
+  background: linear-gradient(135deg, rgba(255, 0, 110, 0.15) 0%, rgba(233, 30, 99, 0.15) 100%);
+}
+
+.cr-bill-btn-decrement:hover {
+  background: linear-gradient(135deg, rgba(255, 0, 110, 0.25) 0%, rgba(233, 30, 99, 0.25) 100%);
+  border-color: #FF006E;
+  transform: scale(1.05);
+}
+
+.cr-bill-btn-decrement:active {
+  transform: scale(0.95);
+}
+
+.cr-bill-multiply,
+.cr-bill-equal {
+  font-size: 16px;
+  color: #666;
+  font-weight: 600;
+  text-align: center;
+}
+
+.cr-bill-denom {
+  font-size: 14px;
+  color: #888;
+  font-weight: 600;
+}
+
+.cr-bill-total {
+  font-size: 15px;
+  font-weight: 700;
+  color: #00ff88;
+  text-align: right;
+}
+
+/* Subtotales */
+.cr-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #999;
+}
+
+.cr-subsection-conteoBilletesMonedas .cr-subtotal-row {
+  align-items: start;
+  max-height: 5vi;
+  margin-top: 28px;
+}
+
+.cr-subtotal-amount {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+
+/* Pagos (Tarjeta y Transferencia) */
+.cr-payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cr-payment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+}
+
+.cr-payment-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+}
+
+.cr-payment-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: #fff;
+  transition: all 0.3s;
+}
+
+.cr-payment-input:focus {
+  outline: none;
+  border-color: #FF006E;
+  box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
+}
+
+.cr-payment-delete {
+  background: rgba(255, 0, 110, 0.1);
+  border: 1px solid rgba(255, 0, 110, 0.2);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  opacity: 0.7;
+}
+
+.cr-payment-delete:hover {
+  background: rgba(255, 0, 110, 0.2);
+  border-color: #FF006E;
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.cr-add-payment-btn {
+  background: rgba(255, 0, 110, 0.1);
+  color: #FF006E;
+  border: 1px dashed rgba(255, 0, 110, 0.3);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cr-add-payment-btn:hover {
+  background: rgba(255, 0, 110, 0.2);
+  border-style: solid;
+}
+
+/* Total General */
+.cr-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
+  border-radius: 16px;
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 8px 25px rgba(255, 0, 110, 0.4);
+}
+
+.cr-total-amount {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+/* Comparación (Dinero en Sistema) */
+.cr-comparison-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cr-comparison-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.cr-comparison-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: #3a3a3a;
+}
+
+.cr-comparison-row.total {
+  background: #1a1a1a;
+  border: 2px solid #FF006E;
+  font-weight: 700;
+}
+
+.cr-comp-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999;
+}
+
+.cr-comparison-row.total .cr-comp-label {
+  color: #fff;
+  font-size: 16px;
+}
+
+.cr-comp-amount {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.cr-comp-diff {
+  font-size: 15px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 8px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.cr-comp-diff.positive {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.cr-comp-diff.negative {
+  background: rgba(255, 0, 110, 0.15);
+  color: #FF006E;
+  border: 1px solid rgba(255, 0, 110, 0.3);
+}
+
+/* Alertas */
+.cr-alert {
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cr-alert.info {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.cr-alert.warning {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Resultados */
+.cr-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.cr-result-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  transition: all 0.3s;
+}
+
+.cr-result-card:hover {
+  transform: translateY(-3px);
+  border-color: #3a3a3a;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+}
+
+.cr-result-card.highlight {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 2px solid #FF006E;
+}
+
+.cr-result-icon {
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
+  border-radius: 14px;
+}
+
+.cr-result-info {
+  flex: 1;
+}
+
+.cr-result-label {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.cr-result-sublabel {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.cr-result-value {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
+}
+
+.cr-result-value.expense {
+  color: #FF006E;
+}
+
+.cr-result-value.positive {
+  color: #00ff88;
+}
+
+.cr-result-value.negative {
+  color: #FF006E;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .cr-stats-grid {
@@ -639,15 +983,23 @@
   .cr-cash-grid {
     grid-template-columns: 1fr;
   }
+
+  .cr-subsection-conteoBilletesMonedas {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 768px) {
+  .cr-subsection-conteoBilletesMonedas .cr-subtotal-row {
+    max-height: 18vi;
+  }
+
   .cash-register {
     gap: 16px;
   }
 
   .cr-section {
-    padding: 20px;
+    padding: 10px;
     border-radius: 16px;
   }
 
@@ -666,9 +1018,7 @@
   }
 
   .cr-expenses-summary {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
+    padding: 16px 20px;
   }
 
   .cr-expense-item {
@@ -684,12 +1034,85 @@
     margin-top: 10px;
   }
 
-  .cr-orders-table {
+  /* Responsive para nuevas secciones */
+  .cr-bill-row {
+    grid-template-columns: 38px 30px 40px 30px 9px 30px;
+    gap: 3px;
+    padding: 10px;
+  }
+
+  .cr-subsection-conteoBilletesMonedas {
+    flex-direction: column;
+  }
+
+  .cr-bill-label {
     font-size: 12px;
   }
 
-  .cr-orders-table th,
-  .cr-orders-table td {
-    padding: 12px 10px;
+  .cr-bill-input {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .cr-bill-btn-increment,
+  .cr-bill-btn-decrement {
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .cr-bill-multiply,
+  .cr-bill-equal {
+    font-size: 14px;
+  }
+
+  .cr-bill-denom {
+    font-size: 12px;
+  }
+
+  .cr-bill-total {
+    font-size: 13px;
+  }
+
+  .cr-payment-label {
+    font-size: 13px;
+  }
+
+  .cr-payment-input {
+    padding: 8px 12px;
+    font-size: 14px;
+    max-width: 60px;
+  }
+
+  .cr-comparison-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .cr-comp-amount,
+  .cr-comp-diff {
+    text-align: left;
+  }
+
+  .cr-results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cr-result-card {
+    padding: 20px;
+  }
+
+  .cr-result-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+  }
+
+  .cr-result-value {
+    font-size: 22px;
+  }
+
+  .nocash {
+    flex-direction: column;
   }
 }

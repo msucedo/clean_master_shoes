@@ -17,7 +17,6 @@ const CashRegister = ({ orders, dateFilter }) => {
   const { showSuccess, showError } = useNotification();
 
   const [expenses, setExpenses] = useState([]);
-  const [cashCounted, setCashCounted] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [employees, setEmployees] = useState([]);
@@ -28,6 +27,33 @@ const CashRegister = ({ orders, dateFilter }) => {
     message: '',
     onConfirm: null
   });
+
+  // Nuevo: Estados para conteo de ingresos
+  const [dineroInicial, setDineroInicial] = useState('');
+
+  // Efectivo - Billetes y monedas
+  const [billetes, setBilletes] = useState({
+    1000: 0,
+    500: 0,
+    200: 0,
+    100: 0,
+    50: 0,
+    20: 0
+  });
+
+  const [monedas, setMonedas] = useState({
+    10: 0,
+    5: 0,
+    2: 0,
+    1: 0,
+    0.5: 0
+  });
+
+  // Tarjeta - Lista de cobros
+  const [cobrosTarjeta, setCobrosTarjeta] = useState([{ monto: '' }]);
+
+  // Transferencia - Lista de transferencias
+  const [transferencias, setTransferencias] = useState([{ monto: '' }]);
 
   // Load employees
   useEffect(() => {
@@ -94,28 +120,32 @@ const CashRegister = ({ orders, dateFilter }) => {
     let cardIncome = 0;
     let transferIncome = 0;
     let totalOrders = 0;
-    let pendingPayments = 0;
 
     orders.forEach(order => {
       const total = parseFloat(order.totalPrice) || 0;
       const advance = parseFloat(order.advancePayment) || 0;
-      const remaining = total - advance;
 
-      totalIncome += advance;
+      // Determine amount to count based on payment status
+      let amountToCount = 0;
+      if (order.paymentStatus === 'paid') {
+        // If fully paid, count the total amount
+        amountToCount = total;
+      } else if (order.paymentStatus === 'partial') {
+        // If partial, count only the advance
+        amountToCount = advance;
+      }
+      // If pending, amountToCount stays 0
+
+      totalIncome += amountToCount;
       totalOrders++;
 
       // Count by payment method
-      if (order.paymentMethod === 'cash' && advance > 0) {
-        cashIncome += advance;
-      } else if (order.paymentMethod === 'card' && advance > 0) {
-        cardIncome += advance;
-      } else if (order.paymentMethod === 'transfer' && advance > 0) {
-        transferIncome += advance;
-      }
-
-      // Pending payments
-      if (order.paymentStatus === 'partial' || order.paymentStatus === 'pending') {
-        pendingPayments += remaining;
+      if (order.paymentMethod === 'cash' && amountToCount > 0) {
+        cashIncome += amountToCount;
+      } else if (order.paymentMethod === 'card' && amountToCount > 0) {
+        cardIncome += amountToCount;
+      } else if (order.paymentMethod === 'transfer' && amountToCount > 0) {
+        transferIncome += amountToCount;
       }
     });
 
@@ -124,8 +154,7 @@ const CashRegister = ({ orders, dateFilter }) => {
       cashIncome,
       cardIncome,
       transferIncome,
-      totalOrders,
-      pendingPayments
+      totalOrders
     };
   };
 
@@ -134,11 +163,139 @@ const CashRegister = ({ orders, dateFilter }) => {
   // Calculate expenses total
   const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
-  // Cash calculations
-  const expectedCash = summary.cashIncome;
-  const countedCash = parseFloat(cashCounted) || 0;
-  const cashDifference = countedCash - expectedCash;
-  const finalCash = countedCash - totalExpenses;
+  // ==== NUEVOS CÁLCULOS: Conteo de Ingresos ====
+
+  // Calcular total de efectivo contado
+  const calcularEfectivoContado = () => {
+    let totalBilletes = 0;
+    Object.keys(billetes).forEach(denominacion => {
+      totalBilletes += parseFloat(denominacion) * parseInt(billetes[denominacion] || 0);
+    });
+
+    let totalMonedas = 0;
+    Object.keys(monedas).forEach(denominacion => {
+      totalMonedas += parseFloat(denominacion) * parseInt(monedas[denominacion] || 0);
+    });
+
+    return totalBilletes + totalMonedas;
+  };
+
+  // Calcular total de cobros con tarjeta
+  const calcularTotalTarjeta = () => {
+    return cobrosTarjeta.reduce((sum, cobro) => {
+      return sum + (parseFloat(cobro.monto) || 0);
+    }, 0);
+  };
+
+  // Calcular total de transferencias
+  const calcularTotalTransferencias = () => {
+    return transferencias.reduce((sum, trans) => {
+      return sum + (parseFloat(trans.monto) || 0);
+    }, 0);
+  };
+
+  // Totales del conteo
+  const efectivoContado = calcularEfectivoContado();
+  const tarjetaContada = calcularTotalTarjeta();
+  const transferenciaContada = calcularTotalTransferencias();
+  const totalConteoIngresos = efectivoContado + tarjetaContada + transferenciaContada;
+  const dineroInicialNum = parseFloat(dineroInicial) || 0;
+
+  // Totales del sistema (ventas registradas + dinero inicial)
+  const efectivoSistema = summary.cashIncome + dineroInicialNum;
+  const tarjetaSistema = summary.cardIncome;
+  const transferenciaSistema = summary.transferIncome;
+  const totalSistema = efectivoSistema + tarjetaSistema + transferenciaSistema;
+
+  // Diferencias (contado vs sistema)
+  const diferenciaEfectivo = efectivoContado - efectivoSistema;
+  const diferenciaTarjeta = tarjetaContada - tarjetaSistema;
+  const diferenciaTransferencia = transferenciaContada - transferenciaSistema;
+  const diferenciasTotal = diferenciaEfectivo + diferenciaTarjeta + diferenciaTransferencia;
+
+  // Resultados finales
+
+  const ingresosTotal = totalConteoIngresos;
+  const gananciaDia = totalConteoIngresos - dineroInicialNum - totalExpenses;
+
+  // Handlers para billetes y monedas
+  const handleBilleteChange = (denominacion, valor) => {
+    setBilletes(prev => ({
+      ...prev,
+      [denominacion]: parseInt(valor) || 0
+    }));
+  };
+
+  const incrementarBillete = (denominacion) => {
+    setBilletes(prev => ({
+      ...prev,
+      [denominacion]: (prev[denominacion] || 0) + 1
+    }));
+  };
+
+  const decrementarBillete = (denominacion) => {
+    setBilletes(prev => ({
+      ...prev,
+      [denominacion]: Math.max(0, (prev[denominacion] || 0) - 1)
+    }));
+  };
+
+  const handleMonedaChange = (denominacion, valor) => {
+    setMonedas(prev => ({
+      ...prev,
+      [denominacion]: parseInt(valor) || 0
+    }));
+  };
+
+  const incrementarMoneda = (denominacion) => {
+    setMonedas(prev => ({
+      ...prev,
+      [denominacion]: (prev[denominacion] || 0) + 1
+    }));
+  };
+
+  const decrementarMoneda = (denominacion) => {
+    setMonedas(prev => ({
+      ...prev,
+      [denominacion]: Math.max(0, (prev[denominacion] || 0) - 1)
+    }));
+  };
+
+  // Handlers para tarjeta
+  const handleCobroTarjetaChange = (index, valor) => {
+    const nuevosCobros = [...cobrosTarjeta];
+    nuevosCobros[index].monto = valor;
+    setCobrosTarjeta(nuevosCobros);
+  };
+
+  const agregarCobroTarjeta = () => {
+    setCobrosTarjeta([...cobrosTarjeta, { monto: '' }]);
+  };
+
+  const eliminarCobroTarjeta = (index) => {
+    if (cobrosTarjeta.length > 1) {
+      const nuevosCobros = cobrosTarjeta.filter((_, i) => i !== index);
+      setCobrosTarjeta(nuevosCobros);
+    }
+  };
+
+  // Handlers para transferencia
+  const handleTransferenciaChange = (index, valor) => {
+    const nuevasTransferencias = [...transferencias];
+    nuevasTransferencias[index].monto = valor;
+    setTransferencias(nuevasTransferencias);
+  };
+
+  const agregarTransferencia = () => {
+    setTransferencias([...transferencias, { monto: '' }]);
+  };
+
+  const eliminarTransferencia = (index) => {
+    if (transferencias.length > 1) {
+      const nuevasTransferencias = transferencias.filter((_, i) => i !== index);
+      setTransferencias(nuevasTransferencias);
+    }
+  };
 
   const handleAddExpense = async (expenseData) => {
     try {
@@ -199,25 +356,53 @@ const CashRegister = ({ orders, dateFilter }) => {
               fin: endDate,
               tipo: dateFilter.toLowerCase()
             },
-            ingresos: {
-              total: summary.totalIncome,
-              efectivo: summary.cashIncome,
-              tarjeta: summary.cardIncome,
-              transferencia: summary.transferIncome
+            // Dinero inicial
+            dineroInicial: dineroInicialNum,
+            // Conteo de ingresos (lo que el usuario contó físicamente)
+            conteoIngresos: {
+              efectivo: {
+                billetes: { ...billetes },
+                monedas: { ...monedas },
+                total: efectivoContado
+              },
+              tarjeta: {
+                cobros: cobrosTarjeta.map(c => parseFloat(c.monto) || 0),
+                total: tarjetaContada
+              },
+              transferencia: {
+                transferencias: transferencias.map(t => parseFloat(t.monto) || 0),
+                total: transferenciaContada
+              },
+              totalGeneral: totalConteoIngresos
             },
-            efectivo: {
-              esperado: expectedCash,
-              contado: countedCash,
-              diferencia: cashDifference
+            // Dinero en sistema (lo que el sistema tiene registrado)
+            dineroEnSistema: {
+              efectivo: efectivoSistema,
+              tarjeta: tarjetaSistema,
+              transferencia: transferenciaSistema,
+              total: totalSistema
             },
+            // Diferencias (contado vs sistema)
+            diferencias: {
+              efectivo: diferenciaEfectivo,
+              tarjeta: diferenciaTarjeta,
+              transferencia: diferenciaTransferencia,
+              total: diferenciasTotal
+            },
+            // Gastos
             gastos: {
               items: expenses.map(e => ({ ...e })),
               total: totalExpenses
             },
+            // Resultados finales
+            resultados: {
+              ingresosTotal: ingresosTotal,
+              gastosTotal: totalExpenses,
+              gananciaDia: gananciaDia
+            },
+            // Info adicional
             ordenes: orders.map(o => o.id),
             totalOrdenes: summary.totalOrders,
-            netoFinal: finalCash,
-            saldoPorCobrar: summary.pendingPayments,
             notas: notes
           };
 
@@ -225,7 +410,11 @@ const CashRegister = ({ orders, dateFilter }) => {
           showSuccess('Corte de caja cerrado exitosamente');
 
           // Reset form
-          setCashCounted('');
+          setDineroInicial('');
+          setBilletes({ 1000: 0, 500: 0, 200: 0, 100: 0, 50: 0, 20: 0 });
+          setMonedas({ 10: 0, 5: 0, 2: 0, 1: 0, 0.5: 0 });
+          setCobrosTarjeta([{ monto: '' }]);
+          setTransferencias([{ monto: '' }]);
           setNotes('');
           setSelectedEmployee('');
 
@@ -280,16 +469,6 @@ const CashRegister = ({ orders, dateFilter }) => {
     }).format(date);
   };
 
-  const getPaymentMethodLabel = (method) => {
-    const labels = {
-      cash: 'Efectivo',
-      card: 'Tarjeta',
-      transfer: 'Transferencia',
-      pending: 'Pendiente'
-    };
-    return labels[method] || method;
-  };
-
   return (
     <div className="cash-register">
       {/* Financial Summary Section */}
@@ -311,7 +490,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           <div className="cr-stat-card cash">
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
-              <div className="cr-stat-label">Efectivo</div>
+              <div className="cr-stat-label">Ingresos de Efectivo</div>
               <div className="cr-stat-value">{formatCurrency(summary.cashIncome)}</div>
             </div>
           </div>
@@ -319,7 +498,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           <div className="cr-stat-card card">
             <div className="cr-stat-icon">💳</div>
             <div className="cr-stat-info">
-              <div className="cr-stat-label">Tarjeta</div>
+              <div className="cr-stat-label">Ingresos de Tarjeta</div>
               <div className="cr-stat-value">{formatCurrency(summary.cardIncome)}</div>
             </div>
           </div>
@@ -327,7 +506,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           <div className="cr-stat-card transfer">
             <div className="cr-stat-icon">🏦</div>
             <div className="cr-stat-info">
-              <div className="cr-stat-label">Transferencia</div>
+              <div className="cr-stat-label"> Ingresos de Transferencia</div>
               <div className="cr-stat-value">{formatCurrency(summary.transferIncome)}</div>
             </div>
           </div>
@@ -339,51 +518,274 @@ const CashRegister = ({ orders, dateFilter }) => {
               <div className="cr-stat-value">{summary.totalOrders}</div>
             </div>
           </div>
-
-          <div className="cr-stat-card pending">
-            <div className="cr-stat-icon">⚠️</div>
-            <div className="cr-stat-info">
-              <div className="cr-stat-label">Por Cobrar</div>
-              <div className="cr-stat-value">{formatCurrency(summary.pendingPayments)}</div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Cash Count Section */}
+      {/* NUEVA SECCIÓN 1: Conteo de Ingresos */}
       <div className="cr-section">
         <div className="cr-section-header">
-          <h3>💵 Conteo de Efectivo</h3>
+          <h3>📊 Conteo de Ingresos</h3>
         </div>
 
-        <div className="cr-cash-grid">
-          <div className="cr-cash-input">
-            <label>Efectivo en Caja (Real)</label>
+        {/* Dinero Inicial */}
+        <div className="cr-subsection">
+          <h4 className="cr-subsection-title">💰 Dinero Inicial en Caja</h4>
+          <div className="cr-inicial-input">
             <input
               type="number"
               className="cr-input"
-              value={cashCounted}
-              onChange={(e) => setCashCounted(e.target.value)}
+              value={dineroInicial}
+              onChange={(e) => setDineroInicial(e.target.value)}
               placeholder="0.00"
               step="0.01"
               min="0"
             />
           </div>
+        </div>
 
-          <div className="cr-cash-summary">
-            <div className="cr-cash-row">
-              <span>Efectivo Esperado:</span>
-              <span className="cr-cash-amount">{formatCurrency(expectedCash)}</span>
+        {/* Efectivo - Billetes y Monedas */}
+        <div className="cr-subsection">
+          <h4 className="cr-subsection-title">💵 Efectivo</h4>
+          <div className='cr-subsection-conteoBilletesMonedas'>
+          {/* Billetes */}
+          <div className="cr-denomination-group">
+            <h5 className="cr-group-label">Billetes</h5>
+            <div className="cr-bill-grid">
+              {[1000, 500, 200, 100, 50, 20].map(denominacion => (
+                <div key={denominacion} className="cr-bill-row">
+                  <span className="cr-bill-label">${denominacion}</span>
+                  <button
+                    className="cr-bill-btn-decrement"
+                    onClick={() => decrementarBillete(denominacion)}
+                    type="button"
+                  >
+                    ⬇️
+                  </button>
+                  <input
+                    type="number"
+                    className="cr-bill-input"
+                    value={billetes[denominacion]!=0?billetes[denominacion]:""}
+                    readOnly
+                    placeholder="0"
+                  />
+                  <button
+                    className="cr-bill-btn-increment"
+                    onClick={() => incrementarBillete(denominacion)}
+                    type="button"
+                  >
+                    ⬆️
+                  </button>
+                  <span className="cr-bill-equal">=</span>
+                  <span className="cr-bill-total">
+                    {formatCurrency(denominacion * billetes[denominacion])}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="cr-cash-row">
-              <span>Efectivo Contado:</span>
-              <span className="cr-cash-amount">{formatCurrency(countedCash)}</span>
+          </div>
+
+          {/* Monedas */}
+          <div className="cr-denomination-group">
+            <h5 className="cr-group-label">Monedas</h5>
+            <div className="cr-bill-grid">
+              {[10, 5, 2, 1, 0.5].map(denominacion => (
+                <div key={denominacion} className="cr-bill-row">
+                  <span className="cr-bill-label">${denominacion}</span>
+                  <button
+                    className="cr-bill-btn-decrement"
+                    onClick={() => decrementarMoneda(denominacion)}
+                    type="button"
+                  >
+                    ⬇️
+                  </button>
+                  <input
+                    type="number"
+                    className="cr-bill-input"
+                    value={monedas[denominacion]!=0?monedas[denominacion]:""}
+                    readOnly
+                    placeholder="0"
+                  />
+                  <button
+                    className="cr-bill-btn-increment"
+                    onClick={() => incrementarMoneda(denominacion)}
+                    type="button"
+                  >
+                    ⬆️
+                  </button>
+                  <span className="cr-bill-equal">=</span>
+                  <span className="cr-bill-total">
+                    {formatCurrency(denominacion * monedas[denominacion])}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className={`cr-cash-row difference ${cashDifference >= 0 ? 'positive' : 'negative'}`}>
-              <span>Diferencia:</span>
-              <span className="cr-cash-amount">
-                {cashDifference >= 0 ? '+' : ''}{formatCurrency(cashDifference)}
-              </span>
+          </div>
+          {/* Total Efectivo */}
+          <div className="cr-subtotal-row">
+            <span>Total Efectivo Contado:</span>
+            <span className="cr-subtotal-amount">{formatCurrency(efectivoContado)}</span>
+          </div>
+          </div>
+        </div>
+        <div className='cr-subsection nocash'>
+        {/* Tarjeta */}
+        <div className="cr-subsection">
+          <h4 className="cr-subsection-title">💳 Tarjeta (Terminal/TPV)</h4>
+          <div className="cr-payments-list">
+            {cobrosTarjeta.map((cobro, index) => (
+              <div key={index} className="cr-payment-row">
+                <span className="cr-payment-label">Cobro #{index + 1}:</span>
+                <input
+                  type="number"
+                  className="cr-payment-input"
+                  value={cobro.monto}
+                  onChange={(e) => handleCobroTarjetaChange(index, e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+                {cobrosTarjeta.length > 1 && (
+                  <button
+                    className="cr-payment-delete"
+                    onClick={() => eliminarCobroTarjeta(index)}
+                    title="Eliminar cobro"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+            ))}
+            <button className="cr-add-payment-btn" onClick={agregarCobroTarjeta}>
+              + Agregar otro cobro
+            </button>
+          </div>
+          <div className="cr-subtotal-row">
+            <span>Total Tarjeta:</span>
+            <span className="cr-subtotal-amount">{formatCurrency(tarjetaContada)}</span>
+          </div>
+        </div>
+
+        {/* Transferencia */}
+        <div className="cr-subsection">
+          <h4 className="cr-subsection-title">🏦 Transferencia (Banco/App)</h4>
+          <div className="cr-payments-list">
+            {transferencias.map((trans, index) => (
+              <div key={index} className="cr-payment-row">
+                <span className="cr-payment-label">Transferencia #{index + 1}:</span>
+                <input
+                  type="number"
+                  className="cr-payment-input"
+                  value={trans.monto}
+                  onChange={(e) => handleTransferenciaChange(index, e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                />
+                {transferencias.length > 1 && (
+                  <button
+                    className="cr-payment-delete"
+                    onClick={() => eliminarTransferencia(index)}
+                    title="Eliminar transferencia"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
+            ))}
+            <button className="cr-add-payment-btn" onClick={agregarTransferencia}>
+              + Agregar otra transferencia
+            </button>
+          </div>
+          <div className="cr-subtotal-row">
+            <span>Total Transferencia:</span>
+            <span className="cr-subtotal-amount">{formatCurrency(transferenciaContada)}</span>
+          </div>
+        </div>
+        </div>
+        {/* Total General del Conteo */}
+        <div className="cr-total-row">
+          <span>💰 TOTAL CONTEO DE INGRESOS:</span>
+          <span className="cr-total-amount">{formatCurrency(totalConteoIngresos)}</span>
+        </div>
+      </div>
+
+      {/* NUEVA SECCIÓN 2: Dinero en Caja (Sistema) */}
+      <div className="cr-section">
+        <div className="cr-section-header">
+          <h3>💻 Dinero en Caja (Sistema)</h3>
+        </div>
+
+        <div className="cr-comparison-grid">
+          <div className="cr-comparison-row">
+            <span className="cr-comp-label">💵 Efectivo en Sistema(órdenes + caja inicial):</span>
+            <span className="cr-comp-amount">{formatCurrency(efectivoSistema)}</span>
+            <span className={`cr-comp-diff ${diferenciaEfectivo >= 0 ? 'positive' : 'negative'}`}>
+              {diferenciaEfectivo >= 0 ? '+' : ''}{formatCurrency(diferenciaEfectivo)}
+            </span>
+          </div>
+          <div className="cr-comparison-row">
+            <span className="cr-comp-label">💳 Tarjeta en Sistema:</span>
+            <span className="cr-comp-amount">{formatCurrency(tarjetaSistema)}</span>
+            <span className={`cr-comp-diff ${diferenciaTarjeta >= 0 ? 'positive' : 'negative'}`}>
+              {diferenciaTarjeta >= 0 ? '+' : ''}{formatCurrency(diferenciaTarjeta)}
+            </span>
+          </div>
+          <div className="cr-comparison-row">
+            <span className="cr-comp-label">🏦 Transferencia en Sistema:</span>
+            <span className="cr-comp-amount">{formatCurrency(transferenciaSistema)}</span>
+            <span className={`cr-comp-diff ${diferenciaTransferencia >= 0 ? 'positive' : 'negative'}`}>
+              {diferenciaTransferencia >= 0 ? '+' : ''}{formatCurrency(diferenciaTransferencia)}
+            </span>
+          </div>
+          <div className="cr-comparison-row total">
+            <span className="cr-comp-label">💰 Total en Sistema:</span>
+            <span className="cr-comp-amount">{formatCurrency(totalSistema)}</span>
+            <span className={`cr-comp-diff ${diferenciasTotal >= 0 ? 'positive' : 'negative'}`}>
+              {diferenciasTotal >= 0 ? '+' : ''}{formatCurrency(diferenciasTotal)}
+            </span>
+          </div>
+        </div>
+
+        {diferenciasTotal !== 0 && (
+          <div className={`cr-alert ${diferenciasTotal >= 0 ? 'info' : 'warning'}`}>
+            {diferenciasTotal > 0 ? '✅' : '⚠️'} Diferencia total: {diferenciasTotal > 0 ? 'Sobrante' : 'Faltante'} de {formatCurrency(Math.abs(diferenciasTotal))}
+          </div>
+        )}
+      </div>
+
+      {/* NUEVA SECCIÓN 3: Resultados */}
+      <div className="cr-section">
+        <div className="cr-section-header">
+          <h3>📈 Resultados</h3>
+        </div>
+
+        <div className="cr-results-grid">
+          <div className="cr-result-card">
+            <div className="cr-result-icon">💰</div>
+            <div className="cr-result-info">
+              <div className="cr-result-label">Total en Caja</div>
+              <div className="cr-result-sublabel">Efectivo + Tarjeta + Transferencia</div>
+              <div className="cr-result-value">{formatCurrency(ingresosTotal)}</div>
+            </div>
+          </div>
+
+          <div className="cr-result-card">
+            <div className="cr-result-icon">📝</div>
+            <div className="cr-result-info">
+              <div className="cr-result-label">Gastos Totales</div>
+              <div className="cr-result-sublabel">{expenses.length} gastos</div>
+              <div className="cr-result-value expense">{formatCurrency(totalExpenses)}</div>
+            </div>
+          </div>
+
+          <div className="cr-result-card highlight">
+            <div className="cr-result-icon">🎯</div>
+            <div className="cr-result-info">
+              <div className="cr-result-label">Ganancia del Día</div>
+              <div className="cr-result-sublabel">Ingresos - Dinero Inicial - Gastos</div>
+              <div className={`cr-result-value ${gananciaDia >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(gananciaDia)}
+              </div>
             </div>
           </div>
         </div>
@@ -404,11 +806,6 @@ const CashRegister = ({ orders, dateFilter }) => {
         <div className="cr-expenses-summary">
           <div className="cr-expense-total">
             Total Gastos: <span>{formatCurrency(totalExpenses)}</span>
-          </div>
-          <div className="cr-expense-final">
-            Efectivo Final: <span className={finalCash >= 0 ? 'positive' : 'negative'}>
-              {formatCurrency(finalCash)}
-            </span>
           </div>
         </div>
 
@@ -447,63 +844,6 @@ const CashRegister = ({ orders, dateFilter }) => {
             >
               + Agregar Primer Gasto
             </button>
-          </div>
-        )}
-      </div>
-
-      {/* Orders List Section */}
-      <div className="cr-section">
-        <div className="cr-section-header">
-          <h3>📋 Detalle de Órdenes ({orders.length})</h3>
-        </div>
-
-        {orders.length > 0 ? (
-          <div className="cr-orders-table-wrapper">
-            <table className="cr-orders-table">
-              <thead>
-                <tr>
-                  <th># Orden</th>
-                  <th>Cliente</th>
-                  <th>Total</th>
-                  <th>Anticipo</th>
-                  <th>Saldo</th>
-                  <th>Método</th>
-                  <th>Estado Pago</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map(order => {
-                  const total = parseFloat(order.totalPrice) || 0;
-                  const advance = parseFloat(order.advancePayment) || 0;
-                  // Si está pagado, el saldo es 0 (sin importar si hubo anticipo o se pagó al final)
-                  const remaining = order.paymentStatus === 'paid' ? 0 : (total - advance);
-
-                  return (
-                    <tr key={order.id}>
-                      <td className="cr-order-number">{parseInt(order.orderNumber, 10)}</td>
-                      <td className="cr-order-client">{order.client}</td>
-                      <td className="cr-order-total">{formatCurrency(total)}</td>
-                      <td className="cr-order-advance">{formatCurrency(advance)}</td>
-                      <td className="cr-order-remaining">
-                        {formatCurrency(remaining)}
-                      </td>
-                      <td className="cr-order-method">{getPaymentMethodLabel(order.paymentMethod)}</td>
-                      <td>
-                        <span className={`cr-payment-badge ${order.paymentStatus}`}>
-                          {order.paymentStatus === 'paid' ? 'Pagado' :
-                           order.paymentStatus === 'partial' ? 'Parcial' : 'Pendiente'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="cr-empty-state">
-            <div className="cr-empty-icon">📦</div>
-            <div className="cr-empty-text">No hay órdenes en este periodo</div>
           </div>
         )}
       </div>
@@ -548,7 +888,7 @@ const CashRegister = ({ orders, dateFilter }) => {
         <button
           className="cr-btn-close"
           onClick={handleCloseCashRegister}
-          disabled={orders.length === 0 || !selectedEmployee}
+          disabled={orders.length === 0 || !selectedEmployee || diferenciasTotal !== 0}
         >
           🔒 Cerrar Corte de Caja
         </button>

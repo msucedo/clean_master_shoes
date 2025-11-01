@@ -8,8 +8,8 @@ import { subscribeToOrders } from '../services/firebaseService';
 import './Reports.css';
 
 const Reports = () => {
-  const [activeFilter, setActiveFilter] = useState('Mes');
-  const [activeTab, setActiveTab] = useState('reportes');
+  const [activeFilter, setActiveFilter] = useState('Hoy');
+  const [activeTab, setActiveTab] = useState('corte');
   const [selectedClosure, setSelectedClosure] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [orders, setOrders] = useState({
@@ -125,10 +125,10 @@ const Reports = () => {
       ...orders.completados
     ];
 
-    // Filter by date range
+    // Filter by date range (using completion date for cash register)
     return allOrders.filter(order => {
-      if (!order.createdAt) return false;
-      const orderDate = new Date(order.createdAt);
+      if (!order.completedDate) return false;
+      const orderDate = new Date(order.completedDate);
       return orderDate >= startDate && orderDate <= endDate;
     });
   };
