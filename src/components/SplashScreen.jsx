@@ -58,7 +58,7 @@ const SplashScreen = ({ onComplete }) => {
         {/* Logo con glow effect */}
         <div className="splash-logo">
           <div className="splash-logo-glow" />
-          <span className="splash-logo-emoji">👟</span>
+          <img src="/logo.png" alt="Clean Master Shoes" className="splash-logo-emoji" />
         </div>
 
         {/* Pulso de luz */}
@@ -69,17 +69,6 @@ const SplashScreen = ({ onComplete }) => {
         {/* Texto revelándose */}
         {(stage === 'text' || stage === 'pulse' || stage === 'fadeOut') && (
           <div className="splash-text">
-            <h1 className="splash-title">
-              {'CLEAN MASTER SHOES'.split('').map((char, i) => (
-                <span
-                  key={i}
-                  className="splash-letter"
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                >
-                  {char === ' ' ? '\u00A0' : char}
-                </span>
-              ))}
-            </h1>
             <p className="splash-subtitle">SISTEMA DE GESTIÓN</p>
           </div>
         )}
