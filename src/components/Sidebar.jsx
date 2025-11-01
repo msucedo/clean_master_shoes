@@ -34,7 +34,7 @@ const Sidebar = () => {
     <div className="sidebar">
       {/* Logo */}
       <div className="logo">
-        <span className="logo-icon">👟</span>
+        <img src="/logo.png" alt="Clean Master Shoes" className="logo-icon" />
       </div>
 
       {/* Employee Info */}
