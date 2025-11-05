@@ -216,18 +216,15 @@ function OrderTracking() {
       <div className="tracking-card">
         {/* Header with Logo */}
         <div className="tracking-header">
-          {businessProfile?.logoUrl && (
-            <img
-              src={businessProfile.logoUrl}
-              alt="Logo"
-              className="tracking-logo"
-              loading="eager"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          )}
-          <h1>{businessProfile?.businessName || 'Clean Master Shoes'}</h1>
+          <img
+            src={businessProfile?.logoUrl || '/logo.png'}
+            alt={businessProfile?.businessName || 'Clean Master Shoes'}
+            className="tracking-logo"
+            loading="eager"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
           <p className="tracking-subtitle">Seguimiento de Orden</p>
         </div>
 
