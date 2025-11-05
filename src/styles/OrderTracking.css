@@ -1,0 +1,298 @@
+/* Order Tracking Page - Public view without authentication */
+
+.tracking-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.tracking-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  padding: 32px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.tracking-header {
+  text-align: center;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 16px;
+}
+
+.tracking-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.tracking-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Order Number */
+.order-number-section {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.order-number-label {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.order-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #667eea;
+  display: block;
+}
+
+/* Status Section */
+.status-section {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 50px;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.status-icon {
+  font-size: 20px;
+}
+
+.status-label {
+  font-size: 16px;
+}
+
+/* Info Section */
+.info-section {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.customer-name {
+  margin: 0;
+  font-size: 16px;
+  color: #374151;
+}
+
+.customer-name strong {
+  color: #111827;
+}
+
+/* Message Section */
+.message-section {
+  text-align: center;
+  padding: 20px;
+  background: #fef3c7;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.message-section p {
+  margin: 0;
+  font-size: 16px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* Delivery Section */
+.delivery-section {
+  background: #eff6ff;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.delivery-label {
+  font-size: 14px;
+  color: #1e40af;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.delivery-date {
+  font-size: 16px;
+  color: #1e3a8a;
+  margin: 0;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* Footer */
+.tracking-footer {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #f3f4f6;
+}
+
+.footer-text {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Loading State */
+.loading-spinner {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Error States */
+.error-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.error-icon {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.error-state h2 {
+  font-size: 24px;
+  color: #111827;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.error-state p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.error-hint {
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.retry-button {
+  margin-top: 24px;
+  padding: 12px 32px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retry-button:hover {
+  background: #5568d3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tracking-container {
+    padding: 16px;
+  }
+
+  .tracking-card {
+    padding: 24px;
+  }
+
+  .tracking-header h1 {
+    font-size: 24px;
+  }
+
+  .order-number {
+    font-size: 28px;
+  }
+
+  .status-badge {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .status-icon {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tracking-card {
+    padding: 20px;
+  }
+
+  .tracking-header h1 {
+    font-size: 20px;
+  }
+
+  .order-number {
+    font-size: 24px;
+  }
+
+  .message-section p {
+    font-size: 14px;
+  }
+}

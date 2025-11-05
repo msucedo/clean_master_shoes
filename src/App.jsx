@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
@@ -10,6 +10,7 @@ import Settings from './pages/Settings';
 import Empleados from './pages/Empleados';
 import Inventory from './pages/Inventory';
 import Promotions from './pages/Promotions';
+import OrderTracking from './pages/OrderTracking';
 import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
@@ -26,10 +27,11 @@ import './styles/global.css';
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
-  // Escuchar notificaciones de WhatsApp
+  // Escuchar notificaciones de WhatsApp (solo si está autenticado)
   useWhatsAppNotifications();
 
   const handleSplashComplete = () => {
@@ -40,6 +42,19 @@ function AppContent() {
     setShowLoadingScreen(false);
   };
 
+  // Check if current route is public (doesn't require authentication)
+  const isPublicRoute = location.pathname.startsWith('/rastrear');
+
+  // Public routes - render directly without authentication
+  if (isPublicRoute) {
+    return (
+      <Routes>
+        <Route path="/rastrear/:token" element={<OrderTracking />} />
+      </Routes>
+    );
+  }
+
+  // Protected routes - require authentication
   // Mostrar SplashScreen primero (animación inicial)
   if (showSplashScreen) {
     return <SplashScreen onComplete={handleSplashComplete} />;
