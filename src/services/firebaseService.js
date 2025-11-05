@@ -17,6 +17,28 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 import { sendDeliveryNotification } from './whatsappService';
 
+// ==================== TRACKING TOKEN ====================
+
+/**
+ * Generate a unique tracking token for order tracking
+ * Creates an 8-character alphanumeric token that's URL-safe and hard to guess
+ * @returns {string} Unique tracking token
+ */
+export const generateTrackingToken = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let token = '';
+
+  // Generate 8 random characters
+  for (let i = 0; i < 8; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  // Add timestamp-based component for uniqueness
+  const timestamp = Date.now().toString(36).slice(-4);
+
+  return `${token}${timestamp}`;
+};
+
 // ==================== ORDERS ====================
 
 /**
@@ -125,9 +147,11 @@ export const addOrder = async (orderData) => {
         // 2. Crear la orden
         const ordersRef = collection(db, 'orders');
         const orderRef = doc(ordersRef);
+        const trackingToken = generateTrackingToken();
         transaction.set(orderRef, {
           ...orderData,
           orderStatus: 'recibidos',
+          trackingToken: trackingToken,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -148,9 +172,11 @@ export const addOrder = async (orderData) => {
     } else {
       // Si no hay productos, crear orden normalmente
       const ordersRef = collection(db, 'orders');
+      const trackingToken = generateTrackingToken();
       const docRef = await addDoc(ordersRef, {
         ...orderData,
         orderStatus: 'recibidos',
+        trackingToken: trackingToken,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
@@ -264,6 +290,59 @@ export const deleteOrder = async (orderId) => {
     await deleteDoc(orderRef);
   } catch (error) {
     console.error('Error deleting order:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get order by tracking token (PUBLIC - no authentication required)
+ * Used for public order tracking page
+ * @param {string} token - Tracking token
+ * @returns {Promise<Object|null>} Order data with only public fields, or null if not found
+ */
+export const getOrderByTrackingToken = async (token) => {
+  try {
+    if (!token || typeof token !== 'string') {
+      return null;
+    }
+
+    // Query orders collection by trackingToken
+    const ordersRef = collection(db, 'orders');
+    const q = query(ordersRef, where('trackingToken', '==', token));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    // Get first matching order (tokens should be unique)
+    const orderDoc = querySnapshot.docs[0];
+    const orderData = { id: orderDoc.id, ...orderDoc.data() };
+
+    // Return only public-safe fields (filter out sensitive info)
+    return {
+      id: orderData.id,
+      orderNumber: orderData.orderNumber,
+      client: orderData.client,
+      phone: orderData.phone,
+      orderStatus: orderData.orderStatus,
+      deliveryDate: orderData.deliveryDate,
+      services: orderData.services,
+      shoePairs: orderData.shoePairs,
+      otherItems: orderData.otherItems,
+      products: orderData.products,
+      photos: orderData.photos,
+      total: orderData.total,
+      paid: orderData.paid,
+      pending: orderData.pending,
+      paymentMethod: orderData.paymentMethod,
+      priority: orderData.priority,
+      createdAt: orderData.createdAt,
+      updatedAt: orderData.updatedAt,
+      // Exclude sensitive fields like: employee notes, internal costs, etc.
+    };
+  } catch (error) {
+    console.error('Error getting order by tracking token:', error);
     throw error;
   }
 };

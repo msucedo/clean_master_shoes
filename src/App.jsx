@@ -19,8 +19,9 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Notification from './components/Notification';
 import { useWhatsAppNotifications } from './hooks/useWhatsAppNotifications';
-// Importar script de migración para exponerlo en window
+// Importar scripts de migración para exponerlos en window
 import './utils/migrateEmployees';
+import './utils/migrateOrderTokens';
 import './styles/global.css';
 
 function AppContent() {
