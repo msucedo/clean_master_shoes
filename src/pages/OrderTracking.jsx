@@ -23,10 +23,21 @@ function OrderTracking() {
 
         // Validate token format
         if (!token || token.length < 8) {
+          console.error('[OrderTracking] Token too short:', token?.length);
           setError('invalid-token');
           setLoading(false);
           return;
         }
+
+        // Token should only contain alphanumeric characters
+        if (!/^[a-z0-9]+$/i.test(token)) {
+          console.error('[OrderTracking] Token contains invalid characters');
+          setError('invalid-token');
+          setLoading(false);
+          return;
+        }
+
+        console.log('[OrderTracking] Loading data for token:', token);
 
         // Fetch order and business profile in parallel
         const [orderData, profileData] = await Promise.all([
@@ -35,17 +46,30 @@ function OrderTracking() {
         ]);
 
         if (!orderData) {
+          console.log('[OrderTracking] Order not found for token:', token);
           setError('not-found');
           setLoading(false);
           return;
         }
 
+        console.log('[OrderTracking] Data loaded successfully');
         setOrder(orderData);
         setBusinessProfile(profileData);
         setLoading(false);
       } catch (err) {
-        console.error('Error loading order:', err);
-        setError('fetch-error');
+        console.error('[OrderTracking] Error loading order:', err);
+
+        // Detect specific error types
+        if (err.message === 'Query timeout') {
+          setError('timeout');
+        } else if (err.code === 'permission-denied') {
+          setError('permission-denied');
+        } else if (!navigator.onLine) {
+          setError('offline');
+        } else {
+          setError('fetch-error');
+        }
+
         setLoading(false);
       }
     };
@@ -98,6 +122,57 @@ function OrderTracking() {
     );
   }
 
+  if (error === 'timeout') {
+    return (
+      <div className="tracking-container">
+        <div className="tracking-card">
+          <div className="error-state">
+            <span className="error-icon">⏱️</span>
+            <h2>Tiempo de espera agotado</h2>
+            <p>La consulta tardó demasiado tiempo.</p>
+            <p className="error-hint">Esto puede ser un problema temporal. Por favor intenta de nuevo.</p>
+            <button className="retry-button" onClick={() => window.location.reload()}>
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error === 'permission-denied') {
+    return (
+      <div className="tracking-container">
+        <div className="tracking-card">
+          <div className="error-state">
+            <span className="error-icon">🔒</span>
+            <h2>Acceso denegado</h2>
+            <p>No tienes permisos para acceder a esta orden.</p>
+            <p className="error-hint">Verifica que el link sea correcto o contacta a Clean Master Shoes.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error === 'offline') {
+    return (
+      <div className="tracking-container">
+        <div className="tracking-card">
+          <div className="error-state">
+            <span className="error-icon">📡</span>
+            <h2>Sin conexión</h2>
+            <p>No hay conexión a internet.</p>
+            <p className="error-hint">Por favor verifica tu conexión e intenta de nuevo.</p>
+            <button className="retry-button" onClick={() => window.location.reload()}>
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error === 'fetch-error') {
     return (
       <div className="tracking-container">
@@ -142,7 +217,15 @@ function OrderTracking() {
         {/* Header with Logo */}
         <div className="tracking-header">
           {businessProfile?.logoUrl && (
-            <img src={businessProfile.logoUrl} alt="Logo" className="tracking-logo" />
+            <img
+              src={businessProfile.logoUrl}
+              alt="Logo"
+              className="tracking-logo"
+              loading="eager"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
           )}
           <h1>{businessProfile?.businessName || 'Clean Master Shoes'}</h1>
           <p className="tracking-subtitle">Seguimiento de Orden</p>
@@ -296,7 +379,16 @@ function OrderTracking() {
             <div className="photos-gallery">
               {order.photos.map((photo, index) => (
                 <div key={index} className="photo-item">
-                  <img src={photo} alt={`Foto ${index + 1}`} className="photo-img" />
+                  <img
+                    src={photo}
+                    alt={`Foto ${index + 1}`}
+                    className="photo-img"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      console.error('Error loading image:', photo);
+                    }}
+                  />
                 </div>
               ))}
             </div>

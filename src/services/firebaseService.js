@@ -302,22 +302,48 @@ export const deleteOrder = async (orderId) => {
  */
 export const getOrderByTrackingToken = async (token) => {
   try {
+    // Validate token format
     if (!token || typeof token !== 'string') {
+      console.error('[OrderTracking] Invalid token type:', typeof token);
       return null;
     }
 
-    // Query orders collection by trackingToken
+    // Token should be 12 characters: 8 random + 4 timestamp
+    if (token.length < 8 || token.length > 15) {
+      console.error('[OrderTracking] Invalid token length:', token.length);
+      return null;
+    }
+
+    // Token should only contain alphanumeric characters
+    if (!/^[a-z0-9]+$/i.test(token)) {
+      console.error('[OrderTracking] Invalid token format - contains invalid characters');
+      return null;
+    }
+
+    console.log('[OrderTracking] Querying order with token:', token);
+
+    // Create query with timeout
     const ordersRef = collection(db, 'orders');
     const q = query(ordersRef, where('trackingToken', '==', token));
-    const querySnapshot = await getDocs(q);
+
+    // Race between query and timeout (10 seconds)
+    const queryPromise = getDocs(q);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Query timeout')), 10000)
+    );
+
+    const querySnapshot = await Promise.race([queryPromise, timeoutPromise]);
 
     if (querySnapshot.empty) {
+      console.log('[OrderTracking] No order found with token:', token);
       return null;
     }
 
     // Get first matching order (tokens should be unique)
     const orderDoc = querySnapshot.docs[0];
     const orderData = { id: orderDoc.id, ...orderDoc.data() };
+
+    console.log('[OrderTracking] Order found:', orderData.orderNumber);
 
     // Return only public-safe fields (filter out sensitive info)
     return {

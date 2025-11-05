@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==================== ORDERS ====================
+    // Permitir lectura pública solo por trackingToken
+    // Esto habilita la página /rastrear/:token sin autenticación
+    match /orders/{orderId} {
+      // READ: Permitir si el usuario está autenticado O si consulta por trackingToken
+      allow read: if request.auth != null ||
+                     resource.data.trackingToken == request.resource.data.trackingToken;
+
+      // WRITE: Solo usuarios autenticados pueden crear/actualizar
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    // ==================== CLIENTS ====================
+    match /clients/{clientId} {
+      // Solo usuarios autenticados
+      allow read, write: if request.auth != null;
+    }
+
+    // ==================== SERVICES ====================
+    match /services/{serviceId} {
+      // Solo usuarios autenticados
+      allow read, write: if request.auth != null;
+    }
+
+    // ==================== EMPLOYEES ====================
+    match /employees/{employeeId} {
+      // Solo usuarios autenticados
+      allow read, write: if request.auth != null;
+    }
+
+    // ==================== INVENTORY ====================
+    match /inventory/{productId} {
+      // Solo usuarios autenticados
+      allow read, write: if request.auth != null;
+    }
+
+    // ==================== SETTINGS ====================
+    match /settings/{settingId} {
+      // READ: Permitir lectura pública para business-profile
+      // (se usa en OrderTracking para mostrar logo/dirección)
+      allow read: if settingId == 'business-profile' || request.auth != null;
+
+      // WRITE: Solo usuarios autenticados
+      allow write: if request.auth != null;
+    }
+
+    // ==================== EXPENSES ====================
+    match /expenses/{expenseId} {
+      // Solo usuarios autenticados
+      allow read, write: if request.auth != null;
+    }
+
+    // ==================== CASH REGISTER CLOSURES ====================
+    match /cash-register-closures/{closureId} {
+      // Solo usuarios autenticados
+      allow read, write: if request.auth != null;
+    }
+
+    // ==================== DEFAULT - DENY ALL ====================
+    // Cualquier otra colección: denegar acceso por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+/**
+ * INSTRUCCIONES PARA APLICAR ESTAS REGLAS:
+ *
+ * 1. Ve a Firebase Console: https://console.firebase.google.com/
+ * 2. Selecciona tu proyecto
+ * 3. En el menú lateral, ve a "Firestore Database"
+ * 4. Haz clic en la pestaña "Reglas" (Rules)
+ * 5. Copia y pega todo el contenido de este archivo
+ * 6. Haz clic en "Publicar" (Publish)
+ *
+ * NOTA IMPORTANTE:
+ * La regla de 'orders' permite lectura pública por trackingToken, pero
+ * debido a limitaciones de Firestore, no podemos validar el token en la regla.
+ * En su lugar, la consulta se hace por el campo trackingToken que debe ser único.
+ *
+ * Para mayor seguridad en producción, considera:
+ * - Usar Firebase App Check para prevenir abuse
+ * - Implementar rate limiting en Cloud Functions
+ * - Monitorear el uso de la API de Firestore
+ */
