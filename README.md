@@ -3,11 +3,11 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]tab reportes, actualizar css listo, agregar logica a los elementos
+-[FEATURE]actualizar mensaje enviado por wapp
+-[FEATURE]crear /rastrear en .com, pasarle parametro la orderid, y jalar la info desde firebase
 
 // PRIORIDAD ALTA
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
--[FEATURE]actualizar mensaje enviado por wapp
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
 // PRIORIDAD MEDIA
@@ -58,6 +58,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]tab reportes, actualizar css listo, agregar logica a los elementos
 -[FEATURE]agregar logo
 -[FEATURE]corte de caja
 -[FEATURE]porfa que al entrar en la tab reportes entre preseleccionado el filtro hoy y el boton corte de caja
