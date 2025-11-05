@@ -39,6 +39,14 @@
   padding-bottom: 16px;
 }
 
+.tracking-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 12px;
+  display: block;
+}
+
 .tracking-header h1 {
   font-size: 28px;
   font-weight: 700;
@@ -251,6 +259,313 @@
   background: #5568d3;
 }
 
+/* Timeline Section */
+.timeline-section {
+  margin: 32px 0;
+  padding: 24px 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 600px;
+  padding: 0 16px;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+.timeline-step.active {
+  opacity: 1;
+}
+
+.timeline-step.completed {
+  opacity: 1;
+}
+
+.timeline-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 8px;
+  transition: all 0.3s;
+}
+
+.timeline-step.active .timeline-icon {
+  background: #667eea;
+  transform: scale(1.1);
+}
+
+.timeline-step.completed .timeline-icon {
+  background: #10b981;
+}
+
+.timeline-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.timeline-step.active .timeline-label {
+  color: #667eea;
+}
+
+.timeline-step.completed .timeline-label {
+  color: #10b981;
+}
+
+.timeline-line {
+  width: 60px;
+  height: 3px;
+  background: #e5e7eb;
+  margin: 0 8px;
+  position: relative;
+  top: -20px;
+  transition: background 0.3s;
+}
+
+.timeline-line.completed {
+  background: #10b981;
+}
+
+/* Details Sections */
+.details-section {
+  margin: 24px 0;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Services List */
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.service-emoji {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.service-name {
+  flex: 1;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.service-count {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Items List */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+}
+
+.item-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.item-text {
+  flex: 1;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* Products List */
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.product-emoji {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.product-name {
+  flex: 1;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.product-quantity {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 600;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Photos Gallery */
+.photos-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.photo-item:hover .photo-img {
+  transform: scale(1.05);
+}
+
+/* Payment Section */
+.payment-section {
+  margin: 24px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.payment-section .section-title {
+  color: white;
+  margin-bottom: 16px;
+}
+
+.payment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.payment-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.payment-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+}
+
+.payment-value.total {
+  font-size: 18px;
+}
+
+.payment-value.paid {
+  color: #86efac;
+}
+
+.payment-value.pending.has-pending {
+  color: #fca5a5;
+}
+
+/* Business Info */
+.business-info {
+  margin: 24px 0;
+  padding: 16px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.business-detail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.detail-icon {
+  font-size: 18px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .tracking-container {
@@ -259,6 +574,11 @@
 
   .tracking-card {
     padding: 24px;
+  }
+
+  .tracking-logo {
+    width: 60px;
+    height: 60px;
   }
 
   .tracking-header h1 {
@@ -277,11 +597,35 @@
   .status-icon {
     font-size: 18px;
   }
+
+  .timeline {
+    min-width: 500px;
+  }
+
+  .timeline-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .timeline-line {
+    width: 40px;
+    top: -16px;
+  }
+
+  .photos-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
 }
 
 @media (max-width: 480px) {
   .tracking-card {
     padding: 20px;
+  }
+
+  .tracking-logo {
+    width: 50px;
+    height: 50px;
   }
 
   .tracking-header h1 {
@@ -293,6 +637,33 @@
   }
 
   .message-section p {
+    font-size: 14px;
+  }
+
+  .timeline {
+    min-width: 400px;
+  }
+
+  .timeline-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .timeline-line {
+    width: 30px;
+    top: -14px;
+  }
+
+  .timeline-label {
+    font-size: 10px;
+  }
+
+  .details-section {
+    padding: 16px;
+  }
+
+  .section-title {
     font-size: 14px;
   }
 }
