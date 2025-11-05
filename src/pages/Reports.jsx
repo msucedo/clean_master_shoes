@@ -4,6 +4,8 @@ import CashRegister from '../components/CashRegister';
 import CashClosureHistory from '../components/CashClosureHistory';
 import CashClosureDetail from '../components/CashClosureDetail';
 import Modal from '../components/Modal';
+import RevenueChart from '../components/RevenueChart';
+import ServicesChart from '../components/ServicesChart';
 import { subscribeToOrders } from '../services/firebaseService';
 import './Reports.css';
 
@@ -30,61 +32,10 @@ const Reports = () => {
     return () => unsubscribe();
   }, []);
 
-  const stats = [
-    {
-      type: 'revenue',
-      icon: '💰',
-      label: 'Ingresos del Mes',
-      value: '$8,450',
-      change: '↑ 23% vs mes pasado',
-      changeType: 'positive'
-    },
-    {
-      type: 'orders',
-      icon: '📦',
-      label: 'Órdenes Completadas',
-      value: '47',
-      change: '↑ 12% vs mes pasado',
-      changeType: 'positive'
-    },
-    {
-      type: 'average',
-      icon: '💳',
-      label: 'Ticket Promedio',
-      value: '$180',
-      change: '↑ 8% vs mes pasado',
-      changeType: 'positive'
-    },
-    {
-      type: 'pending',
-      icon: '⚠️',
-      label: 'Por Cobrar',
-      value: '$950',
-      change: '2 clientes',
-      changeType: 'negative'
-    }
-  ];
-
-  const topClients = [
-    { rank: 1, name: 'Isabel Ramos', detail: '22 órdenes este mes', value: '$5,200', gold: true },
-    { rank: 2, name: 'Jorge Hernández', detail: '24 órdenes totales', value: '$4,800', gold: true },
-    { rank: 3, name: 'Ana Martínez', detail: '18 órdenes totales', value: '$3,200', gold: true },
-    { rank: 4, name: 'Patricia Sánchez', detail: '12 órdenes totales', value: '$2,100', gold: false },
-    { rank: 5, name: 'Juan Pérez', detail: '8 órdenes totales', value: '$1,600', gold: false }
-  ];
-
-  const topServices = [
-    { rank: 1, name: 'Lavado Básico', detail: '47 órdenes este mes', value: '$7,050', gold: true },
-    { rank: 2, name: 'Lavado Profundo', detail: '32 órdenes este mes', value: '$8,000', gold: true },
-    { rank: 3, name: 'Lavado Express', detail: '24 órdenes este mes', value: '$2,400', gold: true },
-    { rank: 4, name: 'Restauración', detail: '12 órdenes este mes', value: '$4,800', gold: false }
-  ];
-
   const dateFilters = ['Hoy', 'Semana', 'Mes', 'Año'];
 
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
-    // TODO: Load data for the selected period
   };
 
   // Get filtered orders for cash register based on date filter
@@ -135,6 +86,160 @@ const Reports = () => {
 
   const filteredOrders = getFilteredOrders();
 
+  // Calculate statistics based on filtered orders
+  const calculateStats = () => {
+    let totalRevenue = 0;
+    let completedOrders = 0;
+    let pendingAmount = 0;
+
+    filteredOrders.forEach(order => {
+      const total = parseFloat(order.totalPrice) || 0;
+      const advance = parseFloat(order.advancePayment) || 0;
+
+      if (order.paymentStatus === 'paid') {
+        totalRevenue += total;
+        completedOrders++;
+      } else if (order.paymentStatus === 'partial') {
+        totalRevenue += advance;
+        pendingAmount += (total - advance);
+      } else if (order.paymentStatus === 'pending') {
+        pendingAmount += total;
+      }
+    });
+
+    const averageTicket = completedOrders > 0 ? totalRevenue / completedOrders : 0;
+
+    return {
+      totalRevenue,
+      completedOrders,
+      averageTicket,
+      pendingAmount
+    };
+  };
+
+  // Calculate top 5 clients based on filtered orders
+  const calculateTopClients = () => {
+    const clientData = {};
+
+    filteredOrders.forEach(order => {
+      const clientName = order.client || 'Sin nombre';
+      const total = parseFloat(order.totalPrice) || 0;
+      const advance = parseFloat(order.advancePayment) || 0;
+
+      let revenue = 0;
+      if (order.paymentStatus === 'paid') {
+        revenue = total;
+      } else if (order.paymentStatus === 'partial') {
+        revenue = advance;
+      }
+
+      if (!clientData[clientName]) {
+        clientData[clientName] = {
+          orders: 0,
+          revenue: 0
+        };
+      }
+
+      clientData[clientName].orders += 1;
+      clientData[clientName].revenue += revenue;
+    });
+
+    // Sort by revenue and get top 5
+    return Object.entries(clientData)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .slice(0, 5)
+      .map(([name, data], index) => ({
+        rank: index + 1,
+        name,
+        detail: `${data.orders} ${data.orders === 1 ? 'orden' : 'órdenes'}`,
+        value: data.revenue,
+        gold: index < 3
+      }));
+  };
+
+  // Calculate top services based on filtered orders
+  const calculateTopServices = () => {
+    const serviceData = {};
+
+    filteredOrders.forEach(order => {
+      if (!order.services || order.services.length === 0) return;
+
+      order.services.forEach(service => {
+        const serviceName = service.serviceName || 'Sin nombre';
+        const servicePrice = parseFloat(service.price) || 0;
+
+        if (!serviceData[serviceName]) {
+          serviceData[serviceName] = {
+            count: 0,
+            revenue: 0
+          };
+        }
+
+        serviceData[serviceName].count += 1;
+        serviceData[serviceName].revenue += servicePrice;
+      });
+    });
+
+    // Sort by revenue and get top services
+    return Object.entries(serviceData)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .slice(0, 4)
+      .map(([name, data], index) => ({
+        rank: index + 1,
+        name,
+        detail: `${data.count} ${data.count === 1 ? 'orden' : 'órdenes'}`,
+        value: data.revenue,
+        gold: index < 3
+      }));
+  };
+
+  const stats = calculateStats();
+  const topClients = calculateTopClients();
+  const topServices = calculateTopServices();
+
+  // Format stats for display
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(amount);
+  };
+
+  const statsCards = [
+    {
+      type: 'revenue',
+      icon: '💰',
+      label: `Ingresos ${activeFilter === 'Hoy' ? 'del Día' : activeFilter === 'Semana' ? 'de la Semana' : activeFilter === 'Mes' ? 'del Mes' : 'del Año'}`,
+      value: formatCurrency(stats.totalRevenue),
+      change: `${stats.completedOrders} ${stats.completedOrders === 1 ? 'orden' : 'órdenes'}`,
+      changeType: 'positive'
+    },
+    {
+      type: 'orders',
+      icon: '📦',
+      label: 'Órdenes Completadas',
+      value: stats.completedOrders.toString(),
+      change: `${formatCurrency(stats.totalRevenue)} en ventas`,
+      changeType: 'positive'
+    },
+    {
+      type: 'average',
+      icon: '💳',
+      label: 'Ticket Promedio',
+      value: formatCurrency(stats.averageTicket),
+      change: `${stats.completedOrders} ${stats.completedOrders === 1 ? 'orden' : 'órdenes'}`,
+      changeType: 'positive'
+    },
+    {
+      type: 'pending',
+      icon: '⚠️',
+      label: 'Por Cobrar',
+      value: formatCurrency(stats.pendingAmount),
+      change: filteredOrders.filter(o => o.paymentStatus === 'pending' || o.paymentStatus === 'partial').length + ' órdenes',
+      changeType: 'negative'
+    }
+  ];
+
   const handleViewClosureDetails = (closure) => {
     setSelectedClosure(closure);
     setIsDetailModalOpen(true);
@@ -159,6 +264,18 @@ const Reports = () => {
 
       {/* Tabs */}
       <div className="reports-tabs">
+        {/* Select para móvil (oculto en desktop por CSS) */}
+        <select
+          className="reports-tab-select-mobile"
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value)}
+        >
+          <option value="reportes">📊 Reportes</option>
+          <option value="corte">💰 Corte de Caja</option>
+          <option value="historial">📋 Historial de Cortes</option>
+        </select>
+
+        {/* Botones para desktop/tablet (ocultos en móvil por CSS) */}
         <button
           className={`reports-tab ${activeTab === 'reportes' ? 'active' : ''}`}
           onClick={() => setActiveTab('reportes')}
@@ -181,10 +298,10 @@ const Reports = () => {
 
       {/* Tab Content */}
       {activeTab === 'reportes' && (
-        <>
+        <div className="reports-content">
           {/* Stats Grid */}
           <div className="stats-grid">
-        {stats.map((stat, index) => (
+        {statsCards.map((stat, index) => (
           <div key={index} className={`stat-card ${stat.type}`}>
             <div className="stat-header">
               <div className="stat-icon">{stat.icon}</div>
@@ -204,11 +321,13 @@ const Reports = () => {
         <div className="chart-card">
           <div className="chart-header">
             <div>
-              <div className="chart-title">Ingresos del Mes</div>
-              <div className="chart-subtitle">Octubre 2025</div>
+              <div className="chart-title">Ingresos {activeFilter === 'Hoy' ? 'del Día' : activeFilter === 'Semana' ? 'de la Semana' : activeFilter === 'Mes' ? 'del Mes' : 'del Año'}</div>
+              <div className="chart-subtitle">{filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}</div>
             </div>
           </div>
-          <div className="chart-placeholder">📈</div>
+          <div style={{ height: '300px', padding: '20px' }}>
+            <RevenueChart orders={filteredOrders} dateFilter={activeFilter} />
+          </div>
         </div>
 
         {/* Services Chart */}
@@ -216,10 +335,12 @@ const Reports = () => {
           <div className="chart-header">
             <div>
               <div className="chart-title">Servicios Más Populares</div>
-              <div className="chart-subtitle">Últimos 30 días</div>
+              <div className="chart-subtitle">{activeFilter}</div>
             </div>
           </div>
-          <div className="chart-placeholder">📊</div>
+          <div style={{ height: '300px', padding: '20px' }}>
+            <ServicesChart orders={filteredOrders} />
+          </div>
         </div>
       </div>
 
@@ -228,34 +349,46 @@ const Reports = () => {
         {/* Top Clientes */}
         <div className="list-card">
           <div className="list-header">🏆 Top 5 Clientes</div>
-          {topClients.map((client) => (
-            <div key={client.rank} className="list-item">
-              <div className={`list-rank ${client.gold ? 'gold' : ''}`}>{client.rank}</div>
-              <div className="list-info">
-                <div className="list-name">{client.name}</div>
-                <div className="list-detail">{client.detail}</div>
+          {topClients.length > 0 ? (
+            topClients.map((client) => (
+              <div key={client.rank} className="list-item">
+                <div className={`list-rank ${client.gold ? 'gold' : ''}`}>{client.rank}</div>
+                <div className="list-info">
+                  <div className="list-name">{client.name}</div>
+                  <div className="list-detail">{client.detail}</div>
+                </div>
+                <div className="list-value">{formatCurrency(client.value)}</div>
               </div>
-              <div className="list-value">{client.value}</div>
+            ))
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+              No hay datos para mostrar
             </div>
-          ))}
+          )}
         </div>
 
         {/* Top Servicios */}
         <div className="list-card">
           <div className="list-header">🔥 Servicios Más Vendidos</div>
-          {topServices.map((service) => (
-            <div key={service.rank} className="list-item">
-              <div className={`list-rank ${service.gold ? 'gold' : ''}`}>{service.rank}</div>
-              <div className="list-info">
-                <div className="list-name">{service.name}</div>
-                <div className="list-detail">{service.detail}</div>
+          {topServices.length > 0 ? (
+            topServices.map((service) => (
+              <div key={service.rank} className="list-item">
+                <div className={`list-rank ${service.gold ? 'gold' : ''}`}>{service.rank}</div>
+                <div className="list-info">
+                  <div className="list-name">{service.name}</div>
+                  <div className="list-detail">{service.detail}</div>
+                </div>
+                <div className="list-value">{formatCurrency(service.value)}</div>
               </div>
-              <div className="list-value">{service.value}</div>
+            ))
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+              No hay datos para mostrar
             </div>
-          ))}
+          )}
         </div>
       </div>
-        </>
+        </div>
       )}
 
       {/* Cash Register Tab */}

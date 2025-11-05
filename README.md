@@ -3,20 +3,20 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]tab reportes, actualizar css listo, agregar logica a los elementos
 
 // PRIORIDAD ALTA
--[]agregar logo
--[]validar no sea necesario iniciar sesion a cada rato
--[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
--[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
+-[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
+-[FEATURE]actualizar mensaje enviado por wapp
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
--[feature/lockscreen]tener una sección tipo lock screen, que se desbloquee con un security pin, la idea es si el usuario se ira por un momento no deje ahi la aplicacion a la vista de todos y asi se protega, tipo esa pantalla de en espera
--[EPIC]Pantalla promociones
 
 // PRIORIDAD MEDIA
+-[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
+-[EPIC]Pantalla promociones
+-[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 
 // PRIORIDAD BAJA
--[FIX]no poder agendar ordenes con fechas pasadas
+-[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
@@ -24,11 +24,8 @@ Clean master shoes
     -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 
 // BACKLOG
--[FEATURE]actualizar mensaje enviado por wapp
 -[FEATURE]Validar funcionalidades offline
 -[FEATURE]pagina de tracking de ordenes para la .com
--[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
--[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
@@ -61,6 +58,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]agregar logo
 -[FEATURE]corte de caja
 -[FEATURE]porfa que al entrar en la tab reportes entre preseleccionado el filtro hoy y el boton corte de caja
 -[FIX]fotos iphoto
