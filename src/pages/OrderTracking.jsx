@@ -291,7 +291,7 @@ function OrderTracking() {
             <p>¡Tu orden está lista! Pendiente de entrega. ✅</p>
           )}
           {order.orderStatus === 'enEntrega' && (
-            <p>Tu orden está en camino. ¡Pronto llegará a tus manos! 🚚</p>
+            <p>¡Tu orden está lista para recoger! Te esperamos en nuestra tienda. 📦✨</p>
           )}
           {order.orderStatus === 'completados' && (
             <p>¡Orden completada! Gracias por tu preferencia. 🎉</p>

@@ -71,21 +71,21 @@ const formatServicesList = (services) => {
 
 /**
  * Build order tracking URL for customer to track their order
- * @param {string} orderId - Order ID to track
+ * @param {string} trackingToken - Order tracking token
  * @returns {string} Complete tracking URL or placeholder
  */
-const buildOrderTrackingUrl = (orderId) => {
+const buildOrderTrackingUrl = (trackingToken) => {
   if (!WHATSAPP_CONFIG.trackingUrl) {
     console.warn('⚠️ [WhatsApp] VITE_ORDER_TRACKING_URL no está configurado');
     return 'Solicita el enlace de rastreo a tu vendedor';
   }
 
-  // Ensure URL ends with / before appending orderId
+  // Ensure URL ends with / before appending trackingToken
   const baseUrl = WHATSAPP_CONFIG.trackingUrl.endsWith('/')
     ? WHATSAPP_CONFIG.trackingUrl
     : `${WHATSAPP_CONFIG.trackingUrl}/`;
 
-  return `${baseUrl}${orderId}`;
+  return `${baseUrl}${trackingToken}`;
 };
 
 /**
@@ -359,7 +359,7 @@ export const sendDeliveryNotification = async (order) => {
       const servicesList = formatServicesList(order.services);
       const orderNumber = order.orderNumber || order.id;
       const businessAddress = WHATSAPP_CONFIG.businessAddress || 'Ubicación no configurada';
-      const trackingUrl = buildOrderTrackingUrl(order.id);
+      const trackingUrl = buildOrderTrackingUrl(order.trackingToken);
 
       const components = [
         {
@@ -389,6 +389,24 @@ export const sendDeliveryNotification = async (order) => {
         components
       );
 
+      // Build the complete template message for display in conversation
+      const templateMessage = `¡Hola ${order.client}! 👋
+
+Tu orden #${orderNumber} está lista para recoger 🎉
+
+⏰ Horario:
+Lunes - Viernes 10:00 am - 6:00 pm
+Sabado hasta las 4:00 pm
+
+📦 Servicios completados: ${servicesList}
+
+📍 Te esperamos en:${businessAddress}
+
+🔍 Rastrea tu orden aquí:${trackingUrl}
+
+¡Gracias por tu confianza!
+- Clean Master Shoes`;
+
       // Return result with additional order context
       return {
         ...result,
@@ -396,7 +414,7 @@ export const sendDeliveryNotification = async (order) => {
         orderNumber: orderNumber,
         clientName: order.client,
         phone: formattedPhone,
-        message: `Plantilla: ${WHATSAPP_CONFIG.templateName} | Cliente: ${order.client} | Orden: ${orderNumber}`,
+        message: templateMessage,
         usingTemplate: true
       };
 
