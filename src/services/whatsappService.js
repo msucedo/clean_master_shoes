@@ -19,6 +19,9 @@ const WHATSAPP_CONFIG = {
   enabled: import.meta.env.VITE_WHATSAPP_ENABLED === 'true',
   businessName: import.meta.env.VITE_BUSINESS_NAME || 'Clean Master Shoes',
   businessAddress: import.meta.env.VITE_BUSINESS_ADDRESS || '',
+  // Meta Template Configuration (for professional template messages)
+  templateName: import.meta.env.VITE_WHATSAPP_TEMPLATE_NAME || '',
+  trackingUrl: import.meta.env.VITE_ORDER_TRACKING_URL || '',
 };
 
 /**
@@ -64,6 +67,25 @@ const formatServicesList = (services) => {
   return services
     .map((service) => `• ${service.serviceName}`)
     .join('\n');
+};
+
+/**
+ * Build order tracking URL for customer to track their order
+ * @param {string} orderId - Order ID to track
+ * @returns {string} Complete tracking URL or placeholder
+ */
+const buildOrderTrackingUrl = (orderId) => {
+  if (!WHATSAPP_CONFIG.trackingUrl) {
+    console.warn('⚠️ [WhatsApp] VITE_ORDER_TRACKING_URL no está configurado');
+    return 'Solicita el enlace de rastreo a tu vendedor';
+  }
+
+  // Ensure URL ends with / before appending orderId
+  const baseUrl = WHATSAPP_CONFIG.trackingUrl.endsWith('/')
+    ? WHATSAPP_CONFIG.trackingUrl
+    : `${WHATSAPP_CONFIG.trackingUrl}/`;
+
+  return `${baseUrl}${orderId}`;
 };
 
 /**
@@ -176,6 +198,104 @@ const sendWhatsAppMessage = async (to, message) => {
 };
 
 /**
+ * Send WhatsApp template message using Meta approved templates
+ * Template messages can be sent at any time (no 24-hour window restriction)
+ *
+ * @param {string} to - Recipient phone number (with country code)
+ * @param {string} templateName - Name of the approved Meta template
+ * @param {Array} components - Array of template components with parameters
+ * @returns {Promise<Object>} API response with message ID and status
+ */
+const sendTemplateMessage = async (to, templateName, components) => {
+  const url = `https://graph.facebook.com/${WHATSAPP_CONFIG.apiVersion}/${WHATSAPP_CONFIG.phoneNumberId}/messages`;
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    to: to,
+    type: 'template',
+    template: {
+      name: templateName,
+      language: {
+        code: 'es_MX' // Spanish (Mexico)
+      },
+      components: components
+    }
+  };
+
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${WHATSAPP_CONFIG.accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  };
+
+  try {
+    // 📋 LOG: Request details antes de enviar
+    console.log('📤 [WhatsApp Template] Enviando mensaje con plantilla:', {
+      timestamp: new Date().toISOString(),
+      to: to,
+      templateName: templateName,
+      url: url,
+      componentsCount: components.length,
+      payload: JSON.stringify(payload, null, 2)
+    });
+
+    const response = await axios.post(url, payload, config);
+
+    // ✅ LOG: Success con detalles completos
+    console.log('✅ [WhatsApp Template] Mensaje enviado exitosamente:', {
+      messageId: response.data.messages[0].id,
+      to: to,
+      templateName: templateName,
+      timestamp: new Date().toISOString(),
+      statusCode: response.status,
+      whatsappStatus: response.data.messages[0].message_status || 'sent'
+    });
+
+    return {
+      success: true,
+      messageId: response.data.messages[0].id,
+      timestamp: new Date().toISOString(),
+      status: 'sent',
+      templateUsed: templateName
+    };
+  } catch (error) {
+    // ❌ LOG: Error detallado para debugging
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
+      to: to,
+      templateName: templateName,
+      httpStatus: error.response?.status,
+      httpStatusText: error.response?.statusText,
+      whatsappErrorCode: error.response?.data?.error?.code,
+      whatsappErrorMessage: error.response?.data?.error?.message,
+      whatsappErrorType: error.response?.data?.error?.type,
+      errorDetail: error.response?.data?.error?.error_data?.details,
+      fullError: error.response?.data || error.message,
+      requestUrl: url,
+      phoneNumber: to,
+      componentsProvided: components.length
+    };
+
+    console.error('❌ [WhatsApp Template] Error enviando mensaje:', errorDetails);
+    console.error('📝 [WhatsApp Template] Payload que se intentó enviar:', JSON.stringify(payload, null, 2));
+
+    // Return error details
+    return {
+      success: false,
+      error: error.response?.data?.error?.message || error.message,
+      errorCode: error.response?.data?.error?.code,
+      errorType: error.response?.data?.error?.type,
+      httpStatus: error.response?.status,
+      timestamp: new Date().toISOString(),
+      status: 'failed',
+      templateUsed: templateName
+    };
+  }
+};
+
+/**
  * Send delivery notification to customer when order status changes to "En Entrega"
  * This is the main function called by firebaseService when updating order status
  *
@@ -224,22 +344,83 @@ export const sendDeliveryNotification = async (order) => {
       throw new Error('Invalid phone number format');
     }
 
-    // Build message
-    const message = buildDeliveryMessage(order);
-    console.log('📝 [WhatsApp] Mensaje construido, longitud:', message.length);
+    // Check if template is configured (professional template mode)
+    if (WHATSAPP_CONFIG.templateName) {
+      console.log('✨ [WhatsApp] Usando plantilla de Meta:', WHATSAPP_CONFIG.templateName);
 
-    // Send message via WhatsApp API
-    const result = await sendWhatsAppMessage(formattedPhone, message);
+      // Build template parameters
+      // Template variables (según WHATSAPP_TEMPLATE_IMPLEMENTATION.md):
+      // {{1}} = Nombre del cliente
+      // {{2}} = Número de orden
+      // {{3}} = Lista de servicios completados
+      // {{4}} = Dirección del negocio
+      // {{5}} = URL para rastrear la orden
 
-    // Return result with additional order context
-    return {
-      ...result,
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      clientName: order.client,
-      phone: formattedPhone,
-      message: message
-    };
+      const servicesList = formatServicesList(order.services);
+      const orderNumber = order.orderNumber || order.id;
+      const businessAddress = WHATSAPP_CONFIG.businessAddress || 'Ubicación no configurada';
+      const trackingUrl = buildOrderTrackingUrl(order.id);
+
+      const components = [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', text: order.client },           // {{1}} Nombre
+            { type: 'text', text: orderNumber },            // {{2}} Número orden
+            { type: 'text', text: servicesList },           // {{3}} Servicios
+            { type: 'text', text: businessAddress },        // {{4}} Dirección
+            { type: 'text', text: trackingUrl }             // {{5}} URL rastreo
+          ]
+        }
+      ];
+
+      console.log('📋 [WhatsApp] Parámetros de plantilla:', {
+        cliente: order.client,
+        orden: orderNumber,
+        servicios: servicesList,
+        direccion: businessAddress,
+        trackingUrl: trackingUrl
+      });
+
+      // Send template message
+      const result = await sendTemplateMessage(
+        formattedPhone,
+        WHATSAPP_CONFIG.templateName,
+        components
+      );
+
+      // Return result with additional order context
+      return {
+        ...result,
+        orderId: order.id,
+        orderNumber: orderNumber,
+        clientName: order.client,
+        phone: formattedPhone,
+        message: `Plantilla: ${WHATSAPP_CONFIG.templateName} | Cliente: ${order.client} | Orden: ${orderNumber}`,
+        usingTemplate: true
+      };
+
+    } else {
+      // Fallback: usar texto libre (requiere ventana de 24 horas)
+      console.log('📝 [WhatsApp] Plantilla no configurada, usando texto libre (fallback)');
+
+      const message = buildDeliveryMessage(order);
+      console.log('📝 [WhatsApp] Mensaje construido, longitud:', message.length);
+
+      // Send message via WhatsApp API
+      const result = await sendWhatsAppMessage(formattedPhone, message);
+
+      // Return result with additional order context
+      return {
+        ...result,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        clientName: order.client,
+        phone: formattedPhone,
+        message: message,
+        usingTemplate: false
+      };
+    }
 
   } catch (error) {
     console.error('❌ [WhatsApp] Error inesperado en sendDeliveryNotification:', {

@@ -4,9 +4,15 @@ Clean master shoes
 
 // WIP
 -[FEATURE]actualizar mensaje enviado por wapp
+    -[]esperando meta apruebe nuevas plantillas
 -[FEATURE]crear /rastrear en .com, pasarle parametro la orderid, y jalar la info desde firebase
+    -[x]crear componente rastrear
+    -[x]url y token muestran orden del cliente
+    -[]whatsapp envia la plantilla con la url, esto lo armo con el md wapptemplateimplementation
+    -[]se arma la plantilla agregando generando la url dinamica
 
 // PRIORIDAD ALTA
+-[FEATURE]código QR que abra el sitio web
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
@@ -25,7 +31,6 @@ Clean master shoes
 
 // BACKLOG
 -[FEATURE]Validar funcionalidades offline
--[FEATURE]pagina de tracking de ordenes para la .com
 
      📝 Plan de Mejoras Propuesto                                                                                      
      │                                                                                                                   │
