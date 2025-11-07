@@ -120,6 +120,21 @@ export const subscribeToOrders = (callback) => {
  */
 export const addOrder = async (orderData) => {
   try {
+    // DETERMINAR ESTADO INICIAL DINÁMICAMENTE
+    const hasServices = orderData.services && orderData.services.length > 0;
+    const isWithoutServices = orderData.isOrderWithoutServices === true;
+    const isPaid = orderData.paymentStatus === 'paid';
+
+    let initialStatus = 'recibidos';  // Por defecto
+
+    // REGLA: Solo órdenes SIN servicios Y pagadas completas van a "completados"
+    if (!hasServices && isWithoutServices && isPaid) {
+      initialStatus = 'completados';
+    }
+
+    // Limpiar flag temporal antes de guardar
+    const { isOrderWithoutServices, ...cleanOrderData } = orderData;
+
     // Si hay productos en la orden, usar transacción para garantizar atomicidad
     if (orderData.products && orderData.products.length > 0) {
       return await runTransaction(db, async (transaction) => {
@@ -149,12 +164,19 @@ export const addOrder = async (orderData) => {
         const orderRef = doc(ordersRef);
         const trackingToken = generateTrackingToken();
         transaction.set(orderRef, {
-          ...orderData,
-          orderStatus: 'recibidos',
+          ...cleanOrderData,
+          orderStatus: initialStatus,
           trackingToken: trackingToken,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
+
+        // 2.5 Agregar id y completedDate al documento
+        const updateData = { id: orderRef.id };
+        if (initialStatus === 'completados') {
+          updateData.completedDate = new Date().toISOString();
+        }
+        transaction.update(orderRef, updateData);
 
         // 3. Descontar stock de todos los productos
         orderData.products.forEach((product, index) => {
@@ -174,11 +196,16 @@ export const addOrder = async (orderData) => {
       const ordersRef = collection(db, 'orders');
       const trackingToken = generateTrackingToken();
       const docRef = await addDoc(ordersRef, {
-        ...orderData,
-        orderStatus: 'recibidos',
+        ...cleanOrderData,
+        orderStatus: initialStatus,
         trackingToken: trackingToken,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
+      });
+
+      // Agregar id al documento
+      await updateDoc(docRef, {
+        id: docRef.id
       });
 
       return docRef.id;

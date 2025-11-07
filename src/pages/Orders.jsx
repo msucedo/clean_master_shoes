@@ -371,8 +371,8 @@ const Orders = () => {
         generalNotes: formData.generalNotes || '',
         // Usar paymentStatus si viene desde OrderForm, sino calcularlo
         paymentStatus: formData.paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
-        orderStatus: 'recibidos',
-        author: formData.author || '' // Asignar empleado seleccionado
+        author: formData.author || '', // Asignar empleado seleccionado
+        isOrderWithoutServices: formData.isOrderWithoutServices || false // Flag para firebaseService
       };
 
       const { addOrder } = await import('../services/firebaseService');

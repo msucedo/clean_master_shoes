@@ -24,6 +24,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden (array de URLs base64)
   const [selectedEmployee, setSelectedEmployee] = useState(null); // Empleado seleccionado para asignación automática
   const [showCalendarModal, setShowCalendarModal] = useState(false); // Controla modal de calendario de entregas
+  const [requireFullPayment, setRequireFullPayment] = useState(false); // Requiere pago completo para órdenes sin servicios
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -294,6 +295,18 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   // Handler para mostrar la vista de pago
   const handleShowPayment = () => {
     if (validateBasicForm()) {
+      // Si NO hay servicios, establecer fecha de entrega automáticamente a hoy
+      const serviceItems = cart.filter(item => item.type === 'service');
+      const hasServices = serviceItems.length > 0;
+
+      if (!hasServices && !formData.deliveryDate) {
+        const today = new Date().toISOString().split('T')[0];
+        setFormData(prev => ({
+          ...prev,
+          deliveryDate: today
+        }));
+      }
+
       setShowPayment(true);
     }
   };
@@ -301,10 +314,28 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Si el método de pago NO es pending, verificar servicios con precio variable
+      const serviceItems = cart.filter(item => item.type === 'service');
+      const hasServices = serviceItems.length > 0;
+
+      // Si NO hay servicios, validar método de pago
+      if (!hasServices) {
+        // Si el método es pending, mostrar error
+        if (formData.paymentMethod === 'pending') {
+          alert('⚠️ Las órdenes sin servicios deben tener un método de pago definido.\n\nPor favor selecciona: Efectivo, Tarjeta o Transferencia.');
+          setErrors({
+            payment: 'Las órdenes sin servicios deben tener un método de pago definido. Selecciona efectivo, tarjeta o transferencia.'
+          });
+          return;
+        }
+
+        // Si tiene método de pago válido, forzar pago completo
+        setRequireFullPayment(true);
+        setShowPaymentScreen(true);
+        return;
+      }
+
+      // Flujo normal para órdenes CON servicios
       if (formData.paymentMethod !== 'pending') {
-        // Detectar servicios con precio $0 (precio por definir)
-        const serviceItems = cart.filter(item => item.type === 'service');
         const servicesWithoutPrice = serviceItems.filter(item => item.price === 0);
 
         if (servicesWithoutPrice.length > 0) {
@@ -312,7 +343,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
           setVariablePriceServices(servicesWithoutPrice);
           setShowVariablePriceModal(true);
         } else {
-          // No hay servicios sin precio, continuar a PaymentScreen
+          setRequireFullPayment(false);  // No requiere pago completo
           setShowPaymentScreen(true);
         }
       } else {
@@ -331,7 +362,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   };
 
   // Función para crear la orden (extraída para reutilizar)
-  const createOrder = (paymentStatus = null, advancePayment = 0) => {
+  const createOrder = (paymentStatus = null, advancePayment = 0, isOrderWithoutServices = false) => {
     setIsSubmitting(true);
 
     // Separar servicios y productos del carrito
@@ -378,7 +409,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal', // Asignar automáticamente
-      author: selectedEmployee ? selectedEmployee.name : '' // Asignar empleado seleccionado
+      author: selectedEmployee ? selectedEmployee.name : '', // Asignar empleado seleccionado
+      isOrderWithoutServices: isOrderWithoutServices // Flag para firebaseService
     };
 
     // Esperar 1.5s para mostrar animación antes de cerrar
@@ -391,7 +423,12 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   const handlePaymentConfirm = (paymentData) => {
     // Cerrar pantalla de cobro y crear orden con datos de pago
     setShowPaymentScreen(false);
-    createOrder(paymentData.paymentStatus, paymentData.advancePayment);
+    // Pasar flag de orden sin servicios
+    createOrder(
+      paymentData.paymentStatus,
+      paymentData.advancePayment,
+      paymentData.isOrderWithoutServices || false
+    );
   };
 
   // Handler para cancelar desde PaymentScreen
@@ -578,6 +615,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
           totalPrice={calculateTotalPrice()}
           advancePayment={0}
           paymentMethod={formData.paymentMethod}
+          requireFullPayment={requireFullPayment}
           onConfirm={handlePaymentConfirm}
           onCancel={handlePaymentCancel}
         />

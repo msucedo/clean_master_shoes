@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import './PaymentScreen.css';
 
-const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePayment = 0, paymentMethod = 'cash', allowEditMethod = false, onConfirm, onCancel }) => {
+const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePayment = 0, paymentMethod = 'cash', allowEditMethod = false, requireFullPayment = false, onConfirm, onCancel }) => {
   const [amountReceived, setAmountReceived] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(paymentMethod);
 
@@ -28,6 +28,34 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
     if (selectedMethod === 'cash') {
       const received = parseFloat(amountReceived) || 0;
 
+      // Si requireFullPayment, SOLO permitir pago completo
+      if (requireFullPayment) {
+        const isPaidInFull = received >= remainingBalance;  // Validación explícita
+
+        if (!isPaidInFull) {
+          alert(
+            `Las órdenes sin servicios requieren pago completo.\n\n` +
+            `Total: $${remainingBalance.toFixed(2)}\n` +
+            `Recibido: $${received.toFixed(2)}\n` +
+            `Falta: $${(remainingBalance - received).toFixed(2)}`
+          );
+          return;
+        }
+
+        // Pago completo validado
+        onConfirm({
+          amountReceived: received,
+          change: received - remainingBalance,
+          paymentMethod: selectedMethod,
+          advancePayment: remainingBalance,
+          paymentStatus: 'paid',
+          isOrderWithoutServices: true  // Flag
+        });
+        return;
+      }
+
+      // --- FLUJO NORMAL (órdenes CON servicios) ---
+
       // Si hay anticipo previo (cobro en entrega), validar monto suficiente
       if (advancePayment > 0 && received < remainingBalance) {
         alert(`Monto insuficiente. Falta: $${(remainingBalance - received).toFixed(2)}`);
@@ -43,7 +71,7 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
 
         // Determinar si es pago parcial o completo
         if (received < remainingBalance) {
-          // Pago parcial - usar como anticipo
+          // Pago parcial
           onConfirm({
             amountReceived: received,
             change: 0,
@@ -53,7 +81,7 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
           });
           return;
         } else {
-          // Pago completo o con cambio
+          // Pago completo (pero con servicios, va a "recibidos")
           onConfirm({
             amountReceived: received,
             change: received - remainingBalance,
@@ -66,14 +94,21 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
       }
     }
 
-    // Para otros métodos o flujo normal de cobro en entrega
-    onConfirm({
+    // Para otros métodos de pago (tarjeta, transferencia)
+    const confirmData = {
       amountReceived: selectedMethod === 'cash' ? parseFloat(amountReceived) : remainingBalance,
       change: change,
       paymentMethod: selectedMethod,
       advancePayment: remainingBalance,
       paymentStatus: 'paid'
-    });
+    };
+
+    // Si es orden sin servicios, agregar flag
+    if (requireFullPayment) {
+      confirmData.isOrderWithoutServices = true;
+    }
+
+    onConfirm(confirmData);
   };
 
   return (
@@ -81,6 +116,20 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
       <div className="payment-header">
         <h2 className="payment-title">💰 Confirmar Cobro</h2>
         <p className="payment-subtitle">Revisa el desglose y confirma el pago</p>
+        {requireFullPayment && (
+          <div className="payment-warning" style={{
+            backgroundColor: '#FEF3C7',
+            border: '2px solid #F59E0B',
+            borderRadius: '8px',
+            padding: '12px',
+            marginTop: '12px',
+            textAlign: 'center',
+            color: '#92400E',
+            fontWeight: '500'
+          }}>
+            ⚠️ Esta orden solo contiene productos y debe pagarse completamente
+          </div>
+        )}
       </div>
 
       <div className="payment-content">

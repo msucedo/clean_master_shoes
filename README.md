@@ -18,8 +18,6 @@ Clean master shoes
 - [FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
--[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
-    -[VAL]En el dashbaord validar "ingresos hoy" tambien aumente con ordenes de solo productos
 
 // BACKLOG
 -[FEATURE]Validar funcionalidades offline
@@ -55,6 +53,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]Forzar pago completo para órdenes sin servicios (solo productos) y crearlas directamente como "completados".
+-[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
 -[FEATURE]actualizar mensaje enviado por wapp
     -[x]esperando meta apruebe nuevas plantillas
 -[FEATURE]crear /rastrear en .com, pasarle parametro la orderid, y jalar la info desde firebase
