@@ -3,16 +3,8 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[FEATURE]actualizar mensaje enviado por wapp
-    -[]esperando meta apruebe nuevas plantillas
--[FEATURE]crear /rastrear en .com, pasarle parametro la orderid, y jalar la info desde firebase
-    -[x]crear componente rastrear
-    -[x]url y token muestran orden del cliente
-    -[]whatsapp envia la plantilla con la url, esto lo armo con el md wapptemplateimplementation
-    -[]se arma la plantilla agregando generando la url dinamica
 
 // PRIORIDAD ALTA
--[FEATURE]código QR que abra el sitio web
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
@@ -63,6 +55,14 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]actualizar mensaje enviado por wapp
+    -[x]esperando meta apruebe nuevas plantillas
+-[FEATURE]crear /rastrear en .com, pasarle parametro la orderid, y jalar la info desde firebase
+    -[x]crear componente rastrear
+    -[x]url y token muestran orden del cliente
+    -[x]whatsapp envia la plantilla con la url, esto lo armo con el md wapptemplateimplementation
+    -[x]se arma la plantilla agregando generando la url dinamica
+-[FEATURE]código QR que abra el sitio web
 -[FEATURE]tab reportes, actualizar css listo, agregar logica a los elementos
 -[FEATURE]agregar logo
 -[FEATURE]corte de caja
