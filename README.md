@@ -3,9 +3,9 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 
 // PRIORIDAD ALTA
--[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
 // PRIORIDAD MEDIA
