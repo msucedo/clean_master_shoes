@@ -20,6 +20,8 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[FIX]icon de la tab del navegador deberia ser el logo2
+-[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado
 -[FEATURE]Validar funcionalidades offline
 
      📝 Plan de Mejoras Propuesto                                                                                      

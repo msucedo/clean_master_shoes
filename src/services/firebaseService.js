@@ -323,6 +323,31 @@ export const deleteOrder = async (orderId) => {
 };
 
 /**
+ * Get order by ID
+ * @param {string} orderId - Order document ID
+ * @returns {Promise<Object|null>} Full order data or null if not found
+ */
+export const getOrderById = async (orderId) => {
+  try {
+    const orderRef = doc(db, 'orders', orderId);
+    const orderSnap = await getDoc(orderRef);
+
+    if (!orderSnap.exists()) {
+      console.warn('Order not found:', orderId);
+      return null;
+    }
+
+    return {
+      id: orderSnap.id,
+      ...orderSnap.data()
+    };
+  } catch (error) {
+    console.error('Error getting order by ID:', error);
+    return null;
+  }
+};
+
+/**
  * Get order by tracking token (PUBLIC - no authentication required)
  * Used for public order tracking page
  * @param {string} token - Tracking token

@@ -16,6 +16,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import LoadingScreen from './components/LoadingScreen';
 import Login from './components/Login';
+import PrintQueueListener from './components/PrintQueueListener';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Notification from './components/Notification';
@@ -88,6 +89,7 @@ function AppContent() {
         </Route>
       </Routes>
       <Notification />
+      <PrintQueueListener />
     </>
   );
 }

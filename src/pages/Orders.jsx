@@ -6,6 +6,7 @@ import OrderDetailView from '../components/OrderDetailView';
 import OrderCard from '../components/OrderCard';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PrintConfirmModal from '../components/PrintConfirmModal';
 import {
   subscribeToOrders,
   updateOrder,
@@ -16,6 +17,9 @@ import {
   updateClient
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { printTicket } from '../services/printService';
+import { addPrintJob } from '../services/printQueueService';
+import { detectPlatform } from '../services/printService';
 import './Orders.css';
 
 // Estructura inicial vacía para las órdenes
@@ -46,6 +50,12 @@ const Orders = () => {
     onConfirm: null,
     onCancel: null,
     type: 'default'
+  });
+  // Print confirm modal state
+  const [printConfirmModal, setPrintConfirmModal] = useState({
+    isOpen: false,
+    orderId: null,
+    orderNumber: null
   });
   // Detectar si es smartphone (< 768px)
   const [isSmartphone, setIsSmartphone] = useState(window.innerWidth < 768);
@@ -135,6 +145,36 @@ const Orders = () => {
     // Cerrar modal
     setIsModalOpen(false);
     setSelectedOrder(null);
+  };
+
+  // Handlers for print confirm modal
+  const handlePrintConfirm = async () => {
+    try {
+      await addPrintJob(
+        printConfirmModal.orderId,
+        printConfirmModal.orderNumber,
+        'receipt'
+      );
+
+      showSuccess('Ticket enviado a la impresora del local');
+
+      setPrintConfirmModal({
+        isOpen: false,
+        orderId: null,
+        orderNumber: null
+      });
+    } catch (error) {
+      console.error('Error adding print job:', error);
+      showError('Error al enviar ticket a impresora');
+    }
+  };
+
+  const handlePrintCancel = () => {
+    setPrintConfirmModal({
+      isOpen: false,
+      orderId: null,
+      orderNumber: null
+    });
   };
 
   const generateOrderId = () => {
@@ -376,7 +416,57 @@ const Orders = () => {
       };
 
       const { addOrder } = await import('../services/firebaseService');
-      await addOrder(newOrder);
+      const orderDoc = await addOrder(newOrder);
+      const createdOrderId = orderDoc.id;
+
+      // Detectar plataforma para decidir método de impresión
+      const platform = detectPlatform();
+
+      // Si es móvil/iOS: mostrar modal para imprimir remotamente
+      if (platform.isMobile) {
+        // Cerrar modal de creación primero
+        handleCloseModal();
+
+        // Mostrar éxito
+        showSuccess('Orden creada exitosamente');
+
+        // Crear cliente si es necesario
+        if (shouldCreateClient) {
+          const newClient = {
+            name: formData.client,
+            phone: formData.phone,
+            email: formData.email || ''
+          };
+          await addClient(newClient);
+          showSuccess('Cliente agregado exitosamente');
+        }
+
+        // Mostrar modal de confirmación de impresión remota
+        setPrintConfirmModal({
+          isOpen: true,
+          orderId: createdOrderId,
+          orderNumber: newOrder.orderNumber
+        });
+
+        return; // Salir aquí, el modal maneja el resto
+      }
+
+      // Si es Desktop: auto-imprimir por Bluetooth (silencioso, reconexión automática)
+      try {
+        const printResult = await printTicket(newOrder, 'receipt', {
+          method: 'bluetooth',
+          allowFallback: false // No hacer fallback a otros métodos
+        });
+
+        if (printResult.success) {
+          console.log('✅ Ticket auto-impreso:', printResult.deviceName);
+        } else if (!printResult.cancelled) {
+          console.warn('⚠️ Auto-impresión falló:', printResult.error);
+        }
+      } catch (error) {
+        console.warn('⚠️ Error en auto-impresión:', error.message);
+        // No mostrar error al usuario - es proceso background
+      }
 
       // Después de crear la orden exitosamente
       showSuccess('Orden creada exitosamente');
@@ -558,8 +648,17 @@ const Orders = () => {
         onConfirm={confirmDialog.onConfirm}
         onCancel={confirmDialog.onCancel || (() => setConfirmDialog({ ...confirmDialog, isOpen: false }))}
       />
+
+      {/* Print Confirm Modal (for mobile/iOS remote printing) */}
+      <PrintConfirmModal
+        isOpen={printConfirmModal.isOpen}
+        orderNumber={printConfirmModal.orderNumber}
+        onConfirm={handlePrintConfirm}
+        onCancel={handlePrintCancel}
+      />
     </div>
   );
 };
+
 
 export default Orders;
