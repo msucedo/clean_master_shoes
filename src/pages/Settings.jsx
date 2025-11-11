@@ -5,6 +5,14 @@ import { downloadBackup, getBackupInfo } from '../utils/backup';
 import { saveBusinessProfile, getBusinessProfile } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
+import {
+  getPrinterMethodPreference,
+  setPrinterMethodPreference,
+  PRINTER_METHODS,
+  PRINTER_METHOD_LABELS,
+  PRINTER_METHOD_DESCRIPTIONS
+} from '../utils/printerConfig';
+import { detectPlatform } from '../services/printService';
 import './Settings.css';
 
 const Settings = () => {
@@ -23,6 +31,10 @@ const Settings = () => {
   // Backup State
   const [backupLoading, setBackupLoading] = useState(false);
   const [backupInfo, setBackupInfo] = useState(null);
+
+  // Printer Method State
+  const [printerMethod, setPrinterMethod] = useState(PRINTER_METHODS.AUTO);
+  const [detectedPlatform, setDetectedPlatform] = useState(null);
 
   // Ref for file input
   const fileInputRef = useRef(null);
@@ -48,6 +60,15 @@ const Settings = () => {
 
     loadProfile();
   }, [showError]);
+
+  // Load printer method preference and detect platform
+  useEffect(() => {
+    const preference = getPrinterMethodPreference();
+    setPrinterMethod(preference);
+
+    const platform = detectPlatform();
+    setDetectedPlatform(platform);
+  }, []);
 
   const handleLogoUpload = () => {
     fileInputRef.current?.click();
@@ -154,6 +175,16 @@ const Settings = () => {
     } catch (error) {
       console.error('Error getting backup info:', error);
       showError('Error al obtener información del backup');
+    }
+  };
+
+  const handlePrinterMethodChange = (method) => {
+    setPrinterMethod(method);
+    const success = setPrinterMethodPreference(method);
+    if (success) {
+      showSuccess('Método de impresión guardado');
+    } else {
+      showError('Error al guardar el método de impresión');
     }
   };
 
@@ -330,8 +361,66 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Configuración de Impresora Bluetooth */}
-        <PrinterSettings />
+        {/* Método de Impresión */}
+        <div className="settings-section">
+          <div className="section-header">
+            <div className="section-icon printer">🖨️</div>
+            <div>
+              <div className="section-title">Método de Impresión</div>
+              <div className="section-subtitle">Selecciona cómo imprimir tickets</div>
+            </div>
+          </div>
+
+          <div className="printer-method-options">
+            {Object.entries(PRINTER_METHODS).map(([key, value]) => (
+              <div key={value} className="radio-option">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="printerMethod"
+                    value={value}
+                    checked={printerMethod === value}
+                    onChange={(e) => handlePrinterMethodChange(e.target.value)}
+                    className="radio-input"
+                  />
+                  <div className="radio-content">
+                    <div className="radio-title">{PRINTER_METHOD_LABELS[value]}</div>
+                    <div className="radio-description">{PRINTER_METHOD_DESCRIPTIONS[value]}</div>
+                  </div>
+                </label>
+              </div>
+            ))}
+          </div>
+
+          {printerMethod === PRINTER_METHODS.AUTO && detectedPlatform && (
+            <div className="platform-detection">
+              <div className="detection-label">🔍 Dispositivo detectado:</div>
+              <div className="detection-info">
+                <div className="detection-item">
+                  <span className="detection-key">Plataforma:</span>
+                  <span className="detection-value">
+                    {detectedPlatform.isMobile ? 'Móvil' : 'Desktop'}
+                    {detectedPlatform.isAndroid && ' (Android)'}
+                    {detectedPlatform.isIOS && ' (iOS)'}
+                  </span>
+                </div>
+                <div className="detection-item">
+                  <span className="detection-key">Método recomendado:</span>
+                  <span className="detection-value">
+                    {PRINTER_METHOD_LABELS[detectedPlatform.recommendedMethod]}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Configuración de Impresora Bluetooth - Solo visible cuando método es Bluetooth */}
+          {printerMethod === PRINTER_METHODS.BLUETOOTH && (
+            <div className="bluetooth-settings-container">
+              <PrinterSettings />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

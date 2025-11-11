@@ -18,7 +18,9 @@ import {
   formatReceiptTicketESCPOS,
   formatDeliveryTicketESCPOS
 } from '../utils/ticketFormatters';
+import { generateTicketPDFBlob } from '../utils/ticketPDFGenerator';
 import { bluetoothPrinter } from './bluetoothPrinterService';
+import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 
 /**
  * Detectar plataforma y capacidades del navegador
@@ -58,16 +60,13 @@ export const detectPlatform = () => {
 
 /**
  * Determinar el mejor método de impresión para la plataforma
+ * CAMBIO: Desktop ahora prioriza HTML (window.print con drivers USB)
  */
 function _getRecommendedMethod(capabilities) {
   const { isMobile, isAndroid, isIOS, hasBluetooth, hasShareAPI } = capabilities;
 
-  // Desktop con Bluetooth: usar Bluetooth (Mac, Windows, Linux con Chrome/Edge)
-  if (!isMobile && hasBluetooth) {
-    return 'bluetooth';
-  }
-
-  // Desktop sin Bluetooth: HTML
+  // Desktop (Mac, Windows, Linux): SIEMPRE usar HTML con drivers USB
+  // Esto permite usar impresoras USB con drivers instalados
   if (!isMobile) {
     return 'html';
   }
@@ -243,7 +242,8 @@ export const printTicketBluetooth = async (order, businessInfo, ticketType) => {
 };
 
 /**
- * MÉTODO 3: Compartir como texto (iOS/Fallback)
+ * MÉTODO 3: Compartir como PDF (iOS/Fallback)
+ * Compatible con Thermer y otras apps de impresión térmica
  */
 export const printTicketMobile = async (order, businessInfo, ticketType) => {
   try {
@@ -252,30 +252,97 @@ export const printTicketMobile = async (order, businessInfo, ticketType) => {
       throw new Error('Tu navegador no soporta la función de compartir');
     }
 
-    // Generar texto según tipo de ticket
-    let text;
-    let title;
+    console.log('📱 Generando PDF para compartir...');
 
-    if (ticketType === 'receipt') {
-      text = formatReceiptTicketText(order, businessInfo);
-      title = `Ticket de Recepción #${order.orderNumber || ''}`;
-    } else if (ticketType === 'delivery') {
-      text = formatDeliveryTicketText(order, businessInfo);
-      title = `Comprobante de Entrega #${order.orderNumber || ''}`;
-    } else {
-      throw new Error('Tipo de ticket inválido');
-    }
+    // Generar PDF del ticket
+    const pdfBlob = await generateTicketPDFBlob(order, businessInfo, ticketType);
 
-    // Llamar Share API
-    await navigator.share({
-      title: title,
-      text: text
+    // Crear nombre de archivo
+    const fileName = ticketType === 'receipt'
+      ? `ticket_${order.orderNumber || 'orden'}.pdf`
+      : `comprobante_${order.orderNumber || 'orden'}.pdf`;
+
+    // Crear File object
+    const pdfFile = new File([pdfBlob], fileName, {
+      type: 'application/pdf',
+      lastModified: Date.now()
     });
 
-    return { success: true, method: 'share' };
+    // Título para el Share Sheet
+    const title = ticketType === 'receipt'
+      ? `Ticket de Recepción #${order.orderNumber || ''}`
+      : `Comprobante de Entrega #${order.orderNumber || ''}`;
+
+    console.log('📤 Compartiendo PDF:', fileName);
+
+    // Verificar si soporta compartir archivos
+    if (navigator.canShare && !navigator.canShare({ files: [pdfFile] })) {
+      console.warn('⚠️ No se pueden compartir archivos, usando texto como fallback');
+
+      // Fallback a texto si no soporta archivos
+      const text = ticketType === 'receipt'
+        ? formatReceiptTicketText(order, businessInfo)
+        : formatDeliveryTicketText(order, businessInfo);
+
+      await navigator.share({
+        title: title,
+        text: text
+      });
+
+      return { success: true, method: 'share-text', fallback: true };
+    }
+
+    // === SOLUCIÓN PARA MODAL FANTASMA ===
+    // Cuando el usuario sale de la app para compartir a otra app (Thermer),
+    // el Promise de navigator.share() puede no resolverse.
+    // Detectamos cuando el usuario regresa y resolvemos automáticamente.
+
+    let resolved = false;
+    const sharePromise = navigator.share({
+      title: title,
+      files: [pdfFile]
+    });
+
+    // Detectar cuando el usuario regresa a la app
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !resolved) {
+        // Usuario regresó a la app, asumir que compartió exitosamente
+        console.log('✅ Usuario regresó a la app, asumiendo share exitoso');
+        resolved = true;
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Timeout de seguridad: si después de 30 segundos no se resuelve, asumir éxito
+    const timeoutPromise = new Promise((resolve) => {
+      setTimeout(() => {
+        if (!resolved) {
+          console.log('⏱️ Timeout alcanzado, asumiendo share exitoso');
+          resolved = true;
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          resolve({ timeout: true });
+        }
+      }, 30000);
+    });
+
+    // Esperar a que se resuelva el share o el timeout
+    await Promise.race([
+      sharePromise.then(() => {
+        resolved = true;
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        return { success: true };
+      }),
+      timeoutPromise
+    ]);
+
+    return { success: true, method: 'share-pdf' };
+
   } catch (error) {
     // Si el usuario cancela, el error es 'AbortError'
     if (error.name === 'AbortError') {
+      console.log('❌ Usuario canceló el share');
       return { success: false, cancelled: true };
     }
 
@@ -310,9 +377,23 @@ export const printTicket = async (order, ticketType, options = {}) => {
     const platform = detectPlatform();
     console.log('🖥️  Plataforma detectada:', platform);
 
+    // Obtener preferencia del usuario
+    const userPreference = getPrinterMethodPreference();
+    console.log('⚙️  Preferencia del usuario:', userPreference);
+
     // Determinar método de impresión
-    const forceMethod = options.method;
-    const method = forceMethod || platform.recommendedMethod;
+    let method;
+
+    // Prioridad: 1) options.method (llamada directa), 2) preferencia usuario, 3) recomendado
+    if (options.method) {
+      method = options.method;
+    } else if (userPreference === PRINTER_METHODS.AUTO) {
+      // Modo automático: usar método recomendado según plataforma
+      method = platform.recommendedMethod;
+    } else {
+      // Usuario eligió método específico: respetarlo
+      method = userPreference;
+    }
 
     console.log('📄 Método de impresión:', method);
 

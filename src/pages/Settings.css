@@ -537,4 +537,153 @@ input:checked + .toggle-slider:before {
   display: inline-block;
 }
 
+/* Printer Method Selection */
+.printer-method-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  margin-top: var(--space-md);
+}
+
+.radio-option {
+  position: relative;
+}
+
+.radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-md);
+  padding: clamp(1rem, 3vw, 1.25rem);
+  background: #0a0a0a;
+  border: 2px solid #2a2a2a;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.radio-label:hover {
+  border-color: var(--color-primary);
+  background: var(--bg-primary-05);
+}
+
+.radio-input {
+  appearance: none;
+  width: clamp(1.25rem, 3vw, 1.5rem);
+  height: clamp(1.25rem, 3vw, 1.5rem);
+  border: 2px solid #2a2a2a;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.3s;
+}
+
+.radio-input:checked {
+  border-color: var(--color-primary);
+  background: var(--gradient-primary);
+}
+
+.radio-input:checked::after {
+  content: '';
+  position: absolute;
+  width: clamp(0.5rem, 1.5vw, 0.625rem);
+  height: clamp(0.5rem, 1.5vw, 0.625rem);
+  background: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radio-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.radio-title {
+  font-size: clamp(0.875rem, 2vw, 0.938rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--gap-xs);
+}
+
+.radio-description {
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
+  color: #888;
+  line-height: 1.5;
+}
+
+.radio-input:checked ~ .radio-content .radio-title {
+  color: var(--color-primary);
+}
+
+/* Platform Detection Info */
+.platform-detection {
+  margin-top: var(--space-md);
+  padding: clamp(1rem, 3vw, 1.25rem);
+  background: #0f0f0f;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+}
+
+.detection-label {
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--gap-md);
+}
+
+.detection-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.detection-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-md);
+  flex-wrap: wrap;
+}
+
+.detection-key {
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
+  color: #888;
+  font-weight: 600;
+}
+
+.detection-value {
+  font-size: clamp(0.75rem, 2vw, 0.813rem);
+  color: var(--color-primary);
+  font-weight: 700;
+  text-align: right;
+}
+
+.section-icon.printer {
+  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+}
+
+/* Bluetooth Settings Container */
+.bluetooth-settings-container {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid #2a2a2a;
+}
+
+.bluetooth-settings-container .printer-settings {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bluetooth-settings-container .printer-settings h3 {
+  font-size: clamp(0.875rem, 2vw, 0.938rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--space-md);
+}
+
 /* Responsive - No media queries needed with intrinsic CSS */
