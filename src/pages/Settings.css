@@ -482,4 +482,59 @@ input:checked + .toggle-slider:before {
   color: #fff;
 }
 
+/* Print Section Styles */
+.info-box {
+  background-color: #1a2332;
+  border-left: 4px solid #2196f3;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+}
+
+.info-box h3 {
+  color: #fff;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.info-item {
+  margin-bottom: 15px;
+}
+
+.info-item strong {
+  color: #fff;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.info-item ul {
+  margin: 5px 0 0 20px;
+}
+
+.info-item li {
+  margin-bottom: 5px;
+  color: #88b4e3;
+  line-height: 1.5;
+}
+
+.info-item p {
+  color: #88b4e3;
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+.feature-badge {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.badge-coming-soon {
+  background-color: #ff9800;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  display: inline-block;
+}
+
 /* Responsive - No media queries needed with intrinsic CSS */

@@ -328,6 +328,43 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {/* Sección de Impresión de Tickets */}
+        <div className="settings-section">
+          <h2>Impresión de Tickets</h2>
+
+          <div className="info-box">
+            <h3>ℹ️ Configuración de Impresora</h3>
+
+            <div className="info-item">
+              <strong>En Computadora (PC/Mac):</strong>
+              <ul>
+                <li>Descarga e instala los drivers de tu impresora SUZWIP desde el sitio web del fabricante</li>
+                <li>Conecta la impresora por USB</li>
+                <li>Configúrala como impresora predeterminada en tu sistema</li>
+                <li>Los tickets se imprimirán usando el diálogo de impresión del navegador</li>
+              </ul>
+            </div>
+
+            <div className="info-item">
+              <strong>En Dispositivos Móviles:</strong>
+              <ul>
+                <li>Descarga una app de impresión Bluetooth desde la App Store o Play Store</li>
+                <li>Empareja tu impresora con tu dispositivo móvil</li>
+                <li>Al imprimir, selecciona "Compartir" y elige tu app de impresión</li>
+              </ul>
+            </div>
+
+            <div className="info-item">
+              <strong>Cómo imprimir:</strong>
+              <p>Abre cualquier orden y usa los botones "🖨️ Imprimir Recibo" o "🖨️ Imprimir Comprobante"</p>
+            </div>
+          </div>
+
+          <div className="feature-badge">
+            <span className="badge-coming-soon">Próximamente: Impresión automática</span>
+          </div>
+        </div>
       </div>
     </div>
   );

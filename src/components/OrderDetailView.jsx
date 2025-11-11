@@ -3,8 +3,9 @@ import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
-import { getBusinessProfile, updateOrder } from '../services/firebaseService';
+import { getBusinessProfile, updateOrder, addPrintRecord, hasPrintRecord } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
+import { printTicket } from '../services/printService';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck, useAuth } from '../contexts/AuthContext';
 import './OrderDetailView.css';
@@ -41,7 +42,7 @@ const getRelativeTimeWithHour = (dateString) => {
 };
 
 const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail, onWhatsApp, onEntregar, onBeforeClose, renderHeader, readOnly = false, employees = [] }) => {
-  const { showSuccess, showInfo } = useNotification();
+  const { showSuccess, showInfo, showError } = useNotification();
   const isAdmin = useAdminCheck();
   const { user } = useAuth();
 
@@ -84,6 +85,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const [flippingServices, setFlippingServices] = useState({});
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [localInvoice, setLocalInvoice] = useState(order.invoice || null);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -300,6 +302,43 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     const phone = order.phone.replace(/\D/g, '');
     const message = `Hola ${order.client}, tu orden está lista para recoger. Total: $${totalPrice}`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  // Manejar impresión de tickets
+  const handlePrint = async (type) => {
+    setIsPrinting(true);
+    try {
+      // Imprimir
+      const result = await printTicket(order, type);
+
+      if (!result.success) {
+        if (result.cancelled) {
+          showInfo('Impresión cancelada');
+        } else {
+          showError(result.error || 'Error al imprimir');
+        }
+        return;
+      }
+
+      // Registrar en Firebase
+      const printData = {
+        type,
+        printedAt: new Date().toISOString(),
+        printedBy: 'manual',
+        deviceInfo: result.method === 'desktop' ? 'Desktop' : 'Mobile'
+      };
+
+      const recordResult = await addPrintRecord(order.id, printData);
+
+      if (recordResult.success) {
+        showSuccess(`Ticket ${type === 'receipt' ? 'de recepción' : 'de entrega'} impreso`);
+        // Opcional: refrescar orden para ver printHistory actualizado
+      }
+    } catch (error) {
+      showError('Error al imprimir: ' + error.message);
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   // Cambiar estado de un servicio
@@ -1053,6 +1092,34 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
               <span className="action-icon">📧</span>
               <span className="action-text">Enviar Email</span>
             </button>
+
+            {/* Botón imprimir recibo */}
+            <button
+              className="action-btn btn-print"
+              onClick={() => handlePrint('receipt')}
+              disabled={isPrinting}
+            >
+              <span className="action-icon">🖨️</span>
+              <span className="action-text">
+                Imprimir Recibo
+                {hasPrintRecord(order, 'receipt') && <span style={{ marginLeft: '5px', color: '#4caf50', fontWeight: 'bold' }}>✓</span>}
+              </span>
+            </button>
+
+            {/* Botón imprimir comprobante - solo si orden completada */}
+            {(order.orderStatus === 'completados' || order.orderStatus === 'enEntrega') && (
+              <button
+                className="action-btn btn-print"
+                onClick={() => handlePrint('delivery')}
+                disabled={isPrinting}
+              >
+                <span className="action-icon">🖨️</span>
+                <span className="action-text">
+                  Imprimir Comprobante
+                  {hasPrintRecord(order, 'delivery') && <span style={{ marginLeft: '5px', color: '#4caf50', fontWeight: 'bold' }}>✓</span>}
+                </span>
+              </button>
+            )}
 
             {/* Botón para ver factura guardada (si existe) */}
             {localInvoice && localInvoice.pdfData && (
