@@ -419,11 +419,16 @@ const Orders = () => {
       const orderDoc = await addOrder(newOrder);
       const createdOrderId = orderDoc.id;
 
-      // Detectar plataforma para decidir método de impresión
+      // Detectar plataforma y obtener preferencia
       const platform = detectPlatform();
+      const { getPrinterMethodPreference, PRINTER_METHODS } = await import('../utils/printerConfig');
+      const userPreference = getPrinterMethodPreference();
 
-      // Si es móvil/iOS: mostrar modal para imprimir remotamente
-      if (platform.isMobile) {
+      // Determinar si debe usar cola
+      const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
+
+      // Si usuario eligió "Impresión Remota en Cola": mostrar modal
+      if (shouldUseQueue) {
         // Cerrar modal de creación primero
         handleCloseModal();
 

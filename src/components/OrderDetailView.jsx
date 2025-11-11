@@ -3,9 +3,12 @@ import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
+import PrintConfirmModal from './PrintConfirmModal';
 import { getBusinessProfile, updateOrder, addPrintRecord, hasPrintRecord } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { printTicket, getPrinterStatus } from '../services/printService';
+import { addPrintJob } from '../services/printQueueService';
+import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck, useAuth } from '../contexts/AuthContext';
 import './OrderDetailView.css';
@@ -86,6 +89,10 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [localInvoice, setLocalInvoice] = useState(order.invoice || null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [printConfirmModal, setPrintConfirmModal] = useState({
+    isOpen: false,
+    ticketType: null
+  });
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -307,8 +314,23 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   // Manejar impresión de tickets
   const handlePrint = async (type) => {
     setIsPrinting(true);
+
     try {
-      // Verificar estado de impresora Bluetooth
+      // Verificar si usuario eligió "Impresión Remota en Cola"
+      const userPreference = getPrinterMethodPreference();
+      const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
+
+      if (shouldUseQueue) {
+        // Usar cola: mostrar modal
+        setIsPrinting(false);
+        setPrintConfirmModal({
+          isOpen: true,
+          ticketType: type
+        });
+        return;
+      }
+
+      // Impresión directa: verificar estado de impresora Bluetooth
       const printerStatus = getPrinterStatus();
 
       // Configurar opciones de impresión
@@ -360,6 +382,28 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     } finally {
       setIsPrinting(false);
     }
+  };
+
+  // Handlers for print confirm modal
+  const handlePrintConfirm = async () => {
+    try {
+      await addPrintJob(
+        order.id,
+        order.orderNumber,
+        printConfirmModal.ticketType
+      );
+
+      showSuccess('Ticket enviado a la impresora del local');
+
+      setPrintConfirmModal({ isOpen: false, ticketType: null });
+    } catch (error) {
+      console.error('Error adding print job:', error);
+      showError('Error al enviar ticket a impresora');
+    }
+  };
+
+  const handlePrintCancel = () => {
+    setPrintConfirmModal({ isOpen: false, ticketType: null });
   };
 
   // Cambiar estado de un servicio
@@ -1248,6 +1292,14 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
           </div>
         </div>
       )}
+
+      {/* Print Confirm Modal (for queue/remote printing) */}
+      <PrintConfirmModal
+        isOpen={printConfirmModal.isOpen}
+        orderNumber={order.orderNumber}
+        onConfirm={handlePrintConfirm}
+        onCancel={handlePrintCancel}
+      />
     </div>
   );
 };

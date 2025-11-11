@@ -10,7 +10,8 @@ export const PRINTER_METHODS = {
   AUTO: 'auto',           // Detección automática según dispositivo
   HTML: 'html',           // USB/Drivers con window.print (Desktop)
   BLUETOOTH: 'bluetooth', // Bluetooth con ESC/POS (Android/Desktop)
-  SHARE: 'share'          // Share API con PDF (iOS/Mobile)
+  SHARE: 'share',         // Share API con PDF (iOS/Mobile)
+  QUEUE: 'queue'          // Impresión remota vía cola Firebase
 };
 
 // Etiquetas descriptivas para la UI
@@ -18,7 +19,8 @@ export const PRINTER_METHOD_LABELS = {
   [PRINTER_METHODS.AUTO]: 'Automático (Recomendado)',
   [PRINTER_METHODS.HTML]: 'USB/Drivers (window.print)',
   [PRINTER_METHODS.BLUETOOTH]: 'Bluetooth',
-  [PRINTER_METHODS.SHARE]: 'Compartir (PDF)'
+  [PRINTER_METHODS.SHARE]: 'Compartir (PDF)',
+  [PRINTER_METHODS.QUEUE]: 'Impresión Remota en Cola'
 };
 
 // Descripciones de cada método
@@ -26,7 +28,8 @@ export const PRINTER_METHOD_DESCRIPTIONS = {
   [PRINTER_METHODS.AUTO]: 'Detecta el mejor método para tu dispositivo automáticamente',
   [PRINTER_METHODS.HTML]: 'Para impresoras USB con drivers instalados (Mac/Windows/Linux)',
   [PRINTER_METHODS.BLUETOOTH]: 'Conexión directa por Bluetooth (Requiere emparejar impresora)',
-  [PRINTER_METHODS.SHARE]: 'Para apps de impresión móvil (iOS, Android sin Bluetooth)'
+  [PRINTER_METHODS.SHARE]: 'Para apps de impresión móvil (iOS, Android sin Bluetooth)',
+  [PRINTER_METHODS.QUEUE]: 'Envía tickets a la PC del local para impresión automática (Ideal para móviles)'
 };
 
 /**
