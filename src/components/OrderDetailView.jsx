@@ -5,7 +5,7 @@ import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
 import { getBusinessProfile, updateOrder, addPrintRecord, hasPrintRecord } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
-import { printTicket } from '../services/printService';
+import { printTicket, getPrinterStatus } from '../services/printService';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck, useAuth } from '../contexts/AuthContext';
 import './OrderDetailView.css';
@@ -308,14 +308,34 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const handlePrint = async (type) => {
     setIsPrinting(true);
     try {
+      // Verificar estado de impresora Bluetooth
+      const printerStatus = getPrinterStatus();
+
+      // Configurar opciones de impresión
+      let options = {};
+
+      // Si hay impresora Bluetooth conectada, usarla directamente
+      if (printerStatus.isConnected) {
+        console.log('✅ Impresora Bluetooth conectada, usando método bluetooth');
+        options.method = 'bluetooth';
+        options.allowFallback = false; // No caer a Share API
+      } else {
+        console.log('ℹ️ Sin impresora Bluetooth conectada, usando detección automática');
+      }
+
       // Imprimir
-      const result = await printTicket(order, type);
+      const result = await printTicket(order, type, options);
 
       if (!result.success) {
         if (result.cancelled) {
           showInfo('Impresión cancelada');
         } else {
-          showError(result.error || 'Error al imprimir');
+          // Si falla porque no hay impresora conectada, dar instrucciones
+          if (result.needsConnection) {
+            showError('Por favor, conecta una impresora Bluetooth desde Configuración');
+          } else {
+            showError(result.error || 'Error al imprimir');
+          }
         }
         return;
       }
@@ -325,7 +345,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         type,
         printedAt: new Date().toISOString(),
         printedBy: 'manual',
-        deviceInfo: result.method === 'desktop' ? 'Desktop' : 'Mobile'
+        deviceInfo: result.method === 'bluetooth' ? `Bluetooth (${printerStatus.deviceName || 'Impresora'})` :
+                   result.method === 'desktop' ? 'Desktop' : 'Mobile'
       };
 
       const recordResult = await addPrintRecord(order.id, printData);

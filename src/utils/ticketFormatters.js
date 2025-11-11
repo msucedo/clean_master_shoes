@@ -3,6 +3,8 @@
  * Genera tickets de recepción y entrega en formato HTML y texto plano
  */
 
+import { createESCPOS } from './escposCommands.js';
+
 // ===== HELPERS =====
 
 /**
@@ -395,4 +397,256 @@ export const formatDeliveryTicketText = (order, businessInfo) => {
   text += '================================';
 
   return text;
+};
+
+// ============================================================================
+// FORMATO ESC/POS PARA IMPRESORAS TÉRMICAS BLUETOOTH
+// ============================================================================
+
+/**
+ * Genera comandos ESC/POS para ticket de recepción
+ * Compatible con impresora térmica 58mm
+ */
+export const formatReceiptTicketESCPOS = (order, businessInfo) => {
+  const cmd = createESCPOS();
+  const saldo = (order.totalPrice || 0) - (order.advancePayment || 0);
+
+  // Inicializar impresora
+  cmd.init();
+
+  // Header - Nombre del negocio
+  cmd
+    .align('center')
+    .bold(true)
+    .size(2, 2)
+    .text(businessInfo.businessName || 'CLEAN MASTER SHOES')
+    .feed()
+    .size(1, 1)
+    .bold(false);
+
+  // Información de contacto
+  if (businessInfo.phone) {
+    cmd.text(`Tel: ${businessInfo.phone}`).feed();
+  }
+  if (businessInfo.address) {
+    cmd.text(businessInfo.address).feed();
+  }
+
+  cmd.hr('-', 48).emptyLine();
+
+  // Título del ticket
+  cmd
+    .align('center')
+    .bold(true)
+    .size(1, 2)
+    .text('ORDEN RECIBIDA')
+    .feed()
+    .size(1, 1)
+    .bold(false)
+    .align('left')
+    .emptyLine();
+
+  // Información de la orden
+  cmd
+    .keyValue('Orden #', order.orderNumber || 'N/A')
+    .keyValue('Fecha', formatDate(order.createdAt))
+    .keyValue('Cliente', order.client || 'N/A')
+    .keyValue('Tel', order.phone || 'N/A')
+    .emptyLine();
+
+  cmd.hr('-', 48);
+
+  // Detalle de items
+  cmd.bold(true).text('DETALLE:').feed().bold(false);
+
+  // Services
+  if (order.services && order.services.length > 0) {
+    order.services.forEach(service => {
+      const name = service.serviceName || 'Servicio';
+      const qty = service.quantity || 1;
+      const price = formatCurrency(service.price || 0);
+      cmd.tableRow(`${name} x${qty}`, price, 48);
+    });
+  }
+
+  // Products
+  if (order.products && order.products.length > 0) {
+    order.products.forEach(product => {
+      const name = product.name || 'Producto';
+      const qty = product.quantity || 1;
+      const price = formatCurrency(product.salePrice || 0);
+      cmd.tableRow(`${name} x${qty}`, price, 48);
+    });
+  }
+
+  // ShoePairs
+  if (order.shoePairs && order.shoePairs.length > 0) {
+    order.shoePairs.forEach(pair => {
+      const name = `${pair.model || 'Zapato'}-${pair.service || 'Servicio'}`;
+      const qty = pair.quantity || 1;
+      const price = formatCurrency(pair.price || 0);
+      cmd.tableRow(`${name} x${qty}`, price, 48);
+    });
+  }
+
+  // OtherItems
+  if (order.otherItems && order.otherItems.length > 0) {
+    order.otherItems.forEach(item => {
+      const name = item.description || 'Item';
+      const qty = item.quantity || 1;
+      const price = formatCurrency(item.price || 0);
+      cmd.tableRow(`${name} x${qty}`, price, 48);
+    });
+  }
+
+  cmd.hr('-', 48);
+
+  // Totales
+  cmd
+    .tableRow('Subtotal:', formatCurrency(order.totalPrice), 48)
+    .bold(true)
+    .tableRow('TOTAL:', formatCurrency(order.totalPrice), 48)
+    .bold(false)
+    .tableRow('Anticipo pagado:', formatCurrency(order.advancePayment), 48)
+    .bold(true)
+    .tableRow('SALDO PENDIENTE:', formatCurrency(saldo), 48)
+    .bold(false);
+
+  cmd.hr('-', 48);
+
+  // Fecha de entrega
+  cmd
+    .text('Fecha entrega estimada:')
+    .feed()
+    .bold(true)
+    .text(order.deliveryDate ? formatDate(order.deliveryDate).split(' ')[0] : 'Por confirmar')
+    .feed()
+    .bold(false)
+    .emptyLine();
+
+  // QR Code con URL del sitio web
+  const websiteUrl = businessInfo.website || 'https://cleanmastershoes.com';
+  cmd
+    .align('center')
+    .emptyLine()
+    .qrCode(websiteUrl, 1, 6) // Error correction M, module size 6
+    .feed(2)
+    .text('Escanea para mas info')
+    .feed()
+    .emptyLine();
+
+  // Despedida
+  cmd
+    .text('Gracias por su confianza')
+    .feed(2);
+
+  cmd.hr('=', 48);
+
+  // Corte de papel
+  cmd.feed(2).cut();
+
+  return cmd.getBytes();
+};
+
+/**
+ * Genera comandos ESC/POS para comprobante de entrega
+ * Compatible con impresora térmica 58mm
+ */
+export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
+  const cmd = createESCPOS();
+  const pagoEntrega = (order.totalPrice || 0) - (order.advancePayment || 0);
+
+  const paymentMethodMap = {
+    'cash': 'Efectivo',
+    'card': 'Tarjeta',
+    'transfer': 'Transferencia',
+    'pending': 'Pendiente'
+  };
+  const paymentMethod = paymentMethodMap[order.paymentMethod] || order.paymentMethod || 'N/A';
+
+  // Inicializar impresora
+  cmd.init();
+
+  // Header - Nombre del negocio
+  cmd
+    .align('center')
+    .bold(true)
+    .size(2, 2)
+    .text(businessInfo.businessName || 'CLEAN MASTER SHOES')
+    .feed()
+    .size(1, 1)
+    .bold(false);
+
+  // Información de contacto
+  if (businessInfo.phone) {
+    cmd.text(`Tel: ${businessInfo.phone}`).feed();
+  }
+
+  cmd.hr('-', 48).emptyLine();
+
+  // Título del ticket
+  cmd
+    .align('center')
+    .bold(true)
+    .size(1, 2)
+    .text('COMPROBANTE DE ENTREGA')
+    .feed()
+    .size(1, 1)
+    .bold(false)
+    .align('left')
+    .emptyLine();
+
+  // Información de la orden
+  cmd
+    .keyValue('Orden #', order.orderNumber || 'N/A')
+    .keyValue('Fecha entrega', formatDate(order.completedDate || order.createdAt))
+    .keyValue('Cliente', order.client || 'N/A')
+    .emptyLine();
+
+  cmd.hr('-', 48);
+
+  // Totales y pago
+  cmd
+    .tableRow('Total orden:', formatCurrency(order.totalPrice), 48)
+    .tableRow('Anticipo previo:', formatCurrency(order.advancePayment), 48)
+    .bold(true)
+    .tableRow('Pago en entrega:', formatCurrency(pagoEntrega), 48)
+    .bold(false)
+    .keyValue('Metodo', paymentMethod);
+
+  cmd.hr('-', 48).emptyLine();
+
+  // Estado completado
+  cmd
+    .align('center')
+    .bold(true)
+    .size(2, 2)
+    .text('ORDEN COMPLETADA')
+    .feed()
+    .size(1, 1)
+    .bold(false)
+    .emptyLine();
+
+  // QR Code con URL del sitio web
+  const websiteUrl = businessInfo.website || 'https://cleanmastershoes.com';
+  cmd
+    .qrCode(websiteUrl, 1, 6) // Error correction M, module size 6
+    .feed(2)
+    .text('Escanea para mas info')
+    .feed()
+    .emptyLine();
+
+  // Despedida
+  cmd
+    .text('Gracias por su preferencia')
+    .feed()
+    .text('Esperamos verle pronto')
+    .feed(2);
+
+  cmd.hr('=', 48);
+
+  // Corte de papel
+  cmd.feed(2).cut();
+
+  return cmd.getBytes();
 };
