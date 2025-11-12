@@ -65,6 +65,10 @@
   }
 }
 
+.connection-status.connected .status-text {
+  color: #666;
+}
+
 .status-text {
   font-weight: 600;
   color: #ddd;
@@ -158,10 +162,6 @@
 .btn-secondary {
   background-color: #6c757d;
   color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #545b62;
 }
 
 .btn-danger {

@@ -382,6 +382,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       if (recordResult.success) {
         showSuccess(`Ticket ${type === 'receipt' ? 'de recepción' : 'de entrega'} impreso`);
         // Opcional: refrescar orden para ver printHistory actualizado
+      } else {
+        showError(`Ticket impreso, pero no se guardó en el historial`);
       }
     } catch (error) {
       showError('Error al imprimir: ' + error.message);

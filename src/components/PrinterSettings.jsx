@@ -214,13 +214,6 @@ const PrinterSettings = () => {
         )}
       </div>
 
-      {/* Mensaje de feedback */}
-      {message && (
-        <div className={`alert alert-${message.type}`}>
-          {message.text}
-        </div>
-      )}
-
       {/* Botones de acción */}
       <div className="printer-actions">
         {!status.isConnected ? (

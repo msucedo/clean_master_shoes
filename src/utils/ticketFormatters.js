@@ -418,7 +418,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
   cmd
     .align('center')
     .bold(true)
-    .size(2, 2)
+    .size(1, 2)
     .text(businessInfo.businessName || 'CLEAN MASTER SHOES')
     .feed()
     .size(1, 1)
@@ -432,7 +432,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     cmd.text(businessInfo.address).feed();
   }
 
-  cmd.hr('-', 42).emptyLine();
+  cmd.hr('-', 32).emptyLine();
 
   // Título del ticket
   cmd
@@ -454,7 +454,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     .keyValue('Tel', order.phone || 'N/A', 42)
     .emptyLine();
 
-  cmd.hr('-', 42);
+  cmd.hr('-', 32);
 
   // Detalle de items
   cmd.bold(true).text('DETALLE:').feed().bold(false);
@@ -499,7 +499,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     });
   }
 
-  cmd.hr('-', 42);
+  cmd.hr('-', 32);
 
   // Totales
   cmd
@@ -512,7 +512,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     .tableRow('SALDO:', formatCurrency(saldo), 42)
     .bold(false);
 
-  cmd.hr('-', 42);
+  cmd.hr('-', 32);
 
   // Fecha de entrega
   cmd
@@ -531,7 +531,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     .emptyLine()
     .qrCode(websiteUrl, 1, 6) // Error correction M, module size 6
     .feed(2)
-    .text('Escanea para mas info')
+    .text('Visitanos en nuestro sitio web!')
     .feed()
     .emptyLine();
 
@@ -540,7 +540,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     .text('Gracias por su confianza')
     .feed(2);
 
-  cmd.hr('=', 42);
+  cmd.hr('=', 32);
 
   // Corte de papel
   cmd.feed(2).cut();
@@ -571,7 +571,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
   cmd
     .align('center')
     .bold(true)
-    .size(2, 2)
+    .size(1, 2)
     .text(businessInfo.businessName || 'CLEAN MASTER SHOES')
     .feed()
     .size(1, 1)

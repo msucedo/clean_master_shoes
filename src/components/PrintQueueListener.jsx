@@ -111,17 +111,25 @@ const PrintQueueListener = () => {
         throw new Error(printResult.error || 'Print failed');
       }
 
-      // 3.5. Register print in Firebase history
-      const { addPrintRecord } = await import('../services/firebaseService');
-      const printData = {
-        type: job.ticketType,
-        printedAt: new Date().toISOString(),
-        printedBy: 'queue',
-        deviceInfo: `Bluetooth (${printResult.deviceName || 'Desktop Printer'})`
-      };
-      await addPrintRecord(job.orderId, printData);
+      console.log(`✅ Print successful for job #${job.orderNumber}`);
 
-      // 4. Mark as completed
+      // 3.5. Register print in Firebase history (no bloquear si falla)
+      try {
+        const { addPrintRecord } = await import('../services/firebaseService');
+        const printData = {
+          type: job.ticketType,
+          printedAt: new Date().toISOString(),
+          printedBy: 'queue',
+          deviceInfo: `Bluetooth (${printResult.deviceName || 'Desktop Printer'})`
+        };
+        await addPrintRecord(job.orderId, printData);
+        console.log(`✅ Print registered in history for job #${job.orderNumber}`);
+      } catch (registerError) {
+        // No fallar: la impresión física fue exitosa
+        console.warn(`⚠️ Print succeeded but registration failed for job #${job.orderNumber}:`, registerError.message);
+      }
+
+      // 4. Mark as completed (la impresión física fue exitosa)
       await completePrintJob(job.id);
 
       console.log(`✅ Print job #${job.orderNumber} completed successfully`);
