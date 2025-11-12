@@ -384,12 +384,9 @@ export const printTicket = async (order, ticketType, options = {}) => {
     // Determinar método de impresión
     let method;
 
-    // Prioridad: 1) options.method (llamada directa), 2) preferencia usuario, 3) recomendado
+    // Prioridad: 1) options.method (llamada directa), 2) preferencia usuario
     if (options.method) {
       method = options.method;
-    } else if (userPreference === PRINTER_METHODS.AUTO) {
-      // Modo automático: usar método recomendado según plataforma
-      method = platform.recommendedMethod;
     } else {
       // Usuario eligió método específico: respetarlo
       method = userPreference;

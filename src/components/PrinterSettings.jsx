@@ -294,23 +294,9 @@ const PrinterSettings = () => {
               <li>✅ PWA (App instalada)</li>
               <li>❌ iOS Safari (usa compartir texto)</li>
             </ul>
-
-            <h4>Impresoras soportadas:</h4>
-            <p>Cualquier impresora térmica de 58mm con Bluetooth que soporte comandos ESC/POS estándar.</p>
-
-            <h4>Nota para macOS:</h4>
-            <p>Si la impresora no aparece en la lista, asegúrate de que esté encendida y en modo de emparejamiento. No es necesario emparejarla desde Configuración del Sistema de macOS primero.</p>
           </div>
         </details>
       </div>
-
-      {/* Información de plataforma (solo en dev) */}
-      {platform && import.meta.env.DEV && (
-        <details className="platform-debug">
-          <summary>🔧 Debug Info</summary>
-          <pre>{JSON.stringify(platform, null, 2)}</pre>
-        </details>
-      )}
     </div>
   );
 };

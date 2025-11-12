@@ -7,16 +7,14 @@ const STORAGE_KEY = 'printer_method_preference';
 
 // Métodos de impresión disponibles
 export const PRINTER_METHODS = {
-  AUTO: 'auto',           // Detección automática según dispositivo
-  HTML: 'html',           // USB/Drivers con window.print (Desktop)
+  QUEUE: 'queue',         // Impresión remota vía cola Firebase
   BLUETOOTH: 'bluetooth', // Bluetooth con ESC/POS (Android/Desktop)
   SHARE: 'share',         // Share API con PDF (iOS/Mobile)
-  QUEUE: 'queue'          // Impresión remota vía cola Firebase
+  HTML: 'html'            // USB/Drivers con window.print (Desktop)
 };
 
 // Etiquetas descriptivas para la UI
 export const PRINTER_METHOD_LABELS = {
-  [PRINTER_METHODS.AUTO]: 'Automático (Recomendado)',
   [PRINTER_METHODS.HTML]: 'USB/Drivers (window.print)',
   [PRINTER_METHODS.BLUETOOTH]: 'Bluetooth',
   [PRINTER_METHODS.SHARE]: 'Compartir (PDF)',
@@ -25,7 +23,6 @@ export const PRINTER_METHOD_LABELS = {
 
 // Descripciones de cada método
 export const PRINTER_METHOD_DESCRIPTIONS = {
-  [PRINTER_METHODS.AUTO]: 'Detecta el mejor método para tu dispositivo automáticamente',
   [PRINTER_METHODS.HTML]: 'Para impresoras USB con drivers instalados (Mac/Windows/Linux)',
   [PRINTER_METHODS.BLUETOOTH]: 'Conexión directa por Bluetooth (Requiere emparejar impresora)',
   [PRINTER_METHODS.SHARE]: 'Para apps de impresión móvil (iOS, Android sin Bluetooth)',
@@ -45,11 +42,11 @@ export const getPrinterMethodPreference = () => {
       return preference;
     }
 
-    // Default: automático
-    return PRINTER_METHODS.AUTO;
+    // Default: Bluetooth
+    return PRINTER_METHODS.BLUETOOTH;
   } catch (error) {
     console.error('Error al leer preferencia de impresión:', error);
-    return PRINTER_METHODS.AUTO;
+    return PRINTER_METHODS.BLUETOOTH;
   }
 };
 
@@ -67,6 +64,12 @@ export const setPrinterMethodPreference = (method) => {
     }
 
     localStorage.setItem(STORAGE_KEY, method);
+
+    // Disparar custom event para notificar el cambio
+    window.dispatchEvent(new CustomEvent('printerMethodChanged', {
+      detail: { method }
+    }));
+
     return true;
   } catch (error) {
     console.error('Error al guardar preferencia de impresión:', error);

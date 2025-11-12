@@ -392,28 +392,6 @@ const Settings = () => {
             ))}
           </div>
 
-          {printerMethod === PRINTER_METHODS.AUTO && detectedPlatform && (
-            <div className="platform-detection">
-              <div className="detection-label">🔍 Dispositivo detectado:</div>
-              <div className="detection-info">
-                <div className="detection-item">
-                  <span className="detection-key">Plataforma:</span>
-                  <span className="detection-value">
-                    {detectedPlatform.isMobile ? 'Móvil' : 'Desktop'}
-                    {detectedPlatform.isAndroid && ' (Android)'}
-                    {detectedPlatform.isIOS && ' (iOS)'}
-                  </span>
-                </div>
-                <div className="detection-item">
-                  <span className="detection-key">Método recomendado:</span>
-                  <span className="detection-value">
-                    {PRINTER_METHOD_LABELS[detectedPlatform.recommendedMethod]}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Configuración de Impresora Bluetooth - Solo visible cuando método es Bluetooth */}
           {printerMethod === PRINTER_METHODS.BLUETOOTH && (
             <div className="bluetooth-settings-container">

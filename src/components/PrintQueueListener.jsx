@@ -19,27 +19,44 @@ import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerCon
 const PrintQueueListener = () => {
   const [isListening, setIsListening] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [printerMethod, setPrinterMethod] = useState(() => getPrinterMethodPreference());
 
+  // Effect 1: Escuchar cambios en el método de impresión
   useEffect(() => {
-    // Only run on desktop
-    const userAgent = navigator.userAgent || '';
-    const isMobile = /iPhone|iPad|Android/i.test(userAgent);
+    const handleMethodChange = (event) => {
+      const newMethod = event.detail.method;
+      console.log('🔄 PrintQueueListener: Method changed to', newMethod);
+      setPrinterMethod(newMethod);
+    };
 
-    if (isMobile) {
-      console.log('📱 PrintQueueListener: Skipping on mobile device');
+    window.addEventListener('printerMethodChanged', handleMethodChange);
+
+    return () => {
+      window.removeEventListener('printerMethodChanged', handleMethodChange);
+    };
+  }, []);
+
+  // Effect 2: Iniciar/detener listener según el método actual
+  useEffect(() => {
+    // Block iOS devices (Safari doesn't support Web Bluetooth API)
+    // But allow Android devices to listen (they can use Web Bluetooth)
+    const userAgent = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+
+    if (isIOS) {
+      console.log('📱 PrintQueueListener: Skipping on iOS device (Web Bluetooth not supported)');
       return;
     }
 
     // Only listen to queue if printer method is Bluetooth
     // If method is "Queue", this device is just sending jobs, not processing them
-    const currentMethod = getPrinterMethodPreference();
-
-    if (currentMethod !== PRINTER_METHODS.BLUETOOTH && currentMethod !== 'bluetooth') {
-      console.log('⏸️  PrintQueueListener: Skipping (printer method is not Bluetooth, current:', currentMethod, ')');
+    if (printerMethod !== PRINTER_METHODS.BLUETOOTH && printerMethod !== 'bluetooth') {
+      console.log('⏸️  PrintQueueListener: Skipping (printer method is not Bluetooth, current:', printerMethod, ')');
+      setIsListening(false);
       return;
     }
 
-    console.log('🖨️  PrintQueueListener: Starting on desktop...');
+    console.log('🖨️  PrintQueueListener: Starting listener (Desktop/Android)...');
     setIsListening(true);
 
     // Subscribe to print queue
@@ -52,7 +69,7 @@ const PrintQueueListener = () => {
       setIsListening(false);
       unsubscribe();
     };
-  }, []);
+  }, [printerMethod]);
 
   /**
    * Handle a print job from the queue
