@@ -42,6 +42,8 @@ const Orders = () => {
   const [error, setError] = useState(null);
   const [employees, setEmployees] = useState([]);
   const saveOnCloseRef = useRef(null);
+  const isPrintingRef = useRef(false);
+  const wasSentToQueueRef = useRef(false);
   const [headerData, setHeaderData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -158,11 +160,20 @@ const Orders = () => {
 
       showSuccess('Ticket enviado a la impresora del local');
 
+      // Cerrar modal de confirmación
       setPrintConfirmModal({
         isOpen: false,
         orderId: null,
         orderNumber: null
       });
+
+      // Ahora sí cerrar el modal principal de creación de orden
+      handleCloseModal();
+
+      // Limpiar flag después de cerrar modales
+      setTimeout(() => {
+        wasSentToQueueRef.current = false;
+      }, 1000);
     } catch (error) {
       console.error('Error adding print job:', error);
       showError('Error al enviar ticket a impresora');
@@ -170,11 +181,20 @@ const Orders = () => {
   };
 
   const handlePrintCancel = () => {
+    // Cerrar modal de confirmación
     setPrintConfirmModal({
       isOpen: false,
       orderId: null,
       orderNumber: null
     });
+
+    // Cerrar también el modal principal de creación
+    handleCloseModal();
+
+    // Limpiar flag después de cerrar modales
+    setTimeout(() => {
+      wasSentToQueueRef.current = false;
+    }, 1000);
   };
 
   const generateOrderId = () => {
@@ -416,8 +436,7 @@ const Orders = () => {
       };
 
       const { addOrder } = await import('../services/firebaseService');
-      const orderDoc = await addOrder(newOrder);
-      const createdOrderId = orderDoc.id;
+      const createdOrderId = await addOrder(newOrder);
 
       // Detectar plataforma y obtener preferencia
       const platform = detectPlatform();
@@ -429,8 +448,7 @@ const Orders = () => {
 
       // Si usuario eligió "Impresión Remota en Cola": mostrar modal
       if (shouldUseQueue) {
-        // Cerrar modal de creación primero
-        handleCloseModal();
+        // NO cerrar modal todavía - se cierra después de confirmar/cancelar impresión
 
         // Mostrar éxito
         showSuccess('Orden creada exitosamente');
@@ -446,31 +464,57 @@ const Orders = () => {
           showSuccess('Cliente agregado exitosamente');
         }
 
-        // Mostrar modal de confirmación de impresión remota
+        // Mostrar modal de confirmación de impresión remota (SIN cerrar modal principal)
         setPrintConfirmModal({
           isOpen: true,
           orderId: createdOrderId,
           orderNumber: newOrder.orderNumber
         });
 
-        return; // Salir aquí, el modal maneja el resto
+        // Marcar que se envió a cola para evitar impresión local duplicada
+        wasSentToQueueRef.current = true;
+
+        return; // No ejecutar impresión automática
       }
 
       // Si es Desktop: auto-imprimir por Bluetooth (silencioso, reconexión automática)
-      try {
-        const printResult = await printTicket(newOrder, 'receipt', {
-          method: 'bluetooth',
-          allowFallback: false // No hacer fallback a otros métodos
-        });
+      // Prevenir impresiones duplicadas si el usuario hace doble-click en "Crear Orden"
+      // También prevenir si ya se envió a cola remota
+      // IMPORTANTE: Solo auto-imprimir si método es Bluetooth (NO si es Cola)
+      const currentMethod = getPrinterMethodPreference();
+      const shouldAutoprint = currentMethod === PRINTER_METHODS.BLUETOOTH || currentMethod === 'bluetooth';
 
-        if (printResult.success) {
-          console.log('✅ Ticket auto-impreso:', printResult.deviceName);
-        } else if (!printResult.cancelled) {
-          console.warn('⚠️ Auto-impresión falló:', printResult.error);
+      if (!isPrintingRef.current && !wasSentToQueueRef.current && shouldAutoprint) {
+        isPrintingRef.current = true;
+        try {
+          const printResult = await printTicket(newOrder, 'receipt', {
+            method: 'bluetooth',
+            allowFallback: false // No hacer fallback a otros métodos
+          });
+
+          if (printResult.success) {
+            console.log('✅ Ticket auto-impreso:', printResult.deviceName);
+
+            // Registrar en historial de impresiones
+            const { addPrintRecord } = await import('../services/firebaseService');
+            const printData = {
+              type: 'receipt',
+              printedAt: new Date().toISOString(),
+              printedBy: 'auto',
+              deviceInfo: printResult.method === 'bluetooth'
+                ? `Bluetooth (${printResult.deviceName || 'Impresora'})`
+                : 'Desktop'
+            };
+            await addPrintRecord(createdOrderId, printData);
+          } else if (!printResult.cancelled) {
+            console.warn('⚠️ Auto-impresión falló:', printResult.error);
+          }
+        } catch (error) {
+          console.warn('⚠️ Error en auto-impresión:', error.message);
+          // No mostrar error al usuario - es proceso background
+        } finally {
+          isPrintingRef.current = false;
         }
-      } catch (error) {
-        console.warn('⚠️ Error en auto-impresión:', error.message);
-        // No mostrar error al usuario - es proceso background
       }
 
       // Después de crear la orden exitosamente

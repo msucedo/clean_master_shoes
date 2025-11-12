@@ -313,6 +313,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
   // Manejar impresión de tickets
   const handlePrint = async (type) => {
+    // Prevenir doble-click
+    if (isPrinting) {
+      showInfo('Ya hay una impresión en proceso, por favor espera...');
+      return;
+    }
+
     setIsPrinting(true);
 
     try {

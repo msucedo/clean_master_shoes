@@ -23,12 +23,31 @@ const ALTERNATIVE_SERVICE_UUIDS = [
 
 const STORAGE_KEY = 'savedPrinterDevice';
 
+// Timeouts para operaciones
+const TIMEOUTS = {
+  CONNECT: 30000,      // 30 segundos para conexión
+  RECONNECT: 15000,    // 15 segundos para reconexión
+  PRINT: 30000         // 30 segundos para impresión
+};
+
 class BluetoothPrinterService {
   constructor() {
     this.device = null;
     this.characteristic = null;
     this.isConnected = false;
     this.connectionPromise = null;
+  }
+
+  /**
+   * Helper: Ejecutar operación con timeout
+   */
+  async _withTimeout(promise, timeoutMs, operationName) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout: ${operationName} excedió ${timeoutMs / 1000}s`)), timeoutMs)
+      )
+    ]);
   }
 
   /**
@@ -97,7 +116,7 @@ class BluetoothPrinterService {
       console.log('🔍 Solicitando dispositivo Bluetooth...');
       console.log('💡 Asegúrate de que la impresora esté encendida y en modo de emparejamiento');
 
-      // Request device - show picker to user
+      // Request device - show picker to user (sin timeout, es UI del navegador)
       this.device = await navigator.bluetooth.requestDevice({
         // Accept all devices and let user choose
         acceptAllDevices: true,
@@ -112,9 +131,13 @@ class BluetoothPrinterService {
         this.isConnected = false;
       });
 
-      // Connect to GATT Server
+      // Connect to GATT Server con timeout
       console.log('🔌 Conectando a GATT Server...');
-      const server = await this.device.gatt.connect();
+      const server = await this._withTimeout(
+        this.device.gatt.connect(),
+        TIMEOUTS.CONNECT,
+        'Conexión a impresora'
+      );
 
       // Try to find the correct service
       let service = null;
@@ -238,8 +261,12 @@ class BluetoothPrinterService {
         this.isConnected = false;
       });
 
-      // Connect to GATT Server
-      const server = await this.device.gatt.connect();
+      // Connect to GATT Server con timeout
+      const server = await this._withTimeout(
+        this.device.gatt.connect(),
+        TIMEOUTS.RECONNECT,
+        'Reconexión a impresora'
+      );
 
       // Try to find the correct service
       let service = null;
@@ -313,6 +340,18 @@ class BluetoothPrinterService {
       throw new Error('Impresora no conectada');
     }
 
+    // Envolver toda la operación de impresión con timeout
+    return this._withTimeout(
+      this._doPrint(data),
+      TIMEOUTS.PRINT,
+      'Impresión de ticket'
+    );
+  }
+
+  /**
+   * Operación interna de impresión
+   */
+  async _doPrint(data) {
     try {
       // Check if still connected
       if (!this.device.gatt.connected) {

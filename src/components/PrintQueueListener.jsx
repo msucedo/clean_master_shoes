@@ -14,6 +14,7 @@ import {
 } from '../services/printQueueService';
 import { getOrderById } from '../services/firebaseService';
 import { printTicket } from '../services/printService';
+import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 
 const PrintQueueListener = () => {
   const [isListening, setIsListening] = useState(false);
@@ -26,6 +27,15 @@ const PrintQueueListener = () => {
 
     if (isMobile) {
       console.log('📱 PrintQueueListener: Skipping on mobile device');
+      return;
+    }
+
+    // Only listen to queue if printer method is Bluetooth
+    // If method is "Queue", this device is just sending jobs, not processing them
+    const currentMethod = getPrinterMethodPreference();
+
+    if (currentMethod !== PRINTER_METHODS.BLUETOOTH && currentMethod !== 'bluetooth') {
+      console.log('⏸️  PrintQueueListener: Skipping (printer method is not Bluetooth, current:', currentMethod, ')');
       return;
     }
 
@@ -83,6 +93,16 @@ const PrintQueueListener = () => {
       if (!printResult.success) {
         throw new Error(printResult.error || 'Print failed');
       }
+
+      // 3.5. Register print in Firebase history
+      const { addPrintRecord } = await import('../services/firebaseService');
+      const printData = {
+        type: job.ticketType,
+        printedAt: new Date().toISOString(),
+        printedBy: 'queue',
+        deviceInfo: `Bluetooth (${printResult.deviceName || 'Desktop Printer'})`
+      };
+      await addPrintRecord(job.orderId, printData);
 
       // 4. Mark as completed
       await completePrintJob(job.id);
