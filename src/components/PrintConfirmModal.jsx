@@ -1,13 +1,20 @@
 /**
  * PrintConfirmModal Component
- * Shown after creating order on mobile/iOS
+ * Shown after creating order or delivering order on mobile/iOS
  * Asks if user wants to print ticket on local PC printer
  */
 
 import './PrintConfirmModal.css';
 
-const PrintConfirmModal = ({ isOpen, onConfirm, onCancel, orderNumber }) => {
+const PrintConfirmModal = ({ isOpen, onConfirm, onCancel, orderNumber, ticketType = 'receipt' }) => {
   if (!isOpen) return null;
+
+  const ticketTypeLabels = {
+    receipt: 'recepción',
+    delivery: 'entrega'
+  };
+
+  const ticketLabel = ticketTypeLabels[ticketType] || 'recepción';
 
   return (
     <div className="print-confirm-overlay">
@@ -19,7 +26,7 @@ const PrintConfirmModal = ({ isOpen, onConfirm, onCancel, orderNumber }) => {
 
         <div className="print-confirm-body">
           <p className="print-confirm-message">
-            ¿Deseas imprimir el ticket de recepción{orderNumber ? ` #${orderNumber}` : ''} en la impresora del local?
+            ¿Deseas imprimir el ticket de {ticketLabel}{orderNumber ? ` #${orderNumber}` : ''} en la impresora del local?
           </p>
 
           <div className="print-confirm-info">

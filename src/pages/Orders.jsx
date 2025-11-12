@@ -57,7 +57,8 @@ const Orders = () => {
   const [printConfirmModal, setPrintConfirmModal] = useState({
     isOpen: false,
     orderId: null,
-    orderNumber: null
+    orderNumber: null,
+    ticketType: 'receipt'
   });
   // Detectar si es smartphone (< 768px)
   const [isSmartphone, setIsSmartphone] = useState(window.innerWidth < 768);
@@ -155,20 +156,24 @@ const Orders = () => {
       await addPrintJob(
         printConfirmModal.orderId,
         printConfirmModal.orderNumber,
-        'receipt'
+        printConfirmModal.ticketType || 'receipt'
       );
 
-      showSuccess('Ticket enviado a la impresora del local');
+      const ticketLabel = printConfirmModal.ticketType === 'delivery' ? 'entrega' : 'recepción';
+      showSuccess(`Ticket de ${ticketLabel} enviado a la impresora del local`);
 
       // Cerrar modal de confirmación
       setPrintConfirmModal({
         isOpen: false,
         orderId: null,
-        orderNumber: null
+        orderNumber: null,
+        ticketType: 'receipt'
       });
 
-      // Ahora sí cerrar el modal principal de creación de orden
-      handleCloseModal();
+      // Solo cerrar el modal principal si estábamos creando orden (selectedOrder === null)
+      if (selectedOrder === null) {
+        handleCloseModal();
+      }
 
       // Limpiar flag después de cerrar modales
       setTimeout(() => {
@@ -185,11 +190,14 @@ const Orders = () => {
     setPrintConfirmModal({
       isOpen: false,
       orderId: null,
-      orderNumber: null
+      orderNumber: null,
+      ticketType: 'receipt'
     });
 
-    // Cerrar también el modal principal de creación
-    handleCloseModal();
+    // Solo cerrar el modal principal si estábamos creando orden
+    if (selectedOrder === null) {
+      handleCloseModal();
+    }
 
     // Limpiar flag después de cerrar modales
     setTimeout(() => {
@@ -329,7 +337,7 @@ const Orders = () => {
     showSuccess('Abriendo WhatsApp...');
   };
 
-  const handleEntregar = (order) => {
+  const handleEntregar = async (order) => {
     setConfirmDialog({
       isOpen: true,
       title: 'Entregar Orden',
@@ -357,6 +365,61 @@ const Orders = () => {
           handleCloseModal();
           showSuccess(`Orden #${order.orderNumber || order.id} entregada exitosamente`);
           setConfirmDialog({ ...confirmDialog, isOpen: false });
+
+          // ========== AUTO-IMPRESIÓN DEL TICKET DE ENTREGA ==========
+          // Obtener preferencia del usuario
+          const { getPrinterMethodPreference, PRINTER_METHODS } = await import('../utils/printerConfig');
+          const userPreference = getPrinterMethodPreference();
+          const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
+
+          // Si usuario eligió "Impresión Remota en Cola": mostrar modal
+          if (shouldUseQueue) {
+            setPrintConfirmModal({
+              isOpen: true,
+              orderId: order.id,
+              orderNumber: order.orderNumber || order.id,
+              ticketType: 'delivery'
+            });
+            return; // No ejecutar impresión automática
+          }
+
+          // Si método es Bluetooth: auto-imprimir ticket de entrega
+          const currentMethod = getPrinterMethodPreference();
+          const shouldAutoprint = currentMethod === PRINTER_METHODS.BLUETOOTH || currentMethod === 'bluetooth';
+
+          if (shouldAutoprint && !isPrintingRef.current) {
+            isPrintingRef.current = true;
+            try {
+              const printResult = await printTicket(completedOrder, 'delivery', {
+                method: 'bluetooth',
+                allowFallback: false
+              });
+
+              if (printResult.success) {
+                console.log('✅ Ticket de entrega auto-impreso:', printResult.deviceName);
+
+                // Registrar en historial de impresiones
+                const { addPrintRecord } = await import('../services/firebaseService');
+                const printData = {
+                  type: 'delivery',
+                  printedAt: new Date().toISOString(),
+                  printedBy: 'auto',
+                  deviceInfo: printResult.method === 'bluetooth'
+                    ? `Bluetooth (${printResult.deviceName || 'Impresora'})`
+                    : 'Desktop'
+                };
+                await addPrintRecord(order.id, printData);
+              } else if (!printResult.cancelled) {
+                console.warn('⚠️ Auto-impresión de ticket de entrega falló:', printResult.error);
+              }
+            } catch (error) {
+              console.warn('⚠️ Error en auto-impresión de ticket de entrega:', error.message);
+              // No mostrar error al usuario - es proceso background
+            } finally {
+              isPrintingRef.current = false;
+            }
+          }
+
           // Real-time listener will update the UI automatically
         } catch (error) {
           console.error('Error marking order as delivered:', error);
@@ -468,7 +531,8 @@ const Orders = () => {
         setPrintConfirmModal({
           isOpen: true,
           orderId: createdOrderId,
-          orderNumber: newOrder.orderNumber
+          orderNumber: newOrder.orderNumber,
+          ticketType: 'receipt'
         });
 
         // Marcar que se envió a cola para evitar impresión local duplicada
@@ -702,6 +766,7 @@ const Orders = () => {
       <PrintConfirmModal
         isOpen={printConfirmModal.isOpen}
         orderNumber={printConfirmModal.orderNumber}
+        ticketType={printConfirmModal.ticketType}
         onConfirm={handlePrintConfirm}
         onCancel={handlePrintCancel}
       />

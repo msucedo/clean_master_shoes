@@ -55,7 +55,7 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
       const name = service.serviceName || 'Servicio';
       const qty = service.quantity || 1;
       const price = service.price || 0;
-      const dots = '.'.repeat(Math.max(1, 32 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
+      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
       itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(price)}</div>\n`;
     });
   }
@@ -66,7 +66,7 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
       const name = product.name || 'Producto';
       const qty = product.quantity || 1;
       const price = product.salePrice || 0;
-      const dots = '.'.repeat(Math.max(1, 32 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
+      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
       itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(price)}</div>\n`;
     });
   }
@@ -77,7 +77,7 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
       const name = `${pair.model || 'Zapato'} - ${pair.service || 'Servicio'}`;
       const qty = pair.quantity || 1;
       const price = pair.price || 0;
-      const dots = '.'.repeat(Math.max(1, 32 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
+      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
       itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(price)}</div>\n`;
     });
   }
@@ -88,7 +88,7 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
       const name = item.description || 'Item';
       const qty = item.quantity || 1;
       const price = item.price || 0;
-      const dots = '.'.repeat(Math.max(1, 32 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
+      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
       itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(price)}</div>\n`;
     });
   }
@@ -144,11 +144,11 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
   </style>
 </head>
 <body>
-  <div class="center separator">================================</div>
+  <div class="center separator">==============================</div>
   <div class="center bold large">${businessInfo.businessName || 'CLEAN MASTER SHOES'}</div>
   <div class="center">Tel: ${businessInfo.phone || ''}</div>
   <div class="center">${businessInfo.address || ''}</div>
-  <div class="center separator">================================</div>
+  <div class="center separator">==============================</div>
 
   <div class="center bold large" style="margin: 10px 0;">═══ ORDEN RECIBIDA ═══</div>
 
@@ -167,21 +167,21 @@ ${itemsHTML}
   <div class="line"></div>
 
   <div>
-    <div>Subtotal: ${'.'.repeat(16)} ${formatCurrency(order.totalPrice)}</div>
-    <div class="bold">TOTAL: ${'.'.repeat(19)} ${formatCurrency(order.totalPrice)}</div>
-    <div>Anticipo pagado: ${'.'.repeat(9)} ${formatCurrency(order.advancePayment)}</div>
-    <div class="bold">SALDO PENDIENTE: ${'.'.repeat(9)} ${formatCurrency(saldo)}</div>
+    <div>Subtotal: ${'.'.repeat(13)} ${formatCurrency(order.totalPrice)}</div>
+    <div class="bold">TOTAL: ${'.'.repeat(16)} ${formatCurrency(order.totalPrice)}</div>
+    <div>Anticipo: ${'.'.repeat(13)} ${formatCurrency(order.advancePayment)}</div>
+    <div class="bold">SALDO: ${'.'.repeat(16)} ${formatCurrency(saldo)}</div>
   </div>
 
   <div class="line"></div>
 
   <div>
-    <div>Fecha entrega estimada:</div>
+    <div>Entrega est.:</div>
     <div class="bold">${order.deliveryDate ? formatDate(order.deliveryDate).split(' ')[0] : 'Por confirmar'}</div>
   </div>
 
   <div class="center" style="margin-top: 10px;">Gracias por su confianza</div>
-  <div class="center separator">================================</div>
+  <div class="center separator">==============================</div>
 </body>
 </html>`;
 };
@@ -253,10 +253,10 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
   </style>
 </head>
 <body>
-  <div class="center separator">================================</div>
+  <div class="center separator">==============================</div>
   <div class="center bold large">${businessInfo.businessName || 'CLEAN MASTER SHOES'}</div>
   <div class="center">Tel: ${businessInfo.phone || ''}</div>
-  <div class="center separator">================================</div>
+  <div class="center separator">==============================</div>
 
   <div class="center bold large" style="margin: 10px 0;">═══ COMPROBANTE DE ENTREGA ═══</div>
 
@@ -269,9 +269,9 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
   <div class="line"></div>
 
   <div>
-    <div>Total orden: ${'.'.repeat(15)} ${formatCurrency(order.totalPrice)}</div>
-    <div>Anticipo previo: ${'.'.repeat(11)} ${formatCurrency(order.advancePayment)}</div>
-    <div class="bold">Pago en entrega: ${'.'.repeat(9)} ${formatCurrency(pagoEntrega)}</div>
+    <div>Total: ${'.'.repeat(16)} ${formatCurrency(order.totalPrice)}</div>
+    <div>Anticipo: ${'.'.repeat(13)} ${formatCurrency(order.advancePayment)}</div>
+    <div class="bold">Pago entrega: ${'.'.repeat(9)} ${formatCurrency(pagoEntrega)}</div>
     <div>Método: ${paymentMethod}</div>
   </div>
 
@@ -281,7 +281,7 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
 
   <div class="center" style="margin-top: 10px;">¡Gracias por su preferencia!</div>
   <div class="center">¡Esperamos verle pronto!</div>
-  <div class="center separator">================================</div>
+  <div class="center separator">==============================</div>
 </body>
 </html>`;
 };
@@ -432,7 +432,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     cmd.text(businessInfo.address).feed();
   }
 
-  cmd.hr('-', 48).emptyLine();
+  cmd.hr('-', 42).emptyLine();
 
   // Título del ticket
   cmd
@@ -448,13 +448,13 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
 
   // Información de la orden
   cmd
-    .keyValue('Orden #', order.orderNumber || 'N/A')
-    .keyValue('Fecha', formatDate(order.createdAt))
-    .keyValue('Cliente', order.client || 'N/A')
-    .keyValue('Tel', order.phone || 'N/A')
+    .keyValue('Orden #', order.orderNumber || 'N/A', 42)
+    .keyValue('Fecha', formatDate(order.createdAt), 42)
+    .keyValue('Cliente', order.client || 'N/A', 42)
+    .keyValue('Tel', order.phone || 'N/A', 42)
     .emptyLine();
 
-  cmd.hr('-', 48);
+  cmd.hr('-', 42);
 
   // Detalle de items
   cmd.bold(true).text('DETALLE:').feed().bold(false);
@@ -465,7 +465,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
       const name = service.serviceName || 'Servicio';
       const qty = service.quantity || 1;
       const price = formatCurrency(service.price || 0);
-      cmd.tableRow(`${name} x${qty}`, price, 48);
+      cmd.tableRow(`${name} x${qty}`, price, 42);
     });
   }
 
@@ -475,7 +475,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
       const name = product.name || 'Producto';
       const qty = product.quantity || 1;
       const price = formatCurrency(product.salePrice || 0);
-      cmd.tableRow(`${name} x${qty}`, price, 48);
+      cmd.tableRow(`${name} x${qty}`, price, 42);
     });
   }
 
@@ -485,7 +485,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
       const name = `${pair.model || 'Zapato'}-${pair.service || 'Servicio'}`;
       const qty = pair.quantity || 1;
       const price = formatCurrency(pair.price || 0);
-      cmd.tableRow(`${name} x${qty}`, price, 48);
+      cmd.tableRow(`${name} x${qty}`, price, 42);
     });
   }
 
@@ -495,28 +495,28 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
       const name = item.description || 'Item';
       const qty = item.quantity || 1;
       const price = formatCurrency(item.price || 0);
-      cmd.tableRow(`${name} x${qty}`, price, 48);
+      cmd.tableRow(`${name} x${qty}`, price, 42);
     });
   }
 
-  cmd.hr('-', 48);
+  cmd.hr('-', 42);
 
   // Totales
   cmd
-    .tableRow('Subtotal:', formatCurrency(order.totalPrice), 48)
+    .tableRow('Subtotal:', formatCurrency(order.totalPrice), 42)
     .bold(true)
-    .tableRow('TOTAL:', formatCurrency(order.totalPrice), 48)
+    .tableRow('TOTAL:', formatCurrency(order.totalPrice), 42)
     .bold(false)
-    .tableRow('Anticipo pagado:', formatCurrency(order.advancePayment), 48)
+    .tableRow('Anticipo:', formatCurrency(order.advancePayment), 42)
     .bold(true)
-    .tableRow('SALDO PENDIENTE:', formatCurrency(saldo), 48)
+    .tableRow('SALDO:', formatCurrency(saldo), 42)
     .bold(false);
 
-  cmd.hr('-', 48);
+  cmd.hr('-', 42);
 
   // Fecha de entrega
   cmd
-    .text('Fecha entrega estimada:')
+    .text('Entrega est.:')
     .feed()
     .bold(true)
     .text(order.deliveryDate ? formatDate(order.deliveryDate).split(' ')[0] : 'Por confirmar')
@@ -540,7 +540,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
     .text('Gracias por su confianza')
     .feed(2);
 
-  cmd.hr('=', 48);
+  cmd.hr('=', 42);
 
   // Corte de papel
   cmd.feed(2).cut();
@@ -582,7 +582,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     cmd.text(`Tel: ${businessInfo.phone}`).feed();
   }
 
-  cmd.hr('-', 48).emptyLine();
+  cmd.hr('-', 42).emptyLine();
 
   // Título del ticket
   cmd
@@ -598,23 +598,23 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
 
   // Información de la orden
   cmd
-    .keyValue('Orden #', order.orderNumber || 'N/A')
-    .keyValue('Fecha entrega', formatDate(order.completedDate || order.createdAt))
-    .keyValue('Cliente', order.client || 'N/A')
+    .keyValue('Orden #', order.orderNumber || 'N/A', 42)
+    .keyValue('Fecha entrega', formatDate(order.completedDate || order.createdAt), 42)
+    .keyValue('Cliente', order.client || 'N/A', 42)
     .emptyLine();
 
-  cmd.hr('-', 48);
+  cmd.hr('-', 42);
 
   // Totales y pago
   cmd
-    .tableRow('Total orden:', formatCurrency(order.totalPrice), 48)
-    .tableRow('Anticipo previo:', formatCurrency(order.advancePayment), 48)
+    .tableRow('Total:', formatCurrency(order.totalPrice), 42)
+    .tableRow('Anticipo:', formatCurrency(order.advancePayment), 42)
     .bold(true)
-    .tableRow('Pago en entrega:', formatCurrency(pagoEntrega), 48)
+    .tableRow('Pago entrega:', formatCurrency(pagoEntrega), 42)
     .bold(false)
-    .keyValue('Metodo', paymentMethod);
+    .keyValue('Metodo', paymentMethod, 42);
 
-  cmd.hr('-', 48).emptyLine();
+  cmd.hr('-', 42).emptyLine();
 
   // Estado completado
   cmd
@@ -643,7 +643,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     .text('Esperamos verle pronto')
     .feed(2);
 
-  cmd.hr('=', 48);
+  cmd.hr('=', 42);
 
   // Corte de papel
   cmd.feed(2).cut();
