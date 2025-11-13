@@ -20,17 +20,13 @@ Se ha implementado un **sistema completo de impresión térmica** que funciona e
 3. **Soporte Multi-Plataforma**
    - ✅ **Desktop**: window.print() con HTML (funciona perfecto)
    - ✅ **Android Chrome/PWA**: Web Bluetooth API + ESC/POS
-   - ✅ **iOS Safari**: Share API (fallback a texto)
+   - ✅ **Impresión Remota**: Cola Firebase para impresión desde el local
    - ✅ **Detección automática** de la mejor opción
 
 4. **Reconexión Automática**
    - Guarda la impresora preferida en localStorage
    - Reconecta automáticamente al imprimir
    - Panel de configuración en Settings
-
-5. **Fallback Inteligente**
-   - Si falla Bluetooth → intenta Share API
-   - Siempre hay una forma de compartir el ticket
 
 ---
 
@@ -56,19 +52,18 @@ src/
 ```
 Usuario hace clic en "Imprimir"
            ↓
-    detectPlatform()
+    Verificar preferencia
            ↓
     ┌──────┴──────┐
-    │  Desktop?   │ → window.print() (HTML)
+    │   Queue?    │ → Cola Firebase (Impresión Remota)
     └──────┬──────┘
            │ No
     ┌──────┴──────┐
-    │  Android +  │ → Bluetooth ESC/POS
-    │  Bluetooth? │
+    │  Bluetooth? │ → Bluetooth ESC/POS
     └──────┬──────┘
            │ No
     ┌──────┴──────┐
-    │    iOS?     │ → Share API (texto)
+    │    HTML     │ → window.print() (USB/Drivers)
     └─────────────┘
 ```
 

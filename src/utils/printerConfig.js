@@ -9,7 +9,6 @@ const STORAGE_KEY = 'printer_method_preference';
 export const PRINTER_METHODS = {
   QUEUE: 'queue',         // Impresión remota vía cola Firebase
   BLUETOOTH: 'bluetooth', // Bluetooth con ESC/POS (Android/Desktop)
-  SHARE: 'share',         // Share API con PDF (iOS/Mobile)
   HTML: 'html'            // USB/Drivers con window.print (Desktop)
 };
 
@@ -17,7 +16,6 @@ export const PRINTER_METHODS = {
 export const PRINTER_METHOD_LABELS = {
   [PRINTER_METHODS.HTML]: 'USB/Drivers (window.print)',
   [PRINTER_METHODS.BLUETOOTH]: 'Bluetooth',
-  [PRINTER_METHODS.SHARE]: 'Compartir (PDF)',
   [PRINTER_METHODS.QUEUE]: 'Impresión Remota en Cola'
 };
 
@@ -25,13 +23,12 @@ export const PRINTER_METHOD_LABELS = {
 export const PRINTER_METHOD_DESCRIPTIONS = {
   [PRINTER_METHODS.HTML]: 'Para impresoras USB con drivers instalados (Mac/Windows/Linux)',
   [PRINTER_METHODS.BLUETOOTH]: 'Conexión directa por Bluetooth (Requiere emparejar impresora)',
-  [PRINTER_METHODS.SHARE]: 'Para apps de impresión móvil (iOS, Android sin Bluetooth)',
   [PRINTER_METHODS.QUEUE]: 'Envía tickets a la PC del local para impresión automática (Ideal para móviles)'
 };
 
 /**
  * Obtener la preferencia del usuario desde localStorage
- * @returns {string} Método preferido ('auto', 'html', 'bluetooth', 'share')
+ * @returns {string} Método preferido ('html', 'bluetooth', 'queue')
  */
 export const getPrinterMethodPreference = () => {
   try {
@@ -52,7 +49,7 @@ export const getPrinterMethodPreference = () => {
 
 /**
  * Guardar la preferencia del usuario en localStorage
- * @param {string} method - Método a guardar ('auto', 'html', 'bluetooth', 'share')
+ * @param {string} method - Método a guardar ('html', 'bluetooth', 'queue')
  * @returns {boolean} true si se guardó correctamente, false si hubo error
  */
 export const setPrinterMethodPreference = (method) => {

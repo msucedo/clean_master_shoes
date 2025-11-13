@@ -321,13 +321,21 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
     setIsPrinting(true);
 
+    // Verificar preferencia del usuario
+    const userPreference = getPrinterMethodPreference();
+    const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
+
+    // Safety timeout como backup
+    const safetyTimeoutId = setTimeout(() => {
+      console.log('⏱️ Safety timeout: liberando UI');
+      setIsPrinting(false);
+    }, 5000);
+
     try {
-      // Verificar si usuario eligió "Impresión Remota en Cola"
-      const userPreference = getPrinterMethodPreference();
-      const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
 
       if (shouldUseQueue) {
         // Usar cola: mostrar modal
+        clearTimeout(safetyTimeoutId);
         setIsPrinting(false);
         setPrintConfirmModal({
           isOpen: true,
@@ -346,13 +354,15 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       if (printerStatus.isConnected) {
         console.log('✅ Impresora Bluetooth conectada, usando método bluetooth');
         options.method = 'bluetooth';
-        options.allowFallback = false; // No caer a Share API
       } else {
         console.log('ℹ️ Sin impresora Bluetooth conectada, usando detección automática');
       }
 
       // Imprimir
       const result = await printTicket(order, type, options);
+
+      // Limpiar timeout - operación completó
+      clearTimeout(safetyTimeoutId);
 
       if (!result.success) {
         if (result.cancelled) {
@@ -386,8 +396,10 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         showError(`Ticket impreso, pero no se guardó en el historial`);
       }
     } catch (error) {
+      clearTimeout(safetyTimeoutId);
       showError('Error al imprimir: ' + error.message);
     } finally {
+      clearTimeout(safetyTimeoutId);
       setIsPrinting(false);
     }
   };

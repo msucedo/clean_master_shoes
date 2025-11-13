@@ -1,11 +1,10 @@
 /**
  * Servicio de Impresión Multi-Plataforma
- * Maneja impresión en Desktop, Android, iOS y PWA
+ * Maneja impresión en Desktop, Android y PWA
  *
  * Estrategia por plataforma:
  * - Desktop: window.print() con HTML
  * - Android Chrome/PWA: Bluetooth + ESC/POS
- * - iOS Safari: Share API (fallback)
  * - Otros: Detección automática
  */
 
@@ -13,8 +12,6 @@ import { getBusinessProfile } from './firebaseService';
 import {
   formatReceiptTicketHTML,
   formatDeliveryTicketHTML,
-  formatReceiptTicketText,
-  formatDeliveryTicketText,
   formatReceiptTicketESCPOS,
   formatDeliveryTicketESCPOS
 } from '../utils/ticketFormatters';
@@ -32,7 +29,6 @@ export const detectPlatform = () => {
   const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
   const isChrome = /Chrome/i.test(userAgent) && !/Edge/i.test(userAgent);
   const isSafari = /Safari/i.test(userAgent) && !/Chrome/i.test(userAgent);
-  const hasShareAPI = 'share' in navigator;
   const hasBluetooth = 'bluetooth' in navigator;
   const isPWA = window.matchMedia('(display-mode: standalone)').matches;
 
@@ -43,7 +39,6 @@ export const detectPlatform = () => {
     isChrome,
     isSafari,
     isPWA,
-    hasShareAPI,
     hasBluetooth,
     userAgent,
     // Recomendar método de impresión
@@ -52,7 +47,6 @@ export const detectPlatform = () => {
       isAndroid,
       isIOS,
       hasBluetooth,
-      hasShareAPI,
       isPWA
     })
   };
@@ -63,7 +57,7 @@ export const detectPlatform = () => {
  * CAMBIO: Desktop ahora prioriza HTML (window.print con drivers USB)
  */
 function _getRecommendedMethod(capabilities) {
-  const { isMobile, isAndroid, isIOS, hasBluetooth, hasShareAPI } = capabilities;
+  const { isMobile, isAndroid, hasBluetooth } = capabilities;
 
   // Desktop (Mac, Windows, Linux): SIEMPRE usar HTML con drivers USB
   // Esto permite usar impresoras USB con drivers instalados
@@ -76,17 +70,7 @@ function _getRecommendedMethod(capabilities) {
     return 'bluetooth';
   }
 
-  // iOS: solo Share API disponible
-  if (isIOS) {
-    return 'share';
-  }
-
-  // Fallback: Share API si está disponible
-  if (hasShareAPI) {
-    return 'share';
-  }
-
-  // Último recurso: HTML
+  // Fallback: HTML
   return 'html';
 }
 
@@ -241,115 +225,6 @@ export const printTicketBluetooth = async (order, businessInfo, ticketType) => {
   }
 };
 
-/**
- * MÉTODO 3: Compartir como PDF (iOS/Fallback)
- * Compatible con Thermer y otras apps de impresión térmica
- */
-export const printTicketMobile = async (order, businessInfo, ticketType) => {
-  try {
-    // Verificar soporte Share API
-    if (!('share' in navigator)) {
-      throw new Error('Tu navegador no soporta la función de compartir');
-    }
-
-    console.log('📱 Generando PDF para compartir...');
-
-    // Generar PDF del ticket
-    const pdfBlob = await generateTicketPDFBlob(order, businessInfo, ticketType);
-
-    // Crear nombre de archivo
-    const fileName = ticketType === 'receipt'
-      ? `ticket_${order.orderNumber || 'orden'}.pdf`
-      : `comprobante_${order.orderNumber || 'orden'}.pdf`;
-
-    // Crear File object
-    const pdfFile = new File([pdfBlob], fileName, {
-      type: 'application/pdf',
-      lastModified: Date.now()
-    });
-
-    // Título para el Share Sheet
-    const title = ticketType === 'receipt'
-      ? `Ticket de Recepción #${order.orderNumber || ''}`
-      : `Comprobante de Entrega #${order.orderNumber || ''}`;
-
-    console.log('📤 Compartiendo PDF:', fileName);
-
-    // Verificar si soporta compartir archivos
-    if (navigator.canShare && !navigator.canShare({ files: [pdfFile] })) {
-      console.warn('⚠️ No se pueden compartir archivos, usando texto como fallback');
-
-      // Fallback a texto si no soporta archivos
-      const text = ticketType === 'receipt'
-        ? formatReceiptTicketText(order, businessInfo)
-        : formatDeliveryTicketText(order, businessInfo);
-
-      await navigator.share({
-        title: title,
-        text: text
-      });
-
-      return { success: true, method: 'share-text', fallback: true };
-    }
-
-    // === SOLUCIÓN PARA MODAL FANTASMA ===
-    // Cuando el usuario sale de la app para compartir a otra app (Thermer),
-    // el Promise de navigator.share() puede no resolverse.
-    // Detectamos cuando el usuario regresa y resolvemos automáticamente.
-
-    let resolved = false;
-    const sharePromise = navigator.share({
-      title: title,
-      files: [pdfFile]
-    });
-
-    // Detectar cuando el usuario regresa a la app
-    const handleVisibilityChange = () => {
-      if (!document.hidden && !resolved) {
-        // Usuario regresó a la app, asumir que compartió exitosamente
-        console.log('✅ Usuario regresó a la app, asumiendo share exitoso');
-        resolved = true;
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Timeout de seguridad: si después de 30 segundos no se resuelve, asumir éxito
-    const timeoutPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        if (!resolved) {
-          console.log('⏱️ Timeout alcanzado, asumiendo share exitoso');
-          resolved = true;
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
-          resolve({ timeout: true });
-        }
-      }, 30000);
-    });
-
-    // Esperar a que se resuelva el share o el timeout
-    await Promise.race([
-      sharePromise.then(() => {
-        resolved = true;
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        return { success: true };
-      }),
-      timeoutPromise
-    ]);
-
-    return { success: true, method: 'share-pdf' };
-
-  } catch (error) {
-    // Si el usuario cancela, el error es 'AbortError'
-    if (error.name === 'AbortError') {
-      console.log('❌ Usuario canceló el share');
-      return { success: false, cancelled: true };
-    }
-
-    console.error('Error en printTicketMobile:', error);
-    return { success: false, error: error.message };
-  }
-};
 
 /**
  * FUNCIÓN PRINCIPAL: Imprimir ticket (inteligente según plataforma)
@@ -400,20 +275,6 @@ export const printTicket = async (order, ticketType, options = {}) => {
     switch (method) {
       case 'bluetooth':
         result = await printTicketBluetooth(order, businessInfo, ticketType);
-
-        // Si falla Bluetooth, ofrecer fallback
-        if (!result.success && !result.cancelled && options.allowFallback !== false) {
-          console.log('⚠️  Bluetooth falló, intentando fallback...');
-
-          if (platform.hasShareAPI) {
-            result = await printTicketMobile(order, businessInfo, ticketType);
-            result.usedFallback = true;
-          }
-        }
-        break;
-
-      case 'share':
-        result = await printTicketMobile(order, businessInfo, ticketType);
         break;
 
       case 'html':

@@ -286,118 +286,6 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
 </html>`;
 };
 
-// ===== FORMATEADORES TEXTO PLANO =====
-
-/**
- * Versión en texto plano del ticket de recepción para Share API
- */
-export const formatReceiptTicketText = (order, businessInfo) => {
-  const saldo = (order.totalPrice || 0) - (order.advancePayment || 0);
-
-  let text = '';
-  text += '================================\n';
-  text += `     ${businessInfo.businessName || 'CLEAN MASTER SHOES'}\n`;
-  text += `       Tel: ${businessInfo.phone || ''}\n`;
-  text += `    ${businessInfo.address || ''}\n`;
-  text += '================================\n\n';
-  text += '═══ ORDEN RECIBIDA ═══\n\n';
-  text += `Orden #: ${order.orderNumber || ''}\n`;
-  text += `Fecha: ${formatDate(order.createdAt)}\n`;
-  text += `Cliente: ${order.client || ''}\n`;
-  text += `Tel: ${order.phone || ''}\n\n`;
-  text += '--------------------------------\n';
-  text += 'DETALLE:\n';
-
-  // Services
-  if (order.services && order.services.length > 0) {
-    order.services.forEach(service => {
-      const name = service.serviceName || 'Servicio';
-      const qty = service.quantity || 1;
-      const price = formatCurrency(service.price || 0);
-      text += `• ${name} x${qty} .. ${price}\n`;
-    });
-  }
-
-  // Products
-  if (order.products && order.products.length > 0) {
-    order.products.forEach(product => {
-      const name = product.name || 'Producto';
-      const qty = product.quantity || 1;
-      const price = formatCurrency(product.salePrice || 0);
-      text += `• ${name} x${qty} .. ${price}\n`;
-    });
-  }
-
-  // ShoePairs
-  if (order.shoePairs && order.shoePairs.length > 0) {
-    order.shoePairs.forEach(pair => {
-      const name = `${pair.model || 'Zapato'} - ${pair.service || 'Servicio'}`;
-      const qty = pair.quantity || 1;
-      const price = formatCurrency(pair.price || 0);
-      text += `• ${name} x${qty} .. ${price}\n`;
-    });
-  }
-
-  // OtherItems
-  if (order.otherItems && order.otherItems.length > 0) {
-    order.otherItems.forEach(item => {
-      const name = item.description || 'Item';
-      const qty = item.quantity || 1;
-      const price = formatCurrency(item.price || 0);
-      text += `• ${name} x${qty} .. ${price}\n`;
-    });
-  }
-
-  text += '--------------------------------\n\n';
-  text += `Subtotal: .............. ${formatCurrency(order.totalPrice)}\n`;
-  text += `TOTAL: ................. ${formatCurrency(order.totalPrice)}\n`;
-  text += `Anticipo pagado: ....... ${formatCurrency(order.advancePayment)}\n`;
-  text += `SALDO PENDIENTE: ....... ${formatCurrency(saldo)}\n\n`;
-  text += '--------------------------------\n';
-  text += 'Fecha entrega estimada:\n';
-  text += `${order.deliveryDate ? formatDate(order.deliveryDate).split(' ')[0] : 'Por confirmar'}\n\n`;
-  text += 'Gracias por su confianza\n';
-  text += '================================';
-
-  return text;
-};
-
-/**
- * Versión en texto plano del comprobante de entrega
- */
-export const formatDeliveryTicketText = (order, businessInfo) => {
-  const pagoEntrega = (order.totalPrice || 0) - (order.advancePayment || 0);
-
-  const paymentMethodMap = {
-    'cash': 'Efectivo',
-    'card': 'Tarjeta',
-    'transfer': 'Transferencia',
-    'pending': 'Pendiente'
-  };
-  const paymentMethod = paymentMethodMap[order.paymentMethod] || order.paymentMethod || 'No especificado';
-
-  let text = '';
-  text += '================================\n';
-  text += `     ${businessInfo.businessName || 'CLEAN MASTER SHOES'}\n`;
-  text += `       Tel: ${businessInfo.phone || ''}\n`;
-  text += '================================\n\n';
-  text += '═══ COMPROBANTE DE ENTREGA ═══\n\n';
-  text += `Orden #: ${order.orderNumber || ''}\n`;
-  text += `Fecha entrega: ${formatDate(order.completedDate || order.createdAt)}\n`;
-  text += `Cliente: ${order.client || ''}\n\n`;
-  text += '--------------------------------\n';
-  text += `Total orden: ............. ${formatCurrency(order.totalPrice)}\n`;
-  text += `Anticipo previo: ......... ${formatCurrency(order.advancePayment)}\n`;
-  text += `Pago en entrega: ......... ${formatCurrency(pagoEntrega)}\n`;
-  text += `Método: ${paymentMethod}\n`;
-  text += '--------------------------------\n\n';
-  text += '✓ ORDEN COMPLETADA\n\n';
-  text += '¡Gracias por su preferencia!\n';
-  text += '¡Esperamos verle pronto!\n';
-  text += '================================';
-
-  return text;
-};
 
 // ============================================================================
 // FORMATO ESC/POS PARA IMPRESORAS TÉRMICAS BLUETOOTH
@@ -582,7 +470,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     cmd.text(`Tel: ${businessInfo.phone}`).feed();
   }
 
-  cmd.hr('-', 42).emptyLine();
+  cmd.hr('-', 32).emptyLine();
 
   // Título del ticket
   cmd
@@ -603,7 +491,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     .keyValue('Cliente', order.client || 'N/A', 42)
     .emptyLine();
 
-  cmd.hr('-', 42);
+  cmd.hr('-', 32);
 
   // Totales y pago
   cmd
@@ -614,7 +502,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     .bold(false)
     .keyValue('Metodo', paymentMethod, 42);
 
-  cmd.hr('-', 42).emptyLine();
+  cmd.hr('-', 32).emptyLine();
 
   // Estado completado
   cmd
@@ -643,7 +531,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     .text('Esperamos verle pronto')
     .feed(2);
 
-  cmd.hr('=', 42);
+  cmd.hr('=', 32);
 
   // Corte de papel
   cmd.feed(2).cut();
