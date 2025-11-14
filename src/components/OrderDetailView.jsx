@@ -3,7 +3,6 @@ import ImageUpload from './ImageUpload';
 import ConfirmDialog from './ConfirmDialog';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
-import PrintConfirmModal from './PrintConfirmModal';
 import { getBusinessProfile, updateOrder, addPrintRecord, hasPrintRecord } from '../services/firebaseService';
 import { generateInvoicePDF } from '../utils/invoiceGenerator';
 import { printTicket, getPrinterStatus } from '../services/printService';
@@ -89,10 +88,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [localInvoice, setLocalInvoice] = useState(order.invoice || null);
   const [isPrinting, setIsPrinting] = useState(false);
-  const [printConfirmModal, setPrintConfirmModal] = useState({
-    isOpen: false,
-    ticketType: null
-  });
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -334,13 +329,16 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     try {
 
       if (shouldUseQueue) {
-        // Usar cola: mostrar modal
+        // Usar cola: enviar automáticamente
         clearTimeout(safetyTimeoutId);
         setIsPrinting(false);
-        setPrintConfirmModal({
-          isOpen: true,
-          ticketType: type
-        });
+        try {
+          await addPrintJob(order.id, order.orderNumber, type);
+          showSuccess(`Ticket de ${type === 'receipt' ? 'recepción' : 'entrega'} enviado a la impresora del local`);
+        } catch (error) {
+          console.error('Error al enviar ticket a cola:', error);
+          showError('Error al enviar ticket a impresora');
+        }
         return;
       }
 
@@ -402,28 +400,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       clearTimeout(safetyTimeoutId);
       setIsPrinting(false);
     }
-  };
-
-  // Handlers for print confirm modal
-  const handlePrintConfirm = async () => {
-    try {
-      await addPrintJob(
-        order.id,
-        order.orderNumber,
-        printConfirmModal.ticketType
-      );
-
-      showSuccess('Ticket enviado a la impresora del local');
-
-      setPrintConfirmModal({ isOpen: false, ticketType: null });
-    } catch (error) {
-      console.error('Error adding print job:', error);
-      showError('Error al enviar ticket a impresora');
-    }
-  };
-
-  const handlePrintCancel = () => {
-    setPrintConfirmModal({ isOpen: false, ticketType: null });
   };
 
   // Cambiar estado de un servicio
@@ -1312,14 +1288,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
           </div>
         </div>
       )}
-
-      {/* Print Confirm Modal (for queue/remote printing) */}
-      <PrintConfirmModal
-        isOpen={printConfirmModal.isOpen}
-        orderNumber={order.orderNumber}
-        onConfirm={handlePrintConfirm}
-        onCancel={handlePrintCancel}
-      />
     </div>
   );
 };

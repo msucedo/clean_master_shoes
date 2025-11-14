@@ -22,6 +22,8 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]corregir texto de ticket de entrega
+-[]corregir sidebar ultimo emoji el fondo se corta
 -[]modals con ui propia
 -[]reportes y corte de caja podrian tener mejor organizacion en los botones del header
 -[FIX]al agregar gasto, la fecha con que se guarda es un día anterior al seleccionado

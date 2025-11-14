@@ -6,7 +6,6 @@ import OrderDetailView from '../components/OrderDetailView';
 import OrderCard from '../components/OrderCard';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
-import PrintConfirmModal from '../components/PrintConfirmModal';
 import {
   subscribeToOrders,
   updateOrder,
@@ -43,7 +42,6 @@ const Orders = () => {
   const [employees, setEmployees] = useState([]);
   const saveOnCloseRef = useRef(null);
   const isPrintingRef = useRef(false);
-  const wasSentToQueueRef = useRef(false);
   const [headerData, setHeaderData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -52,13 +50,6 @@ const Orders = () => {
     onConfirm: null,
     onCancel: null,
     type: 'default'
-  });
-  // Print confirm modal state
-  const [printConfirmModal, setPrintConfirmModal] = useState({
-    isOpen: false,
-    orderId: null,
-    orderNumber: null,
-    ticketType: 'receipt'
   });
   // Detectar si es smartphone (< 768px)
   const [isSmartphone, setIsSmartphone] = useState(window.innerWidth < 768);
@@ -148,61 +139,6 @@ const Orders = () => {
     // Cerrar modal
     setIsModalOpen(false);
     setSelectedOrder(null);
-  };
-
-  // Handlers for print confirm modal
-  const handlePrintConfirm = async () => {
-    try {
-      await addPrintJob(
-        printConfirmModal.orderId,
-        printConfirmModal.orderNumber,
-        printConfirmModal.ticketType || 'receipt'
-      );
-
-      const ticketLabel = printConfirmModal.ticketType === 'delivery' ? 'entrega' : 'recepción';
-      showSuccess(`Ticket de ${ticketLabel} enviado a la impresora del local`);
-
-      // Cerrar modal de confirmación
-      setPrintConfirmModal({
-        isOpen: false,
-        orderId: null,
-        orderNumber: null,
-        ticketType: 'receipt'
-      });
-
-      // Solo cerrar el modal principal si estábamos creando orden (selectedOrder === null)
-      if (selectedOrder === null) {
-        handleCloseModal();
-      }
-
-      // Limpiar flag después de cerrar modales
-      setTimeout(() => {
-        wasSentToQueueRef.current = false;
-      }, 1000);
-    } catch (error) {
-      console.error('Error adding print job:', error);
-      showError('Error al enviar ticket a impresora');
-    }
-  };
-
-  const handlePrintCancel = () => {
-    // Cerrar modal de confirmación
-    setPrintConfirmModal({
-      isOpen: false,
-      orderId: null,
-      orderNumber: null,
-      ticketType: 'receipt'
-    });
-
-    // Solo cerrar el modal principal si estábamos creando orden
-    if (selectedOrder === null) {
-      handleCloseModal();
-    }
-
-    // Limpiar flag después de cerrar modales
-    setTimeout(() => {
-      wasSentToQueueRef.current = false;
-    }, 1000);
   };
 
   const generateOrderId = () => {
@@ -372,15 +308,15 @@ const Orders = () => {
           const userPreference = getPrinterMethodPreference();
           const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
 
-          // Si usuario eligió "Impresión Remota en Cola": mostrar modal
+          // Si usuario eligió "Impresión Remota en Cola": enviar automáticamente
           if (shouldUseQueue) {
-            setPrintConfirmModal({
-              isOpen: true,
-              orderId: order.id,
-              orderNumber: order.orderNumber || order.id,
-              ticketType: 'delivery'
-            });
-            return; // No ejecutar impresión automática
+            try {
+              await addPrintJob(order.id, order.orderNumber || order.id, 'delivery');
+              console.log('✅ Ticket de entrega enviado a cola de impresión');
+            } catch (error) {
+              console.error('Error al enviar ticket de entrega a cola:', error);
+              // No bloquear el flujo si falla el envío a cola
+            }
           }
 
           // Si método es Bluetooth: auto-imprimir ticket de entrega
@@ -509,46 +445,24 @@ const Orders = () => {
       // Determinar si debe usar cola
       const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
 
-      // Si usuario eligió "Impresión Remota en Cola": mostrar modal
+      // Si usuario eligió "Impresión Remota en Cola": enviar automáticamente
       if (shouldUseQueue) {
-        // NO cerrar modal todavía - se cierra después de confirmar/cancelar impresión
-
-        // Mostrar éxito
-        showSuccess('Orden creada exitosamente');
-
-        // Crear cliente si es necesario
-        if (shouldCreateClient) {
-          const newClient = {
-            name: formData.client,
-            phone: formData.phone,
-            email: formData.email || ''
-          };
-          await addClient(newClient);
-          showSuccess('Cliente agregado exitosamente');
+        try {
+          await addPrintJob(createdOrderId, newOrder.orderNumber, 'receipt');
+          console.log('✅ Ticket enviado a cola de impresión');
+        } catch (error) {
+          console.error('Error al enviar ticket a cola:', error);
+          // No bloquear el flujo si falla el envío a cola
         }
-
-        // Mostrar modal de confirmación de impresión remota (SIN cerrar modal principal)
-        setPrintConfirmModal({
-          isOpen: true,
-          orderId: createdOrderId,
-          orderNumber: newOrder.orderNumber,
-          ticketType: 'receipt'
-        });
-
-        // Marcar que se envió a cola para evitar impresión local duplicada
-        wasSentToQueueRef.current = true;
-
-        return; // No ejecutar impresión automática
       }
 
       // Si es Desktop: auto-imprimir por Bluetooth (silencioso, reconexión automática)
       // Prevenir impresiones duplicadas si el usuario hace doble-click en "Crear Orden"
-      // También prevenir si ya se envió a cola remota
-      // IMPORTANTE: Solo auto-imprimir si método es Bluetooth (NO si es Cola)
+      // IMPORTANTE: Solo auto-imprimir si método es Bluetooth (NO si es Cola o HTML)
       const currentMethod = getPrinterMethodPreference();
       const shouldAutoprint = currentMethod === PRINTER_METHODS.BLUETOOTH || currentMethod === 'bluetooth';
 
-      if (!isPrintingRef.current && !wasSentToQueueRef.current && shouldAutoprint) {
+      if (!isPrintingRef.current && shouldAutoprint) {
         isPrintingRef.current = true;
         try {
           const printResult = await printTicket(newOrder, 'receipt', {
@@ -760,15 +674,6 @@ const Orders = () => {
         type={confirmDialog.type}
         onConfirm={confirmDialog.onConfirm}
         onCancel={confirmDialog.onCancel || (() => setConfirmDialog({ ...confirmDialog, isOpen: false }))}
-      />
-
-      {/* Print Confirm Modal (for mobile/iOS remote printing) */}
-      <PrintConfirmModal
-        isOpen={printConfirmModal.isOpen}
-        orderNumber={printConfirmModal.orderNumber}
-        ticketType={printConfirmModal.ticketType}
-        onConfirm={handlePrintConfirm}
-        onCancel={handlePrintCancel}
       />
     </div>
   );
