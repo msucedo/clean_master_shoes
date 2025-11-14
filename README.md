@@ -4,8 +4,6 @@ Clean master shoes
 
 // WIP
 -[]buscar bugs en todos los flujos de funcionalidades
--[]abrir cajon automatico al imprimir tickeet y que sea una transferencia en efectivo
--[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 
 // PRIORIDAD ALTA
 -[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
@@ -65,6 +63,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]abrir cajon automatico al imprimir tickeet y que sea una transferencia en efectivo
+-[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FIX]Forzar pago completo para órdenes sin servicios (solo productos) y crearlas directamente como "completados".
 -[FIX]orden sin productos-al crear una orden, si solo selecciono productos, deberia de ver un boton cobrar y que haga el flip asi como ahorita pero que el campo elegir fecha no sea requerido, que el campo elegir metodo de pago si sea requerido y que en lugar de ver el boton crear orden, veas el boton cobrar y finalizar, esto porque no es necesario crear una orden si no hay servicios en juego, directamente le vamos a cobrar
 -[FEATURE]actualizar mensaje enviado por wapp

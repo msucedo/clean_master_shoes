@@ -336,10 +336,10 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
 
   // Información de la orden
   cmd
-    .keyValue('Orden #', order.orderNumber || 'N/A', 42)
+    .keyValue('Orden #', order.orderNumber || 'N/A', 32)
     .keyValue('Fecha', formatDate(order.createdAt), 42)
-    .keyValue('Cliente', order.client || 'N/A', 42)
-    .keyValue('Tel', order.phone || 'N/A', 42)
+    .keyValue('Cliente', order.client || 'N/A', 32)
+    .keyValue('Tel', order.phone || 'N/A', 32)
     .emptyLine();
 
   cmd.hr('-', 32);
@@ -391,13 +391,13 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
 
   // Totales
   cmd
-    .tableRow('Subtotal:', formatCurrency(order.totalPrice), 42)
+    .tableRow('Subtotal:', formatCurrency(order.totalPrice), 32)
     .bold(true)
-    .tableRow('TOTAL:', formatCurrency(order.totalPrice), 42)
+    .tableRow('TOTAL:', formatCurrency(order.totalPrice), 32)
     .bold(false)
-    .tableRow('Anticipo:', formatCurrency(order.advancePayment), 42)
+    .tableRow('Anticipo:', formatCurrency(order.advancePayment), 32)
     .bold(true)
-    .tableRow('SALDO:', formatCurrency(saldo), 42)
+    .tableRow('SALDO:', formatCurrency(saldo), 32)
     .bold(false);
 
   cmd.hr('-', 32);
@@ -491,21 +491,19 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
 
   // Información de la orden
   cmd
-    .keyValue('Orden #', order.orderNumber || 'N/A', 42)
-    .keyValue('Fecha entrega', formatDate(order.completedDate || order.createdAt), 42)
-    .keyValue('Cliente', order.client || 'N/A', 42)
+    .keyValue('Orden #', order.orderNumber || 'N/A', 32)
+    .keyValue('Fecha', formatDate(order.completedDate || order.createdAt), 32)
+    .keyValue('Cliente', order.client || 'N/A', 32)
     .emptyLine();
 
   cmd.hr('-', 32);
 
   // Totales y pago
   cmd
-    .tableRow('Total:', formatCurrency(order.totalPrice), 42)
-    .tableRow('Anticipo:', formatCurrency(order.advancePayment), 42)
+    .tableRow('Total:', formatCurrency(order.totalPrice), 32)
+    .tableRow('Anticipo:', formatCurrency(order.advancePayment), 32)
     .bold(true)
-    .tableRow('Pago entrega:', formatCurrency(pagoEntrega), 42)
-    .bold(false)
-    .keyValue('Metodo', paymentMethod, 42);
+    .tableRow('Pago entrega:', formatCurrency(pagoEntrega), 32)
 
   cmd.hr('-', 32).emptyLine();
 
@@ -525,7 +523,7 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
   cmd
     .qrCode(websiteUrl, 1, 6) // Error correction M, module size 6
     .feed(2)
-    .text('Escanea para mas info')
+    .text('Visitanos en nuestro sitio web!')
     .feed()
     .emptyLine();
 
