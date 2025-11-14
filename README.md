@@ -3,6 +3,8 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]buscar bugs en todos los flujos de funcionalidades
+-[]abrir cajon automatico al imprimir tickeet y que sea una transferencia en efectivo
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 
 // PRIORIDAD ALTA
@@ -20,6 +22,12 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]modals con ui propia
+-[]reportes y corte de caja podrian tener mejor organizacion en los botones del header
+-[FIX]al agregar gasto, la fecha con que se guarda es un día anterior al seleccionado
+-[]validar el cobro final, me deja avanzar de un cobro de 120 nomas poniendo 50 y completa la orden
+-[FIX]al momento de cobrar y entregar la orden, en una orden donde se habia dado anticipo, al momento de cobrar viene la opcion de pendiente, no deberia salir pendiente como metodo de pago en ese momento, eso solo deberia salir al crear la orden, pero en este momento ya se finalizo el servicio y el pedido entonces deberiamos recibir el pago total faltante.
+-[]agregar ux para modal al conectar impresora bluetooth
 -[FIX]icon de la tab del navegador deberia ser el logo2
 -[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado
 -[FEATURE]Validar funcionalidades offline

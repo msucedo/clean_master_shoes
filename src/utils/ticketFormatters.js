@@ -430,6 +430,11 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
 
   cmd.hr('=', 32);
 
+  // Abrir cajón si el pago es en efectivo
+  if (order.paymentMethod === 'cash') {
+    cmd.openDrawer(0, 120, 240); // Pin 2, 240ms ON, 480ms OFF
+  }
+
   // Corte de papel
   cmd.feed(2).cut();
 
@@ -532,6 +537,11 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
     .feed(2);
 
   cmd.hr('=', 32);
+
+  // Abrir cajón si el pago es en efectivo
+  if (order.paymentMethod === 'cash') {
+    cmd.openDrawer(0, 120, 240); // Pin 2, 240ms ON, 480ms OFF
+  }
 
   // Corte de papel
   cmd.feed(2).cut();
