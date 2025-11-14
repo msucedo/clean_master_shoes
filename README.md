@@ -63,6 +63,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]fecha en 2do ticket
 -[FEATURE]abrir cajon automatico al imprimir tickeet y que sea una transferencia en efectivo
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
 -[FIX]Forzar pago completo para órdenes sin servicios (solo productos) y crearlas directamente como "completados".

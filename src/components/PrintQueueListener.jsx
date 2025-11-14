@@ -6,13 +6,14 @@
  */
 
 import { useEffect, useState } from 'react';
+import { getDocFromServer, doc } from 'firebase/firestore';
 import {
   subscribeToPrintQueue,
   claimPrintJob,
   completePrintJob,
   failPrintJob
 } from '../services/printQueueService';
-import { getOrderById } from '../services/firebaseService';
+import { db } from '../config/firebase';
 import { printTicket } from '../services/printService';
 import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 
@@ -94,12 +95,18 @@ const PrintQueueListener = () => {
         return;
       }
 
-      // 2. Get full order data from Firestore
-      const order = await getOrderById(job.orderId);
+      // 2. Get full order data from Firestore (force server read to get latest completedDate)
+      const orderRef = doc(db, 'orders', job.orderId);
+      const orderSnap = await getDocFromServer(orderRef);
 
-      if (!order) {
+      if (!orderSnap.exists()) {
         throw new Error(`Order not found: ${job.orderId}`);
       }
+
+      const order = {
+        id: orderSnap.id,
+        ...orderSnap.data()
+      };
 
       // 3. Print the ticket
       const printResult = await printTicket(order, job.ticketType, {
