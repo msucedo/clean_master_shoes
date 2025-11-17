@@ -17,10 +17,12 @@ import SplashScreen from './components/SplashScreen';
 import LoadingScreen from './components/LoadingScreen';
 import Login from './components/Login';
 import PrintQueueListener from './components/PrintQueueListener';
+import BluetoothConnectionAlert from './components/BluetoothConnectionAlert';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Notification from './components/Notification';
 import { useWhatsAppNotifications } from './hooks/useWhatsAppNotifications';
+import { useBluetoothConnectionMonitor } from './hooks/useBluetoothConnectionMonitor';
 // Importar scripts de migración para exponerlos en window
 import './utils/migrateEmployees';
 import './utils/migrateOrderTokens';
@@ -34,6 +36,9 @@ function AppContent() {
 
   // Escuchar notificaciones de WhatsApp (solo si está autenticado)
   useWhatsAppNotifications();
+
+  // Monitorear conexión Bluetooth
+  const { shouldShowAlert, dismissAlert, handleConnected } = useBluetoothConnectionMonitor();
 
   const handleSplashComplete = () => {
     setShowSplashScreen(false);
@@ -90,6 +95,11 @@ function AppContent() {
       </Routes>
       <Notification />
       <PrintQueueListener />
+      <BluetoothConnectionAlert
+        isOpen={shouldShowAlert}
+        onClose={dismissAlert}
+        onConnected={handleConnected}
+      />
     </>
   );
 }

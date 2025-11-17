@@ -436,6 +436,37 @@ class BluetoothPrinterService {
   }
 
   /**
+   * Check if there's an active Bluetooth connection
+   * Verifies if any authorized Bluetooth device is currently connected
+   * @returns {Promise<boolean>} true if there's an active connection, false otherwise
+   */
+  async hasActiveBluetoothConnection() {
+    try {
+      // Check if Web Bluetooth is supported
+      if (!this.isSupported()) {
+        return false;
+      }
+
+      // Check if getDevices API is available (Chrome 106+)
+      if (!navigator.bluetooth.getDevices) {
+        // Fallback: check current connection status
+        return this.isConnected && this.device?.gatt?.connected;
+      }
+
+      // Get all authorized devices
+      const devices = await navigator.bluetooth.getDevices();
+
+      // Check if any device is currently connected
+      const hasConnection = devices.some(device => device.gatt?.connected);
+
+      return hasConnection;
+    } catch (error) {
+      console.error('Error checking Bluetooth connection:', error);
+      return false;
+    }
+  }
+
+  /**
    * Clear saved printer info
    */
   forgetPrinter() {
