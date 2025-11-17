@@ -56,6 +56,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]refactor reportes tab, logic for filters
 -[FIX]al agregar gasto, la fecha con que se guarda es un día anterior al seleccionado
 -[FIX]validar el cobro final, me deja avanzar de un cobro de 120 nomas poniendo 50 y completa la orden
 -[FIX]al momento de cobrar y entregar la orden, en una orden donde se habia dado anticipo, al momento de cobrar viene la opcion de pendiente, no deberia salir pendiente como metodo de pago en ese momento, eso solo deberia salir al crear la orden, pero en este momento ya se finalizo el servicio y el pedido entonces deberiamos recibir el pago total faltante.

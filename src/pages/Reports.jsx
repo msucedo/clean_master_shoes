@@ -38,6 +38,13 @@ const Reports = () => {
     setActiveFilter(filter);
   };
 
+  // Forzar filtro "Hoy" cuando se entra a la tab "Corte de Caja"
+  useEffect(() => {
+    if (activeTab === 'corte') {
+      setActiveFilter('Hoy');
+    }
+  }, [activeTab]);
+
   // Get filtered orders for cash register based on date filter
   const getFilteredOrders = () => {
     const now = new Date();
@@ -48,12 +55,13 @@ const Reports = () => {
         startDate = new Date(now.setHours(0, 0, 0, 0));
         endDate = new Date(now.setHours(23, 59, 59, 999));
         break;
-      case 'Semana':
+      case 'Semana': {
         const startOfWeek = new Date(now);
         startOfWeek.setDate(now.getDate() - now.getDay());
         startDate = new Date(startOfWeek.setHours(0, 0, 0, 0));
         endDate = new Date();
         break;
+      }
       case 'Mes':
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
@@ -255,11 +263,15 @@ const Reports = () => {
       {/* Header */}
       <PageHeader
         title="Reportes y Corte de Caja"
-        filters={dateFilters.map((filter) => ({
-          label: filter,
-          onClick: () => handleFilterChange(filter),
-          active: activeFilter === filter
-        }))}
+        filters={
+          activeTab === 'reportes'
+            ? dateFilters.map((filter) => ({
+                label: filter,
+                onClick: () => handleFilterChange(filter),
+                active: activeFilter === filter
+              }))
+            : [] // Ocultar filtros en tabs "corte" e "historial"
+        }
       />
 
       {/* Tabs */}

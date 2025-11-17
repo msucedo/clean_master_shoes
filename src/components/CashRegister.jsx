@@ -13,6 +13,7 @@ import {
 import { useNotification } from '../contexts/NotificationContext';
 import './CashRegister.css';
 
+// eslint-disable-next-line no-unused-vars
 const CashRegister = ({ orders, dateFilter }) => {
   const { showSuccess, showError } = useNotification();
 
@@ -66,10 +67,11 @@ const CashRegister = ({ orders, dateFilter }) => {
     return () => unsubscribe();
   }, []);
 
-  // Load expenses when date filter changes
+  // Load expenses on mount (always for today)
   useEffect(() => {
     loadExpenses();
-  }, [dateFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadExpenses = async () => {
     try {
@@ -88,32 +90,10 @@ const CashRegister = ({ orders, dateFilter }) => {
       return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     };
 
+    // Siempre retornar el rango del día actual (Corte de Caja es diario)
     const now = new Date();
-    let startDate, endDate;
-
-    switch (dateFilter) {
-      case 'Hoy':
-        startDate = formatLocalDate(new Date(now.setHours(0, 0, 0, 0)));
-        endDate = formatLocalDate(new Date(now.setHours(23, 59, 59, 999)));
-        break;
-      case 'Semana':
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        startDate = formatLocalDate(new Date(startOfWeek.setHours(0, 0, 0, 0)));
-        endDate = formatLocalDate(new Date());
-        break;
-      case 'Mes':
-        startDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
-        endDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59));
-        break;
-      case 'Año':
-        startDate = formatLocalDate(new Date(now.getFullYear(), 0, 1));
-        endDate = formatLocalDate(new Date(now.getFullYear(), 11, 31, 23, 59, 59));
-        break;
-      default:
-        startDate = formatLocalDate(new Date(now.setHours(0, 0, 0, 0)));
-        endDate = formatLocalDate(new Date(now.setHours(23, 59, 59, 999)));
-    }
+    const startDate = formatLocalDate(new Date(now.setHours(0, 0, 0, 0)));
+    const endDate = formatLocalDate(new Date(now.setHours(23, 59, 59, 999)));
 
     return { startDate, endDate };
   };
@@ -345,7 +325,7 @@ const CashRegister = ({ orders, dateFilter }) => {
     setConfirmDialog({
       isOpen: true,
       title: 'Cerrar Corte de Caja',
-      message: `¿Deseas cerrar el corte de caja para el periodo "${dateFilter}"? Esta acción guardará el corte como solo lectura.`,
+      message: '¿Deseas cerrar el corte de caja del día? Esta acción guardará el corte como solo lectura.',
       onConfirm: async () => {
         try {
           const { startDate, endDate } = getDateRange();
@@ -359,7 +339,7 @@ const CashRegister = ({ orders, dateFilter }) => {
             periodo: {
               inicio: startDate,
               fin: endDate,
-              tipo: dateFilter.toLowerCase()
+              tipo: 'hoy'
             },
             // Dinero inicial
             dineroInicial: dineroInicialNum,
@@ -482,7 +462,7 @@ const CashRegister = ({ orders, dateFilter }) => {
       <div className="cr-section">
         <div className="cr-section-header">
           <h3>💰 Resumen Financiero</h3>
-          <div className="cr-period-badge">{dateFilter}</div>
+          <div className="cr-period-badge">Hoy</div>
         </div>
 
         <div className="cr-stats-grid">
