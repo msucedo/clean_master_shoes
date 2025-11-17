@@ -7,7 +7,7 @@ const ExpenseForm = ({ expense, onSave, onCancel }) => {
     concept: '',
     amount: '',
     category: 'general',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
     notes: ''
   });
 
@@ -19,7 +19,7 @@ const ExpenseForm = ({ expense, onSave, onCancel }) => {
         concept: expense.concept || '',
         amount: expense.amount || '',
         category: expense.category || 'general',
-        date: expense.date || new Date().toISOString().split('T')[0],
+        date: expense.date || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
         notes: expense.notes || ''
       });
     }

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import './PaymentScreen.css';
 
-const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePayment = 0, paymentMethod = 'cash', allowEditMethod = false, requireFullPayment = false, onConfirm, onCancel }) => {
+const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePayment = 0, paymentMethod = 'cash', allowEditMethod = false, requireFullPayment = false, orderStatus, onConfirm, onCancel }) => {
   const [amountReceived, setAmountReceived] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(paymentMethod);
 
@@ -27,6 +27,17 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
     // Lógica para método de pago en efectivo
     if (selectedMethod === 'cash') {
       const received = parseFloat(amountReceived) || 0;
+
+      // Bug 2: Si es entrega (status enEntrega), validar pago completo
+      if (orderStatus === 'enEntrega' && received < remainingBalance) {
+        alert(
+          `Monto insuficiente. Debe pagar el total.\n\n` +
+          `Total a pagar: $${remainingBalance.toFixed(2)}\n` +
+          `Recibido: $${received.toFixed(2)}\n` +
+          `Falta: $${(remainingBalance - received).toFixed(2)}`
+        );
+        return;
+      }
 
       // Si requireFullPayment, SOLO permitir pago completo
       if (requireFullPayment) {
@@ -240,13 +251,16 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
               >
                 📱 Transfer
               </button>
-              <button
-                type="button"
-                className={`payment-method-btn ${selectedMethod === 'pending' ? 'selected' : ''}`}
-                onClick={() => setSelectedMethod('pending')}
-              >
-                ⏳ Pendiente
-              </button>
+              {/* Bug 3: No mostrar "Pendiente" cuando status es enEntrega */}
+              {orderStatus !== 'enEntrega' && (
+                <button
+                  type="button"
+                  className={`payment-method-btn ${selectedMethod === 'pending' ? 'selected' : ''}`}
+                  onClick={() => setSelectedMethod('pending')}
+                >
+                  ⏳ Pendiente
+                </button>
+              )}
             </div>
           </div>
         ) : (

@@ -1249,6 +1249,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         advancePayment={paymentData.advancePayment}
         paymentMethod={paymentData.paymentMethod}
         allowEditMethod={true}
+        orderStatus={orderStatus}
         onConfirm={handlePaymentConfirm}
         onCancel={handlePaymentCancel}
       />

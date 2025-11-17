@@ -83,31 +83,36 @@ const CashRegister = ({ orders, dateFilter }) => {
   };
 
   const getDateRange = () => {
+    // Helper para convertir Date a formato YYYY-MM-DD local (sin UTC)
+    const formatLocalDate = (date) => {
+      return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    };
+
     const now = new Date();
     let startDate, endDate;
 
     switch (dateFilter) {
       case 'Hoy':
-        startDate = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-        endDate = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+        startDate = formatLocalDate(new Date(now.setHours(0, 0, 0, 0)));
+        endDate = formatLocalDate(new Date(now.setHours(23, 59, 59, 999)));
         break;
       case 'Semana':
         const startOfWeek = new Date(now);
         startOfWeek.setDate(now.getDate() - now.getDay());
-        startDate = new Date(startOfWeek.setHours(0, 0, 0, 0)).toISOString();
-        endDate = new Date().toISOString();
+        startDate = formatLocalDate(new Date(startOfWeek.setHours(0, 0, 0, 0)));
+        endDate = formatLocalDate(new Date());
         break;
       case 'Mes':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+        startDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+        endDate = formatLocalDate(new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59));
         break;
       case 'Año':
-        startDate = new Date(now.getFullYear(), 0, 1).toISOString();
-        endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59).toISOString();
+        startDate = formatLocalDate(new Date(now.getFullYear(), 0, 1));
+        endDate = formatLocalDate(new Date(now.getFullYear(), 11, 31, 23, 59, 59));
         break;
       default:
-        startDate = new Date(now.setHours(0, 0, 0, 0)).toISOString();
-        endDate = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+        startDate = formatLocalDate(new Date(now.setHours(0, 0, 0, 0)));
+        endDate = formatLocalDate(new Date(now.setHours(23, 59, 59, 999)));
     }
 
     return { startDate, endDate };
@@ -461,7 +466,9 @@ const CashRegister = ({ orders, dateFilter }) => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // Parsear como fecha local (YYYY-MM-DD) para evitar problemas de timezone
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(year, month - 1, day);
     return new Intl.DateTimeFormat('es-MX', {
       year: 'numeric',
       month: 'short',

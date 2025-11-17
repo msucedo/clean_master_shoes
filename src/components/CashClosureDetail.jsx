@@ -10,14 +10,28 @@ const CashClosureDetail = ({ closure, onClose }) => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-MX', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    let date;
+    // Si es formato YYYY-MM-DD (sin hora), parsear como local
+    if (dateString && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateString.split('-');
+      date = new Date(year, month - 1, day);
+      // Para fechas sin hora, solo mostrar fecha
+      return new Intl.DateTimeFormat('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }).format(date);
+    } else {
+      // Para timestamps completos (con hora), usar el constructor normal
+      date = new Date(dateString);
+      return new Intl.DateTimeFormat('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    }
   };
 
   const getPeriodLabel = (periodo) => {
