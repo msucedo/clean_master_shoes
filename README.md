@@ -19,6 +19,9 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]sitio web de rastreo muestra fecha de entrega un dia antes
+-[]ticket #1: fecha actual no se muestra y fecha de entrega ve un dia menos
+-[]respuesta del cliente de wapp, mostrar en orderdetailview
 -[]modals con ui propia
 -[]reportes y corte de caja podrian tener mejor organizacion en los botones del header
 -[]agregar ux para modal al conectar impresora bluetooth

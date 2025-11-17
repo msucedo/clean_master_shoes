@@ -285,7 +285,7 @@ const PrinterSettings = () => {
               <li>✅ Windows Chrome/Edge/Opera</li>
               <li>✅ Android Chrome/WebView</li>
               <li>✅ PWA (App instalada)</li>
-              <li>❌ iOS Safari (usa compartir texto)</li>
+              <li>❌ iOS Safari (usa impresion remota en cola)</li>
             </ul>
           </div>
         </details>
