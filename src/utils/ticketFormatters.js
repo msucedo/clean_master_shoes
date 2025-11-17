@@ -9,11 +9,29 @@ import { createESCPOS } from './escposCommands.js';
 
 /**
  * Formatear fecha ISO a formato legible: DD/MM/YYYY HH:mm AM/PM
+ * Maneja tanto fechas simples (YYYY-MM-DD) como timestamps completos
+ * @param {string} isoString - Fecha en formato ISO o YYYY-MM-DD
+ * @param {boolean} useCurrentIfEmpty - Si true, usa fecha actual cuando isoString está vacío
  */
-export const formatDate = (isoString) => {
+export const formatDate = (isoString, useCurrentIfEmpty = false) => {
+  // Si está vacío y se solicita usar fecha actual
+  if (!isoString && useCurrentIfEmpty) {
+    isoString = new Date().toISOString();
+  }
+
   if (!isoString) return '';
 
-  const date = new Date(isoString);
+  let date;
+
+  // Detectar si es solo fecha (YYYY-MM-DD) o un timestamp completo
+  if (/^\d{4}-\d{2}-\d{2}$/.test(isoString)) {
+    // Es solo fecha (YYYY-MM-DD) - parsear como local para evitar problema de zona horaria
+    const [year, month, day] = isoString.split('-').map(Number);
+    date = new Date(year, month - 1, day);
+  } else {
+    // Es un timestamp completo - parsear normalmente
+    date = new Date(isoString);
+  }
 
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -154,7 +172,7 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
 
   <div>
     <div>Orden #: ${order.orderNumber || ''}</div>
-    <div>Fecha: ${formatDate(order.createdAt)}</div>
+    <div>Fecha: ${formatDate(order.createdAt, true)}</div>
     <div>Cliente: ${order.client || ''}</div>
     <div>Tel: ${order.phone || ''}</div>
   </div>
@@ -337,7 +355,7 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
   // Información de la orden
   cmd
     .keyValue('Orden #', order.orderNumber || 'N/A', 32)
-    .keyValue('Fecha', formatDate(order.createdAt), 42)
+    .keyValue('Fecha', formatDate(order.createdAt, true), 42)
     .keyValue('Cliente', order.client || 'N/A', 32)
     .keyValue('Tel', order.phone || 'N/A', 32)
     .emptyLine();

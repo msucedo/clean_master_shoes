@@ -77,6 +77,22 @@ function OrderTracking() {
     loadData();
   }, [token]);
 
+  // Helper function to format delivery date correctly (avoid timezone issues)
+  const formatDeliveryDate = (dateString) => {
+    if (!dateString) return '';
+
+    // Parse date as local time (not UTC)
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return date.toLocaleDateString('es-MX', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -424,12 +440,7 @@ function OrderTracking() {
           <div className="delivery-section">
             <p className="delivery-label">📅 Fecha de entrega estimada:</p>
             <p className="delivery-date">
-              {new Date(order.deliveryDate).toLocaleDateString('es-MX', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+              {formatDeliveryDate(order.deliveryDate)}
             </p>
           </div>
         )}
