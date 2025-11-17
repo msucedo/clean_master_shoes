@@ -125,7 +125,7 @@ const BluetoothConnectionAlert = ({ isOpen, onClose, onConnected }) => {
             onClick={handleChangeToQueue}
             disabled={loading}
           >
-            📋 Cambiar a Cola de Trabajo
+            📋 Cambiar a Impresión Remota
           </button>
 
           <button
