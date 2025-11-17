@@ -34,7 +34,7 @@ const Sidebar = () => {
     <div className="sidebar">
       {/* Logo */}
       <div className="logo">
-        <img src="/logo.png" alt="Clean Master Shoes" className="logo-icon logo-icon-desktop" />
+        <img src="/logo2.png" alt="Clean Master Shoes" className="logo-icon logo-icon-desktop" />
         <img src="/logo2.png" alt="Clean Master Shoes" className="logo-icon logo-icon-mobile" />
       </div>
 

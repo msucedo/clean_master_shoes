@@ -3,10 +3,10 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]corregir sidebar ultimo emoji el fondo se corta
 -[]buscar bugs en todos los flujos de funcionalidades
 
 // PRIORIDAD ALTA
--[FEATURE]Notificaciones push alerta cuando hay nuevas ordenes creadas desde otra sesion, cuando llega un mensaje, cuando se actualiza el estado de una orden
 
 // PRIORIDAD MEDIA
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
@@ -20,8 +20,6 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
--[]corregir texto de ticket de entrega
--[]corregir sidebar ultimo emoji el fondo se corta
 -[]modals con ui propia
 -[]reportes y corte de caja podrian tener mejor organizacion en los botones del header
 -[FIX]al agregar gasto, la fecha con que se guarda es un día anterior al seleccionado
@@ -63,6 +61,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]corregir texto de ticket de entrega
 -[FIX]fecha en 2do ticket
 -[FEATURE]abrir cajon automatico al imprimir tickeet y que sea una transferencia en efectivo
 -[FEATURE]crear ticket al crear la orden y mandarlo a imprimir, tambien al finalizar la orden
