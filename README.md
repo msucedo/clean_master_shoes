@@ -21,7 +21,6 @@ Clean master shoes
 // BACKLOG
 -[]modals con ui propia
 -[]agregar ux para modal al conectar impresora bluetooth
--[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado
 -[FEATURE]Validar funcionalidades offline
 
      📝 Plan de Mejoras Propuesto                                                                                      
@@ -55,6 +54,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado
 -[FIX]reportes y corte de caja podrian tener mejor organizacion en los botones del header
 -[FIX]agregar número total de productos vendidos al corte de caja
 -[FIX]sitio web de rastreo muestra fecha de entrega un dia antes

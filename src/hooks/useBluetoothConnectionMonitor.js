@@ -99,6 +99,12 @@ export const useBluetoothConnectionMonitor = () => {
   // Escuchar cambios en el método de impresión
   useEffect(() => {
     const handlePrinterMethodChange = () => {
+      // No verificar conexión si estamos en Settings
+      // (permite configurar sin ser interrumpido)
+      if (location.pathname === '/settings') {
+        return;
+      }
+
       checkBluetoothConnection();
     };
 
@@ -107,7 +113,7 @@ export const useBluetoothConnectionMonitor = () => {
     return () => {
       window.removeEventListener('printerMethodChanged', handlePrinterMethodChange);
     };
-  }, []);
+  }, [location.pathname]);
 
   // Función para cerrar la alerta manualmente
   const dismissAlert = () => {
