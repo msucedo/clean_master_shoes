@@ -109,7 +109,7 @@
     align-items: flex-end;
 }
 
-.status-badge {
+.empleado-item .status-badge {
     display: inline-block;
     padding: 6px 14px;
     border-radius: 20px;
@@ -117,6 +117,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    box-shadow: none;
 }
 
 .btn-view-orders {
