@@ -252,7 +252,7 @@
     }
 
     .sidebar-employee-info {
-        flex-direction: column;
+        flex-direction: column-reverse;
         padding: 12px 8px;
         gap: 4px;
         justify-content: center;
