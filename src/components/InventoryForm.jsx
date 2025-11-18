@@ -21,7 +21,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
 
   const [errors, setErrors] = useState({});
 
-  const categories = ['Tenis', 'Zapatos', 'Botas', 'Accesorios', 'Gorras', 'Bolsas'];
+  const categories = ['Accesorios', 'Gorras', 'Bolsas', 'Pines', 'Agujetas'];
 
   useEffect(() => {
     if (initialData) {

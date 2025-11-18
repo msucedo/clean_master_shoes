@@ -32,7 +32,7 @@ const Inventory = () => {
     type: 'default'
   });
 
-  const categories = ['Tenis', 'Zapatos', 'Botas', 'Accesorios', 'Gorras', 'Bolsas'];
+  const categories = ['Accesorios', 'Gorras', 'Bolsas', 'Pines', 'Agujetas'];
 
   // Subscribe to real-time inventory updates
   useEffect(() => {
