@@ -67,14 +67,29 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
   // Construir lista de items
   let itemsHTML = '';
 
-  // Services
+  // Services (agrupar por nombre)
   if (order.services && order.services.length > 0) {
+    // Agrupar servicios por nombre
+    const grouped = {};
     order.services.forEach(service => {
-      const name = service.serviceName || 'Servicio';
-      const qty = service.quantity || 1;
-      const price = service.price || 0;
-      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(price).length));
-      itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(price)}</div>\n`;
+      const serviceName = service.serviceName || 'Servicio';
+      if (!grouped[serviceName]) {
+        grouped[serviceName] = {
+          serviceName: serviceName,
+          price: service.price || 0,
+          quantity: 0
+        };
+      }
+      grouped[serviceName].quantity++;
+    });
+
+    // Renderizar servicios agrupados
+    Object.values(grouped).forEach(service => {
+      const name = service.serviceName;
+      const qty = service.quantity;
+      const totalPrice = service.price * service.quantity;
+      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(totalPrice).length));
+      itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(totalPrice)}</div>\n`;
     });
   }
 
@@ -365,13 +380,28 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
   // Detalle de items
   cmd.bold(true).text('DETALLE:').feed().bold(false);
 
-  // Services
+  // Services (agrupar por nombre)
   if (order.services && order.services.length > 0) {
+    // Agrupar servicios por nombre
+    const grouped = {};
     order.services.forEach(service => {
-      const name = service.serviceName || 'Servicio';
-      const qty = service.quantity || 1;
-      const price = formatCurrency(service.price || 0);
-      cmd.tableRow(`${name} x${qty}`, price, 42);
+      const serviceName = service.serviceName || 'Servicio';
+      if (!grouped[serviceName]) {
+        grouped[serviceName] = {
+          serviceName: serviceName,
+          price: service.price || 0,
+          quantity: 0
+        };
+      }
+      grouped[serviceName].quantity++;
+    });
+
+    // Renderizar servicios agrupados
+    Object.values(grouped).forEach(service => {
+      const name = service.serviceName;
+      const qty = service.quantity;
+      const totalPrice = formatCurrency(service.price * service.quantity);
+      cmd.tableRow(`${name} x${qty}`, totalPrice, 42);
     });
   }
 

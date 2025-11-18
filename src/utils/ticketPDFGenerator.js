@@ -191,43 +191,64 @@ export const generateReceiptTicketPDF = (order, businessInfo) => {
     yPos += LINE_HEIGHT;
     pdf.setFont('courier', 'normal');
 
+    // Agrupar servicios por nombre
+    const grouped = {};
+    const serviceNotes = {}; // Guardar notas de cada grupo
+
     order.services
       .filter(s => s.status !== 'cancelled')
       .forEach(service => {
         const serviceName = service.serviceName || 'Servicio';
-        const price = `$${(service.price || 0).toFixed(2)}`;
-        const qty = service.quantity > 1 ? ` x${service.quantity}` : '';
-
-        // Nombre completo con cantidad
-        const fullName = `${serviceName}${qty}`;
-
-        // Dividir en líneas si es muy largo
-        const lines = wrapText(fullName, MAX_CHARS_WITH_PRICE);
-
-        // Imprimir primera línea con precio
-        pdf.text(lines[0], MARGIN_MM, yPos);
-        pdf.text(price, TICKET_WIDTH_MM - MARGIN_MM, yPos, { align: 'right' });
-        yPos += LINE_HEIGHT;
-
-        // Imprimir líneas adicionales si existen
-        for (let i = 1; i < lines.length; i++) {
-          pdf.text(lines[i], MARGIN_MM, yPos);
-          yPos += LINE_HEIGHT;
+        if (!grouped[serviceName]) {
+          grouped[serviceName] = {
+            serviceName: serviceName,
+            price: service.price || 0,
+            quantity: 0
+          };
+          // Guardar la primera nota encontrada para este servicio
+          if (service.notes && service.notes.trim()) {
+            serviceNotes[serviceName] = service.notes;
+          }
         }
-
-        // Agregar notas del servicio si existen
-        if (service.notes && service.notes.trim()) {
-          pdf.setFontSize(FONT_SIZE_NORMAL - 1);
-          pdf.setFont('courier', 'italic');
-          const noteLines = wrapText(`  Nota: ${service.notes}`, MAX_CHARS_PER_LINE);
-          noteLines.forEach(noteLine => {
-            pdf.text(noteLine, MARGIN_MM, yPos);
-            yPos += LINE_HEIGHT - 0.5;
-          });
-          pdf.setFontSize(FONT_SIZE_NORMAL);
-          pdf.setFont('courier', 'normal');
-        }
+        grouped[serviceName].quantity++;
       });
+
+    // Renderizar servicios agrupados
+    Object.values(grouped).forEach(service => {
+      const serviceName = service.serviceName;
+      const totalPrice = `$${(service.price * service.quantity).toFixed(2)}`;
+      const qty = service.quantity > 1 ? ` x${service.quantity}` : '';
+
+      // Nombre completo con cantidad
+      const fullName = `${serviceName}${qty}`;
+
+      // Dividir en líneas si es muy largo
+      const lines = wrapText(fullName, MAX_CHARS_WITH_PRICE);
+
+      // Imprimir primera línea con precio
+      pdf.text(lines[0], MARGIN_MM, yPos);
+      pdf.text(totalPrice, TICKET_WIDTH_MM - MARGIN_MM, yPos, { align: 'right' });
+      yPos += LINE_HEIGHT;
+
+      // Imprimir líneas adicionales si existen
+      for (let i = 1; i < lines.length; i++) {
+        pdf.text(lines[i], MARGIN_MM, yPos);
+        yPos += LINE_HEIGHT;
+      }
+
+      // Agregar notas del servicio si existen
+      if (serviceNotes[serviceName]) {
+        pdf.setFontSize(FONT_SIZE_NORMAL - 1);
+        pdf.setFont('courier', 'italic');
+        const noteLines = wrapText(`  Nota: ${serviceNotes[serviceName]}`, MAX_CHARS_PER_LINE);
+        noteLines.forEach(noteLine => {
+          pdf.text(noteLine, MARGIN_MM, yPos);
+          yPos += LINE_HEIGHT - 0.5;
+        });
+        pdf.setFontSize(FONT_SIZE_NORMAL);
+        pdf.setFont('courier', 'normal');
+      }
+    });
   }
 
   // === PRODUCTOS ===

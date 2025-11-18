@@ -5,12 +5,30 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
   const [amountReceived, setAmountReceived] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(paymentMethod);
 
+  // Agrupar servicios por nombre
+  const groupedServices = useMemo(() => {
+    const grouped = {};
+    services.forEach(service => {
+      const serviceName = service.serviceName || 'Servicio';
+      if (!grouped[serviceName]) {
+        grouped[serviceName] = {
+          serviceName: serviceName,
+          icon: service.icon,
+          price: service.price || 0,
+          quantity: 0
+        };
+      }
+      grouped[serviceName].quantity++;
+    });
+    return Object.values(grouped);
+  }, [services]);
+
   // Calcular total
   const subtotal = useMemo(() => {
-    const servicesTotal = services.reduce((sum, service) => sum + (service.price || 0), 0);
+    const servicesTotal = groupedServices.reduce((sum, service) => sum + ((service.price || 0) * service.quantity), 0);
     const productsTotal = products.reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
     return servicesTotal + productsTotal;
-  }, [services, products]);
+  }, [groupedServices, products]);
 
   // Saldo restante a cobrar (después de anticipo)
   const remainingBalance = useMemo(() => subtotal - advancePayment, [subtotal, advancePayment]);
@@ -145,15 +163,20 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
 
       <div className="payment-content">
         {/* Desglose de Servicios */}
-        {services.length > 0 && (
+        {groupedServices.length > 0 && (
           <div className="payment-section">
             <h3 className="section-header">🧼 Servicios</h3>
             <div className="items-list">
-              {services.map((service, index) => (
-                <div key={service.id || index} className="item-row">
+              {groupedServices.map((service, index) => (
+                <div key={index} className="item-row">
                   <span className="item-icon">{service.icon}</span>
-                  <span className="item-name">{service.serviceName}</span>
-                  <span className="item-price">${service.price}</span>
+                  <span className="item-name">
+                    {service.serviceName}
+                    {service.quantity > 1 && (
+                      <span className="item-quantity"> x{service.quantity}</span>
+                    )}
+                  </span>
+                  <span className="item-price">${service.price * service.quantity}</span>
                 </div>
               ))}
             </div>

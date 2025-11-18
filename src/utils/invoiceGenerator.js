@@ -53,15 +53,30 @@ export const generateInvoicePDF = async (order, businessProfile) => {
   yPos += 10;
   pdf.setFont(undefined, 'normal');
 
-  // Servicios
+  // Servicios (agrupar por nombre)
   if (order.services && order.services.length > 0) {
+    // Agrupar servicios por nombre
+    const grouped = {};
     order.services.forEach(service => {
       if (service.status !== 'cancelled') {
-        pdf.text(service.serviceName, 20, yPos);
-        pdf.text('1', 140, yPos);
-        pdf.text(`$${service.price.toFixed(2)}`, 170, yPos, { align: 'right' });
-        yPos += 7;
+        const serviceName = service.serviceName || 'Servicio';
+        if (!grouped[serviceName]) {
+          grouped[serviceName] = {
+            serviceName: serviceName,
+            price: service.price || 0,
+            quantity: 0
+          };
+        }
+        grouped[serviceName].quantity++;
       }
+    });
+
+    // Renderizar servicios agrupados
+    Object.values(grouped).forEach(service => {
+      pdf.text(service.serviceName, 20, yPos);
+      pdf.text(service.quantity.toString(), 140, yPos);
+      pdf.text(`$${(service.price * service.quantity).toFixed(2)}`, 170, yPos, { align: 'right' });
+      yPos += 7;
     });
   }
 
