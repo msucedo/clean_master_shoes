@@ -137,6 +137,14 @@ const CashClosureDetail = ({ closure, onClose }) => {
               <div className="ccd-stat-value">{closure.totalOrdenes}</div>
             </div>
           </div>
+
+          <div className="ccd-stat-card">
+            <div className="ccd-stat-icon">🛍️</div>
+            <div className="ccd-stat-info">
+              <div className="ccd-stat-label">Productos</div>
+              <div className="ccd-stat-value">{closure.totalProductos || 0}</div>
+            </div>
+          </div>
         </div>
       </div>
 

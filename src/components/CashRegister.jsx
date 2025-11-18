@@ -105,6 +105,7 @@ const CashRegister = ({ orders, dateFilter }) => {
     let cardIncome = 0;
     let transferIncome = 0;
     let totalOrders = 0;
+    let totalProductos = 0;
 
     orders.forEach(order => {
       const total = parseFloat(order.totalPrice) || 0;
@@ -124,6 +125,9 @@ const CashRegister = ({ orders, dateFilter }) => {
       totalIncome += amountToCount;
       totalOrders++;
 
+      // Count products sold
+      totalProductos += order.products?.reduce((sum, p) => sum + (p.quantity || 0), 0) || 0;
+
       // Count by payment method
       if (order.paymentMethod === 'cash' && amountToCount > 0) {
         cashIncome += amountToCount;
@@ -139,7 +143,8 @@ const CashRegister = ({ orders, dateFilter }) => {
       cashIncome,
       cardIncome,
       transferIncome,
-      totalOrders
+      totalOrders,
+      totalProductos
     };
   };
 
@@ -388,6 +393,7 @@ const CashRegister = ({ orders, dateFilter }) => {
             // Info adicional
             ordenes: orders.map(o => o.id),
             totalOrdenes: summary.totalOrders,
+            totalProductos: summary.totalProductos,
             notas: notes
           };
 
@@ -503,6 +509,14 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-info">
               <div className="cr-stat-label">Órdenes</div>
               <div className="cr-stat-value">{summary.totalOrders}</div>
+            </div>
+          </div>
+
+          <div className="cr-stat-card products">
+            <div className="cr-stat-icon">🛍️</div>
+            <div className="cr-stat-info">
+              <div className="cr-stat-label">Productos</div>
+              <div className="cr-stat-value">{summary.totalProductos || 0}</div>
             </div>
           </div>
         </div>

@@ -152,6 +152,10 @@
   background: linear-gradient(90deg, #00d9ff 0%, #0099cc 100%);
 }
 
+.cr-stat-card.products::before {
+  background: linear-gradient(90deg, #9d4edd 0%, #7b2cbf 100%);
+}
+
 .cr-stat-icon {
   font-size: 32px;
   width: 50px;
@@ -180,6 +184,10 @@
 
 .cr-stat-card.orders .cr-stat-icon {
   background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+}
+
+.cr-stat-card.products .cr-stat-icon {
+  background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
 }
 
 .cr-stat-info {

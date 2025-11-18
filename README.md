@@ -19,11 +19,7 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
--[]sitio web de rastreo muestra fecha de entrega un dia antes
--[]ticket #1: fecha actual no se muestra y fecha de entrega ve un dia menos
--[]respuesta del cliente de wapp, mostrar en orderdetailview
 -[]modals con ui propia
--[]reportes y corte de caja podrian tener mejor organizacion en los botones del header
 -[]agregar ux para modal al conectar impresora bluetooth
 -[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado
 -[FEATURE]Validar funcionalidades offline
@@ -59,6 +55,10 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]reportes y corte de caja podrian tener mejor organizacion en los botones del header
+-[FIX]agregar número total de productos vendidos al corte de caja
+-[FIX]sitio web de rastreo muestra fecha de entrega un dia antes
+-[FIX]ticket #1: fecha actual no se muestra y fecha de entrega ve un dia menos
 -[FIX]refactor reportes tab, logic for filters
 -[FIX]al agregar gasto, la fecha con que se guarda es un día anterior al seleccionado
 -[FIX]validar el cobro final, me deja avanzar de un cobro de 120 nomas poniendo 50 y completa la orden

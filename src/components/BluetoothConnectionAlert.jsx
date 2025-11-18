@@ -93,7 +93,7 @@ const BluetoothConnectionAlert = ({ isOpen, onClose, onConnected }) => {
     >
       <div className="bluetooth-alert-content">
         <div className="bluetooth-alert-icon">
-          🔵
+          ⚠️
         </div>
 
         <div className="bluetooth-alert-message">

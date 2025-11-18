@@ -1138,22 +1138,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       {!isReadOnly && (
         <div className="order-actions-footer">
           <div className="action-buttons-grid">
-            <button
-              className="action-btn btn-whatsapp"
-              onClick={handleWhatsApp}
-            >
-              <span className="action-icon">💬</span>
-              <span className="action-text">WhatsApp</span>
-            </button>
-
-            <button
-              className="action-btn btn-email"
-              onClick={() => onEmail && onEmail(order)}
-            >
-              <span className="action-icon">📧</span>
-              <span className="action-text">Enviar Email</span>
-            </button>
-
             {/* Botón imprimir recibo */}
             <button
               className="action-btn btn-print"
