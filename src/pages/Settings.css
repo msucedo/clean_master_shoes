@@ -132,57 +132,6 @@
   color: #555;
 }
 
-/* Upload Area */
-.upload-area {
-  width: 100%;
-  padding: clamp(2rem, 5vw, 2.5rem);
-  background: #0a0a0a;
-  border: 2px dashed #2a2a2a;
-  border-radius: 12px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.upload-area:hover {
-  border-color: var(--color-primary);
-  background: var(--bg-primary-05);
-}
-
-.upload-icon {
-  font-size: clamp(2rem, 6vw, 3rem);
-  margin-bottom: var(--gap-md);
-}
-
-.upload-text {
-  font-size: clamp(0.75rem, 2vw, 0.875rem);
-  color: #999;
-  font-weight: 600;
-}
-
-.upload-subtext {
-  font-size: clamp(0.688rem, 2vw, 0.75rem);
-  color: #666;
-  margin-top: var(--gap-xs);
-}
-
-/* Logo Preview */
-.logo-preview {
-  width: 100%;
-  height: clamp(10rem, 25vw, 12.5rem);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.logo-preview img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
 /* Toggle Switch */
 .toggle-group {
   display: flex;

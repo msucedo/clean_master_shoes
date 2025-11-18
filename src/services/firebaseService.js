@@ -1047,70 +1047,17 @@ export const exportAllData = async () => {
 // ==================== BUSINESS PROFILE ====================
 
 /**
- * Upload logo to Firebase Storage
- * @param {File} file - Logo image file
- * @returns {Promise<string>} URL of uploaded logo
- */
-export const uploadLogo = async (file) => {
-  try {
-    if (!file) {
-      throw new Error('No file provided');
-    }
-
-    // Validate file type
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error('Tipo de archivo no permitido. Usa PNG, JPG o WEBP.');
-    }
-
-    // Validate file size (max 2MB)
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxSize) {
-      throw new Error('El archivo es demasiado grande. Máximo 2MB.');
-    }
-
-    // Create unique filename
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
-    const filename = `${timestamp}_logo.${extension}`;
-
-    // Create reference to storage
-    const storageRef = ref(storage, `logos/${filename}`);
-
-    // Upload file
-    await uploadBytes(storageRef, file);
-
-    // Get download URL
-    const downloadURL = await getDownloadURL(storageRef);
-
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading logo:', error);
-    throw error;
-  }
-};
-
-/**
  * Save business profile to Firestore
  * @param {Object} profileData - Business profile data
- * @param {File} logoFile - Optional logo file to upload
  * @returns {Promise<Object>} Saved profile data
  */
-export const saveBusinessProfile = async (profileData, logoFile = null) => {
+export const saveBusinessProfile = async (profileData) => {
   try {
-    let logoUrl = profileData.logoUrl || null;
-
-    // Upload logo if provided
-    if (logoFile) {
-      logoUrl = await uploadLogo(logoFile);
-    }
-
     // Prepare profile data
     const profile = {
       businessName: profileData.businessName || '',
       phone: profileData.phone || '',
       address: profileData.address || '',
-      logoUrl: logoUrl,
       updatedAt: new Date().toISOString()
     };
 
@@ -1141,8 +1088,7 @@ export const getBusinessProfile = async () => {
       return {
         businessName: 'Clean Master Shoes',
         phone: '',
-        address: '',
-        logoUrl: null
+        address: ''
       };
     }
   } catch (error) {

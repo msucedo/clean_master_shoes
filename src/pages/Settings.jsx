@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import PrinterSettings from '../components/PrinterSettings';
 import { downloadBackup, getBackupInfo } from '../utils/backup';
@@ -23,8 +23,6 @@ const Settings = () => {
   const [businessName, setBusinessName] = useState('Clean Master Shoes');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -36,9 +34,6 @@ const Settings = () => {
   const [printerMethod, setPrinterMethod] = useState(PRINTER_METHODS.AUTO);
   const [detectedPlatform, setDetectedPlatform] = useState(null);
 
-  // Ref for file input
-  const fileInputRef = useRef(null);
-
   // Load business profile on component mount
   useEffect(() => {
     const loadProfile = async () => {
@@ -49,7 +44,6 @@ const Settings = () => {
         setBusinessName(profile.businessName || 'Clean Master Shoes');
         setPhone(profile.phone || '');
         setAddress(profile.address || '');
-        setLogoPreview(profile.logoUrl || null);
       } catch (error) {
         console.error('Error loading business profile:', error);
         showError('Error al cargar el perfil del negocio');
@@ -70,38 +64,6 @@ const Settings = () => {
     setDetectedPlatform(platform);
   }, []);
 
-  const handleLogoUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        showError('Tipo de archivo no permitido. Usa PNG, JPG o WEBP.');
-        return;
-      }
-
-      // Validate file size (max 2MB)
-      const maxSize = 2 * 1024 * 1024;
-      if (file.size > maxSize) {
-        showError('El archivo es demasiado grande. Máximo 2MB.');
-        return;
-      }
-
-      setLogoFile(file);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSaveProfile = async () => {
     // Verificar permisos de admin
     if (!isAdmin) {
@@ -117,12 +79,9 @@ const Settings = () => {
         address
       };
 
-      await saveBusinessProfile(profileData, logoFile);
+      await saveBusinessProfile(profileData);
 
       showSuccess('Perfil guardado exitosamente');
-
-      // Clear logo file after saving (keep preview)
-      setLogoFile(null);
     } catch (error) {
       console.error('Error saving profile:', error);
       showError(error.message || 'Error al guardar el perfil');
@@ -139,8 +98,6 @@ const Settings = () => {
       setBusinessName(profile.businessName || 'Clean Master Shoes');
       setPhone(profile.phone || '');
       setAddress(profile.address || '');
-      setLogoFile(null);
-      setLogoPreview(profile.logoUrl || null);
 
       showSuccess('Cambios descartados');
     } catch (error) {
@@ -203,30 +160,6 @@ const Settings = () => {
               <div className="section-title">Perfil del Negocio</div>
               <div className="section-subtitle">Información básica</div>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Logo del Negocio</label>
-            <div className="upload-area" onClick={handleLogoUpload}>
-              {logoPreview ? (
-                <div className="logo-preview">
-                  <img src={logoPreview} alt="Logo preview" />
-                </div>
-              ) : (
-                <>
-                  <div className="upload-icon">📸</div>
-                  <div className="upload-text">Click para subir logo</div>
-                  <div className="upload-subtext">PNG o JPG (máx. 2MB)</div>
-                </>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
           </div>
 
           <div className="form-group">
