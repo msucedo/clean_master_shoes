@@ -1296,3 +1296,371 @@ export const getPrintRecords = (order, type) => {
   if (!order.printHistory) return [];
   return order.printHistory.filter(record => record.type === type);
 };
+
+// ==================== PROMOTIONS ====================
+
+/**
+ * Get all promotions
+ * @returns {Promise<Array>} Array of promotions
+ */
+export const getAllPromotions = async () => {
+  try {
+    const promotionsRef = collection(db, 'promotions');
+    const querySnapshot = await getDocs(promotionsRef);
+
+    const promotions = [];
+    querySnapshot.forEach((doc) => {
+      promotions.push({ id: doc.id, ...doc.data() });
+    });
+
+    return promotions;
+  } catch (error) {
+    console.error('Error getting promotions:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to real-time promotions updates
+ * @param {Function} callback - Function to call when promotions change
+ * @returns {Function} Unsubscribe function
+ */
+export const subscribeToPromotions = (callback) => {
+  try {
+    const promotionsRef = collection(db, 'promotions');
+
+    return onSnapshot(promotionsRef, (snapshot) => {
+      const promotions = [];
+      snapshot.forEach((doc) => {
+        promotions.push({ id: doc.id, ...doc.data() });
+      });
+      callback(promotions);
+    }, (error) => {
+      console.error('Error in promotions subscription:', error);
+    });
+  } catch (error) {
+    console.error('Error subscribing to promotions:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add a new promotion
+ * @param {Object} promotionData - Promotion data
+ * @returns {Promise<string>} Document ID of the created promotion
+ */
+export const addPromotion = async (promotionData) => {
+  try {
+    const promotionsRef = collection(db, 'promotions');
+    const docRef = await addDoc(promotionsRef, {
+      ...promotionData,
+      currentUses: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding promotion:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing promotion
+ * @param {string} promotionId - Promotion document ID
+ * @param {Object} promotionData - Updated promotion data
+ */
+export const updatePromotion = async (promotionId, promotionData) => {
+  try {
+    const promotionRef = doc(db, 'promotions', promotionId);
+    await updateDoc(promotionRef, {
+      ...promotionData,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating promotion:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a promotion
+ * @param {string} promotionId - Promotion document ID
+ */
+export const deletePromotion = async (promotionId) => {
+  try {
+    const promotionRef = doc(db, 'promotions', promotionId);
+    await deleteDoc(promotionRef);
+  } catch (error) {
+    console.error('Error deleting promotion:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get only active promotions (filtered by date and active status)
+ * @returns {Promise<Array>} Array of active promotions
+ */
+export const getActivePromotions = async () => {
+  try {
+    const promotionsRef = collection(db, 'promotions');
+    const querySnapshot = await getDocs(promotionsRef);
+
+    const now = new Date().toISOString();
+    const activePromotions = [];
+
+    querySnapshot.forEach((doc) => {
+      const promo = { id: doc.id, ...doc.data() };
+
+      // Check if promotion is marked as active
+      if (!promo.isActive) return;
+
+      // Check if within date range (if dateRange is set)
+      if (promo.dateRange) {
+        const { startDate, endDate } = promo.dateRange;
+        if (startDate && now < startDate) return;
+        if (endDate && now > endDate) return;
+      }
+
+      // Check if max uses reached (if maxUses is set)
+      if (promo.maxUses && promo.currentUses >= promo.maxUses) return;
+
+      activePromotions.push(promo);
+    });
+
+    return activePromotions;
+  } catch (error) {
+    console.error('Error getting active promotions:', error);
+    throw error;
+  }
+};
+
+/**
+ * Validate if a promotion can be applied to an order
+ * @param {Object} promotion - Promotion object
+ * @param {Object} cart - Cart items array
+ * @param {string} clientPhone - Client phone number
+ * @param {number} subtotal - Order subtotal before discounts
+ * @returns {Promise<Object>} Validation result { isValid, reason, discountAmount }
+ */
+export const validatePromotion = async (promotion, cart, clientPhone, subtotal) => {
+  try {
+    const now = new Date().toISOString();
+
+    // 1. Check if promotion is active
+    if (!promotion.isActive) {
+      return { isValid: false, reason: 'Promoción inactiva' };
+    }
+
+    // 2. Check date range
+    if (promotion.dateRange) {
+      const { startDate, endDate } = promotion.dateRange;
+      if (startDate && now < startDate) {
+        return { isValid: false, reason: 'Promoción aún no válida' };
+      }
+      if (endDate && now > endDate) {
+        return { isValid: false, reason: 'Promoción expirada' };
+      }
+    }
+
+    // 3. Check max uses
+    if (promotion.maxUses && promotion.currentUses >= promotion.maxUses) {
+      return { isValid: false, reason: 'Límite de usos alcanzado' };
+    }
+
+    // 4. Check minimum purchase amount
+    if (promotion.minPurchaseAmount && subtotal < promotion.minPurchaseAmount) {
+      return {
+        isValid: false,
+        reason: `Compra mínima de $${promotion.minPurchaseAmount} requerida`
+      };
+    }
+
+    // 5. Check one per client restriction
+    if (promotion.onePerClient && clientPhone) {
+      const hasUsed = await checkPromotionUsageByClient(promotion.id, clientPhone);
+      if (hasUsed) {
+        return { isValid: false, reason: 'Ya usaste esta promoción' };
+      }
+    }
+
+    // 6. Check day of week restriction (applies to all promotion types)
+    if (promotion.daysOfWeek && promotion.daysOfWeek.length > 0) {
+      const currentDay = new Date().getDay();
+      if (!promotion.daysOfWeek.includes(currentDay)) {
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const validDays = promotion.daysOfWeek.map(d => dayNames[d]).join(', ');
+        return {
+          isValid: false,
+          reason: `Válido solo ${validDays}`
+        };
+      }
+    }
+
+    // Calculate discount amount based on type
+    let discountAmount = 0;
+
+    switch (promotion.type) {
+      case 'percentage':
+        if (promotion.appliesTo === 'all') {
+          discountAmount = subtotal * (promotion.discountValue / 100);
+        } else if (promotion.appliesTo === 'specific' && promotion.specificItems) {
+          // Calculate only for specific items
+          const applicableTotal = cart
+            .filter(item => promotion.specificItems.includes(item.id))
+            .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          discountAmount = applicableTotal * (promotion.discountValue / 100);
+        }
+        break;
+
+      case 'fixed':
+        discountAmount = promotion.discountValue;
+        break;
+
+      case 'dayOfWeek':
+        discountAmount = subtotal * (promotion.discountValue / 100);
+        break;
+
+      case 'buyXgetY':
+        // For buyXgetY, discount is calculated differently (free items)
+        const applicableItems = cart.filter(item => {
+          // Si no hay items específicos configurados, aplicar a todos los items del carrito
+          if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+            return true;
+          }
+
+          // Para servicios, comparar con serviceId
+          if (item.type === 'service' && item.serviceId) {
+            return promotion.applicableItems.includes(item.serviceId);
+          }
+
+          // Para productos, comparar con productId
+          if (item.type === 'product' && item.productId) {
+            return promotion.applicableItems.includes(item.productId);
+          }
+
+          return false;
+        });
+
+        console.log('🔍 [Promo Debug - 2x1]', {
+          promotionName: promotion.name,
+          totalItemsInCart: cart.length,
+          applicableItemsFound: applicableItems.length,
+          applicableItemsDetails: applicableItems.map(i => ({
+            type: i.type,
+            name: i.type === 'service' ? i.serviceName : i.name,
+            quantity: i.quantity,
+            cartItemId: i.id,
+            serviceId: i.serviceId,
+            productId: i.productId
+          })),
+          configuredApplicableItems: promotion.applicableItems,
+          buyQuantity: promotion.buyQuantity,
+          getQuantity: promotion.getQuantity
+        });
+
+        if (applicableItems.length > 0) {
+          const totalQty = applicableItems.reduce((sum, item) => sum + item.quantity, 0);
+          const sets = Math.floor(totalQty / promotion.buyQuantity);
+          const freeItems = sets * promotion.getQuantity;
+          const itemPrice = applicableItems[0].price;
+          discountAmount = freeItems * itemPrice;
+
+          console.log('✅ [Promo Calculation]', {
+            totalQuantity: totalQty,
+            setsEarned: sets,
+            freeItemsGranted: freeItems,
+            itemPrice: itemPrice,
+            totalDiscount: discountAmount
+          });
+        } else {
+          console.log('❌ [Promo Not Applied]', 'No items in cart match applicableItems');
+        }
+        break;
+
+      case 'combo':
+        // For combo, check if all items are in cart
+        if (promotion.comboItems) {
+          const hasAllItems = promotion.comboItems.every(comboItem =>
+            cart.some(cartItem => cartItem.id === comboItem.id)
+          );
+          if (hasAllItems) {
+            const normalPrice = promotion.comboItems.reduce((sum, item) => sum + item.price, 0);
+            discountAmount = normalPrice - promotion.comboPrice;
+          }
+        }
+        break;
+
+      default:
+        discountAmount = 0;
+    }
+
+    return {
+      isValid: true,
+      reason: 'Válida',
+      discountAmount: Math.max(0, discountAmount)
+    };
+
+  } catch (error) {
+    console.error('Error validating promotion:', error);
+    return { isValid: false, reason: 'Error al validar promoción' };
+  }
+};
+
+/**
+ * Increment promotion usage counter
+ * @param {string} promotionId - Promotion document ID
+ * @param {string} clientPhone - Client phone number (for tracking)
+ * @returns {Promise<void>}
+ */
+export const incrementPromotionUsage = async (promotionId, clientPhone) => {
+  try {
+    const promotionRef = doc(db, 'promotions', promotionId);
+    const promotionSnap = await getDoc(promotionRef);
+
+    if (!promotionSnap.exists()) {
+      throw new Error('Promotion not found');
+    }
+
+    const currentUses = promotionSnap.data().currentUses || 0;
+
+    // Update usage counter
+    await updateDoc(promotionRef, {
+      currentUses: currentUses + 1,
+      updatedAt: new Date().toISOString()
+    });
+
+    // If onePerClient is enabled, track this usage
+    if (promotionSnap.data().onePerClient && clientPhone) {
+      const usageRef = collection(db, 'promotions', promotionId, 'clientUsage');
+      await addDoc(usageRef, {
+        clientPhone,
+        usedAt: new Date().toISOString()
+      });
+    }
+
+  } catch (error) {
+    console.error('Error incrementing promotion usage:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check if a client has already used a promotion
+ * @param {string} promotionId - Promotion document ID
+ * @param {string} clientPhone - Client phone number
+ * @returns {Promise<boolean>} True if client has used this promotion
+ */
+export const checkPromotionUsageByClient = async (promotionId, clientPhone) => {
+  try {
+    const usageRef = collection(db, 'promotions', promotionId, 'clientUsage');
+    const q = query(usageRef, where('clientPhone', '==', clientPhone));
+    const querySnapshot = await getDocs(q);
+
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error('Error checking promotion usage by client:', error);
+    return false;
+  }
+};

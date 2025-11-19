@@ -1,0 +1,174 @@
+/* Promotion Card */
+.promotion-card {
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  padding: 25px;
+  transition: all 0.3s;
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.promotion-card.inactive {
+  opacity: 0.6;
+  border-color: #1a1a1a;
+}
+
+.promotion-card:hover {
+  transform: translateY(-5px);
+  border-color: #3a3a3a;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+}
+
+.promotion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+}
+
+.promotion-title-section {
+  flex: 1;
+}
+
+.promotion-name {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.promotion-emoji {
+  font-size: 28px;
+}
+
+.promotion-type {
+  font-size: 12px;
+  color: #999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.promotion-discount {
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff006e 0%, #ff8500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+  white-space: nowrap;
+}
+
+.promotion-status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 15px;
+}
+
+.promotion-status-badge.green {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.promotion-status-badge.red {
+  background: rgba(255, 0, 110, 0.15);
+  color: #ff006e;
+  border: 1px solid rgba(255, 0, 110, 0.3);
+}
+
+.promotion-status-badge.orange {
+  background: rgba(255, 133, 0, 0.15);
+  color: #ff8500;
+  border: 1px solid rgba(255, 133, 0, 0.3);
+}
+
+.promotion-status-badge.blue {
+  background: rgba(0, 132, 255, 0.15);
+  color: #0084ff;
+  border: 1px solid rgba(0, 132, 255, 0.3);
+}
+
+.promotion-status-badge.gray {
+  background: rgba(102, 102, 102, 0.15);
+  color: #666;
+  border: 1px solid rgba(102, 102, 102, 0.3);
+}
+
+.promotion-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.promotion-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.promotion-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #999;
+  padding: 8px 12px;
+  background: #0a0a0a;
+  border-radius: 8px;
+  border: 1px solid #1a1a1a;
+}
+
+.detail-icon {
+  font-size: 16px;
+}
+
+.detail-text {
+  font-weight: 600;
+}
+
+.promotion-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: #999;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-action:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--bg-primary-10);
+}
+
+.btn-action.delete:hover {
+  border-color: #ff006e;
+  color: #ff006e;
+  background: rgba(255, 0, 110, 0.1);
+}

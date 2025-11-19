@@ -6,6 +6,7 @@ import ImageUpload from './ImageUpload';
 import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
+import PromotionBadge from './PromotionBadge';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -43,6 +44,10 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   const [services, setServices] = useState([]);
   // Cargar productos desde Firebase
   const [products, setProducts] = useState([]);
+  // Cargar promociones activas
+  const [activePromotions, setActivePromotions] = useState([]);
+  // Promociones aplicadas al carrito actual
+  const [appliedPromotions, setAppliedPromotions] = useState([]);
 
   useEffect(() => {
     const loadServices = async () => {
@@ -83,19 +88,74 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
       }
     };
 
+    const loadPromotions = async () => {
+      try {
+        const { getActivePromotions } = await import('../services/firebaseService');
+        const promotions = await getActivePromotions();
+        setActivePromotions(promotions);
+      } catch (error) {
+        console.error('Error loading promotions:', error);
+      }
+    };
+
     loadServices();
     loadProducts();
+    loadPromotions();
   }, []);
 
-  // Calcular precio total del carrito
+  // Calcular precio total del carrito (con descuentos aplicados)
   const calculateTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0);
+    const subtotal = calculateSubtotal();
+    const discount = calculateTotalDiscount();
+    return Math.max(0, subtotal - discount);
   };
 
   // Calcular cantidad total de items (incluyendo cantidades)
   const calculateTotalItems = () => {
     return cart.reduce((total, item) => total + (item.quantity || 1), 0);
   };
+
+  // Calcular subtotal (antes de descuentos)
+  const calculateSubtotal = () => {
+    return cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0);
+  };
+
+  // Calcular total de descuentos
+  const calculateTotalDiscount = () => {
+    return appliedPromotions.reduce((total, promo) => total + (promo.discountAmount || 0), 0);
+  };
+
+  // Validar y calcular promociones aplicables
+  const checkApplicablePromotions = async () => {
+    if (cart.length === 0 || activePromotions.length === 0) {
+      setAppliedPromotions([]);
+      return;
+    }
+
+    const { validatePromotion } = await import('../services/firebaseService');
+    const subtotal = calculateSubtotal();
+    const clientPhone = formData.phone;
+
+    const validPromotions = [];
+
+    for (const promotion of activePromotions) {
+      const result = await validatePromotion(promotion, cart, clientPhone, subtotal);
+
+      if (result.isValid && result.discountAmount > 0) {
+        validPromotions.push({
+          ...promotion,
+          discountAmount: result.discountAmount
+        });
+      }
+    }
+
+    setAppliedPromotions(validPromotions);
+  };
+
+  // Recalcular promociones cuando cambie el carrito o el cliente
+  useEffect(() => {
+    checkApplicablePromotions();
+  }, [cart, formData.phone, activePromotions]);
 
   // Calcular número de órdenes activas por empleado (recibidos + proceso)
   const getEmployeeOrderCount = (employeeName) => {
@@ -143,6 +203,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
           // Si no existe, agregar nuevo servicio con cantidad 1
           const newItem = {
             id: generateId(),
+            serviceId: item.id, // Preservar ID original del servicio de Firebase
             type: 'service',
             serviceName: item.name,
             price: item.price,
@@ -405,13 +466,35 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
       services,
       products,
       orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
-      totalPrice: calculateTotalPrice(),
+      subtotal: calculateSubtotal(), // Precio antes de descuentos
+      totalDiscount: calculateTotalDiscount(), // Total de descuentos
+      totalPrice: calculateTotalPrice(), // Precio final con descuentos
+      appliedPromotions: appliedPromotions.map(promo => ({
+        id: promo.id,
+        name: promo.name,
+        type: promo.type,
+        discountAmount: promo.discountAmount
+      })),
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal', // Asignar automáticamente
       author: selectedEmployee ? selectedEmployee.name : '', // Asignar empleado seleccionado
       isOrderWithoutServices: isOrderWithoutServices // Flag para firebaseService
     };
+
+    // Incrementar uso de promociones
+    if (appliedPromotions.length > 0) {
+      (async () => {
+        const { incrementPromotionUsage } = await import('../services/firebaseService');
+        for (const promo of appliedPromotions) {
+          try {
+            await incrementPromotionUsage(promo.id, formData.phone);
+          } catch (error) {
+            console.error('Error incrementing promotion usage:', error);
+          }
+        }
+      })();
+    }
 
     // Esperar 1.5s para mostrar animación antes de cerrar
     setTimeout(() => {
@@ -612,6 +695,9 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
             emoji: item.emoji,
             quantity: item.quantity
           }))}
+          subtotal={calculateSubtotal()}
+          totalDiscount={calculateTotalDiscount()}
+          appliedPromotions={appliedPromotions}
           totalPrice={calculateTotalPrice()}
           advancePayment={0}
           paymentMethod={formData.paymentMethod}
@@ -734,6 +820,23 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
                 <span className="cart-count">{calculateTotalItems()} items</span>
               </div>
 
+              {/* Banner de promociones disponibles hoy */}
+              {activePromotions.length > 0 && (
+                <div className="available-promotions-banner">
+                  <div className="banner-title">🎉 Promociones Disponibles Hoy:</div>
+                  {activePromotions.map((promo, idx) => {
+                    const isApplied = appliedPromotions.some(ap => ap.id === promo.id);
+                    return (
+                      <div key={idx} className={`promo-item ${isApplied ? 'applied' : ''}`}>
+                        <span className="promo-emoji">{promo.emoji || '🎉'}</span>
+                        <span className="promo-name">{promo.name}</span>
+                        {isApplied && <span className="applied-badge">✓ APLICADA</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div className="cart-items">
                 {cart.length === 0 ? (
                   <div className="cart-empty">
@@ -758,6 +861,31 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
                             <span className="cart-item-subtotal"> = ${item.price * item.quantity}</span>
                           )}
                         </span>
+                        {/* Show applied promotions for this item */}
+                        {appliedPromotions
+                          .filter(promo => {
+                            // Si la promoción no tiene items específicos configurados, aplica a todos
+                            if (!promo.applicableItems || promo.applicableItems.length === 0) {
+                              return true;
+                            }
+                            // Para servicios, verificar si el serviceId del item está en applicableItems
+                            if (item.type === 'service' && item.serviceId) {
+                              return promo.applicableItems.includes(item.serviceId);
+                            }
+                            // Para productos, verificar si el productId del item está en applicableItems
+                            if (item.type === 'product' && item.productId) {
+                              return promo.applicableItems.includes(item.productId);
+                            }
+                            return false;
+                          })
+                          .map((promo, idx) => (
+                            <PromotionBadge
+                              key={idx}
+                              promotion={promo}
+                              discountAmount={promo.discountAmount}
+                            />
+                          ))
+                        }
                       </div>
                       <button
                         type="button"
@@ -773,10 +901,27 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
               </div>
 
               <div className="cart-summary">
-                <div className="cart-total">
-                  <span className="total-label">Total:</span>
-                  <span className="total-value">${calculateTotalPrice()}</span>
-                </div>
+                {appliedPromotions.length > 0 ? (
+                  <>
+                    <div className="cart-subtotal">
+                      <span className="subtotal-label">Subtotal:</span>
+                      <span className="subtotal-value">${calculateSubtotal()}</span>
+                    </div>
+                    <div className="cart-discounts">
+                      <span className="discount-label">Descuentos:</span>
+                      <span className="discount-value">-${calculateTotalDiscount().toFixed(2)}</span>
+                    </div>
+                    <div className="cart-total">
+                      <span className="total-label">Total:</span>
+                      <span className="total-value">${calculateTotalPrice().toFixed(2)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="cart-total">
+                    <span className="total-label">Total:</span>
+                    <span className="total-value">${calculateTotalPrice()}</span>
+                  </div>
+                )}
               </div>
 
               {/* Sección de Asignación de Empleado */}

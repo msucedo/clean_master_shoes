@@ -95,18 +95,6 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   // Ref para mantener datos actualizados sin disparar cleanup
   const latestOrderData = useRef();
 
-  // Calcular totalPrice inicial de la orden
-  const initialTotalPrice = useMemo(() => {
-    const servicesTotal = (order.services || [])
-      .filter(service => service.status !== 'cancelled')
-      .reduce((sum, service) => sum + (service.price || 0), 0);
-
-    const productsTotal = (order.products || [])
-      .reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
-
-    return servicesTotal + productsTotal;
-  }, [order.services, order.products]);
-
   // Ref para guardar valores iniciales y detectar cambios
   const initialData = useRef({
     services: order.services || [],
@@ -119,21 +107,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     deliveryDate: order.deliveryDate,
     generalNotes: order.generalNotes || '',
     author: order.author || '',
-    totalPrice: initialTotalPrice
+    totalPrice: order.totalPrice || 0
   });
 
   // ===== CÁLCULOS DERIVADOS =====
-  // Calcular precio total excluyendo servicios cancelados y sumando productos
-  const totalPrice = useMemo(() => {
-    const servicesTotal = localServices
-      .filter(service => service.status !== 'cancelled')
-      .reduce((sum, service) => sum + (service.price || 0), 0);
-
-    const productsTotal = localProducts
-      .reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
-
-    return servicesTotal + productsTotal;
-  }, [localServices, localProducts]);
+  // Usar precio total de Firebase (incluye descuentos de promociones)
+  const totalPrice = order.totalPrice || 0;
 
   // ===== USE EFFECTS PARA SINCRONIZACIÓN =====
   // Actualizar empleados activos cuando cambien las props
@@ -916,6 +895,29 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         <div className="detail-card">
           <h3 className="detail-card-title">💰 Información de Pago</h3>
           <div className="detail-card-content">
+            {/* Si hay descuentos, mostrar subtotal */}
+            {order.totalDiscount > 0 && (
+              <div className="detail-row">
+                <span className="detail-label">Subtotal:</span>
+                <span className="detail-value">${order.subtotal}</span>
+              </div>
+            )}
+
+            {/* Mostrar descuentos aplicados */}
+            {order.totalDiscount > 0 && (
+              <div className="detail-row">
+                <span className="detail-label">
+                  Descuentos:
+                  {order.appliedPromotions?.map((promo, idx) => (
+                    <span key={idx} style={{display: 'block', fontSize: '12px', color: '#4ade80', fontWeight: '400', marginTop: '4px'}}>
+                      {promo.emoji || '🎉'} {promo.name}
+                    </span>
+                  ))}
+                </span>
+                <span className="detail-value" style={{color: '#4ade80'}}>-${order.totalDiscount}</span>
+              </div>
+            )}
+
             <div className="detail-row">
               <span className="detail-label">Precio Total:</span>
               <span className="detail-value price-large">${totalPrice}</span>
@@ -1229,6 +1231,9 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       <PaymentScreen
         services={localServices}
         products={localProducts}
+        subtotal={order.subtotal || totalPrice}
+        totalDiscount={order.totalDiscount || 0}
+        appliedPromotions={order.appliedPromotions || []}
         totalPrice={totalPrice}
         advancePayment={paymentData.advancePayment}
         paymentMethod={paymentData.paymentMethod}

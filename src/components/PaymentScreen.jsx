@@ -1,7 +1,21 @@
 import { useState, useMemo } from 'react';
 import './PaymentScreen.css';
 
-const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePayment = 0, paymentMethod = 'cash', allowEditMethod = false, requireFullPayment = false, orderStatus, onConfirm, onCancel }) => {
+const PaymentScreen = ({
+  services = [],
+  products = [],
+  subtotal = 0,
+  totalDiscount = 0,
+  appliedPromotions = [],
+  totalPrice = 0,
+  advancePayment = 0,
+  paymentMethod = 'cash',
+  allowEditMethod = false,
+  requireFullPayment = false,
+  orderStatus,
+  onConfirm,
+  onCancel
+}) => {
   const [amountReceived, setAmountReceived] = useState('');
   const [selectedMethod, setSelectedMethod] = useState(paymentMethod);
 
@@ -23,15 +37,18 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
     return Object.values(grouped);
   }, [services]);
 
-  // Calcular total
-  const subtotal = useMemo(() => {
+  // Calcular total (interno, usado solo si no se pasa subtotal como prop)
+  const calculatedSubtotal = useMemo(() => {
     const servicesTotal = groupedServices.reduce((sum, service) => sum + ((service.price || 0) * service.quantity), 0);
     const productsTotal = products.reduce((sum, product) => sum + ((product.salePrice || 0) * (product.quantity || 1)), 0);
     return servicesTotal + productsTotal;
   }, [groupedServices, products]);
 
-  // Saldo restante a cobrar (después de anticipo)
-  const remainingBalance = useMemo(() => subtotal - advancePayment, [subtotal, advancePayment]);
+  // Usar subtotal del prop si está disponible, sino calcular internamente
+  const finalSubtotal = subtotal || calculatedSubtotal;
+
+  // Saldo restante a cobrar (después de anticipo) - usar totalPrice que ya incluye descuentos
+  const remainingBalance = useMemo(() => totalPrice - advancePayment, [totalPrice, advancePayment]);
 
   // Calcular cambio (solo si es efectivo)
   const change = useMemo(() => {
@@ -203,9 +220,33 @@ const PaymentScreen = ({ services = [], products = [], totalPrice = 0, advancePa
 
         {/* Resumen de Totales */}
         <div className="payment-summary">
+          {totalDiscount > 0 && (
+            <>
+              <div className="summary-row subtotal-row">
+                <span className="summary-label">Subtotal:</span>
+                <span className="summary-value">${finalSubtotal.toFixed(2)}</span>
+              </div>
+              <div className="summary-row discount-row">
+                <span className="summary-label">
+                  Descuentos:
+                  {appliedPromotions.length > 0 && (
+                    <span className="promotions-list">
+                      {appliedPromotions.map((promo, idx) => (
+                        <span key={idx} className="promo-tag">
+                          {promo.emoji || '🎉'} {promo.name}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </span>
+                <span className="summary-value discount-value">-${totalDiscount.toFixed(2)}</span>
+              </div>
+            </>
+          )}
+
           <div className="summary-row total-row">
             <span className="summary-label">Total:</span>
-            <span className="summary-value total-value">${subtotal.toFixed(2)}</span>
+            <span className="summary-value total-value">${totalPrice.toFixed(2)}</span>
           </div>
 
           {advancePayment > 0 && (

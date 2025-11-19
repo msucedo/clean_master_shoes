@@ -3,13 +3,15 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[EPIC]Pantalla promociones
+-[]agregarle beta a la tab promociones
+-[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
 -[]buscar bugs en todos los flujos de funcionalidades
 
 // PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
--[EPIC]Pantalla promociones
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 
 // PRIORIDAD BAJA

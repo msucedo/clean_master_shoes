@@ -764,6 +764,11 @@ select.form-input {
     font-weight: 700;
 }
 
+.discount-label {
+    color: #999;
+    font-weight: 700;
+}
+
 .cart-items {
     flex: 1;
     overflow-y: auto;
@@ -1323,4 +1328,78 @@ select.form-input {
 .photo-remove-btn:hover {
     background: #ff0000;
     transform: scale(1.1);
+}
+
+/* ========== AVAILABLE PROMOTIONS BANNER ========== */
+.available-promotions-banner {
+  background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(255, 133, 0, 0.1) 100%);
+  border: 1px solid rgba(255, 0, 110, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    border-color: rgba(255, 0, 110, 0.3);
+    box-shadow: 0 0 10px rgba(255, 0, 110, 0.1);
+  }
+  50% {
+    border-color: rgba(255, 0, 110, 0.5);
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.2);
+  }
+}
+
+.banner-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.promo-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  opacity: 0.6;
+  transition: all 0.3s;
+}
+
+.promo-item:last-child {
+  margin-bottom: 0;
+}
+
+.promo-item.applied {
+  opacity: 1;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+}
+
+.promo-emoji {
+  font-size: 16px;
+}
+
+.promo-name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.applied-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
