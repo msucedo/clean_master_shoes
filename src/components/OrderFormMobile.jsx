@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ClientAutocomplete from './ClientAutocomplete';
 import PaymentScreen from './PaymentScreen';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
+import PromotionBadge from './PromotionBadge';
 import './OrderFormMobile.css';
 
 // Función para generar IDs únicos
@@ -15,6 +16,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null); // Empleado seleccionado para asignación automática
   const [showCalendarModal, setShowCalendarModal] = useState(false); // Controla modal de calendario de entregas
+  const [activePromotions, setActivePromotions] = useState([]);
+  const [appliedPromotions, setAppliedPromotions] = useState([]);
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -77,9 +80,64 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
     loadProducts();
   }, []);
 
-  // Calcular precio total del carrito
-  const calculateTotalPrice = () => {
+  // Cargar promociones activas
+  const loadPromotions = async () => {
+    try {
+      const { getActivePromotions } = await import('../services/firebaseService');
+      const promotions = await getActivePromotions();
+      setActivePromotions(promotions);
+    } catch (error) {
+      console.error('Error loading promotions:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadPromotions();
+  }, []);
+
+  // Validar promociones automáticamente cuando cambie el carrito o cliente
+  const checkApplicablePromotions = async () => {
+    if (cart.length === 0 || activePromotions.length === 0) {
+      setAppliedPromotions([]);
+      return;
+    }
+
+    const { validatePromotion } = await import('../services/firebaseService');
+    const subtotal = calculateSubtotal();
+    const clientPhone = formData.phone;
+
+    const validPromotions = [];
+    for (const promotion of activePromotions) {
+      const result = await validatePromotion(promotion, cart, clientPhone, subtotal);
+      if (result.isValid && result.discountAmount > 0) {
+        validPromotions.push({
+          ...promotion,
+          discountAmount: result.discountAmount
+        });
+      }
+    }
+    setAppliedPromotions(validPromotions);
+  };
+
+  useEffect(() => {
+    checkApplicablePromotions();
+  }, [cart, formData.phone, activePromotions]);
+
+  // Calcular subtotal (antes de descuentos)
+  const calculateSubtotal = () => {
     return cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0);
+  };
+
+  // Calcular descuento total
+  const calculateTotalDiscount = () => {
+    return appliedPromotions.reduce((total, promo) => total + (promo.discountAmount || 0), 0);
+  };
+
+  // Calcular precio total del carrito (con descuentos)
+  const calculateTotalPrice = () => {
+    const subtotal = calculateSubtotal();
+    const discount = calculateTotalDiscount();
+    return Math.max(0, subtotal - discount);
   };
 
   // Calcular cantidad total de items (incluyendo cantidades)
@@ -133,6 +191,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
           // Si no existe, agregar nuevo servicio con cantidad 1
           const newItem = {
             id: generateId(),
+            serviceId: item.id,
             type: 'service',
             serviceName: item.name,
             price: item.price,
@@ -338,12 +397,35 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       services,
       products,
       orderImages: [],
+      subtotal: calculateSubtotal(),
+      totalDiscount: calculateTotalDiscount(),
+      appliedPromotions: appliedPromotions.map(promo => ({
+        id: promo.id,
+        name: promo.name,
+        type: promo.type,
+        discountAmount: promo.discountAmount,
+        emoji: promo.emoji
+      })),
       totalPrice: calculateTotalPrice(),
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal',
       author: selectedEmployee ? selectedEmployee.name : '' // Asignar empleado seleccionado
     };
+
+    // Incrementar uso de promociones
+    if (appliedPromotions.length > 0) {
+      (async () => {
+        const { incrementPromotionUsage } = await import('../services/firebaseService');
+        for (const promo of appliedPromotions) {
+          try {
+            await incrementPromotionUsage(promo.id, formData.phone);
+          } catch (error) {
+            console.error('Error incrementing promotion usage:', error);
+          }
+        }
+      })();
+    }
 
     // Esperar 1.5s para mostrar animación antes de cerrar
     setTimeout(() => {
@@ -424,6 +506,9 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
             emoji: item.emoji,
             quantity: item.quantity
           }))}
+          subtotal={calculateSubtotal()}
+          totalDiscount={calculateTotalDiscount()}
+          appliedPromotions={appliedPromotions}
           totalPrice={calculateTotalPrice()}
           advancePayment={0}
           paymentMethod={formData.paymentMethod}
@@ -530,6 +615,56 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                         <span className="cart-item-price-mobile">
                           ${item.price} × {item.quantity} = ${item.price * item.quantity}
                         </span>
+                        {/* Badges de promociones aplicables a este item */}
+                        {appliedPromotions
+                          .filter(promo => {
+                            // Filtrar según el tipo de promoción
+                            switch (promo.type) {
+                              case 'buyXgetY':
+                              case 'fixed':
+                                // Verificar applicableItems (puede ser vacío = aplica a todos)
+                                if (!promo.applicableItems || promo.applicableItems.length === 0) {
+                                  return false; // No mostrar badge si aplica a todo
+                                }
+                                if (item.type === 'service' && item.serviceId) {
+                                  return promo.applicableItems.includes(item.serviceId);
+                                }
+                                if (item.type === 'product' && item.productId) {
+                                  return promo.applicableItems.includes(item.productId);
+                                }
+                                return false;
+
+                              case 'percentage':
+                                // Solo mostrar si es específico
+                                if (promo.appliesTo !== 'specific' || !promo.specificItems) {
+                                  return false;
+                                }
+                                if (item.type === 'service' && item.serviceId) {
+                                  return promo.specificItems.includes(item.serviceId);
+                                }
+                                if (item.type === 'product' && item.productId) {
+                                  return promo.specificItems.includes(item.productId);
+                                }
+                                return false;
+
+                              case 'combo':
+                                // Verificar si el item está en comboItems
+                                if (!promo.comboItems || promo.comboItems.length === 0) {
+                                  return false;
+                                }
+                                const itemId = item.type === 'service' ? item.serviceId : item.productId;
+                                return promo.comboItems.some(ci => ci.id === itemId);
+
+                              case 'dayOfWeek':
+                              default:
+                                // No mostrar badge para promociones generales
+                                return false;
+                            }
+                          })
+                          .map((promo, idx) => (
+                            <PromotionBadge key={idx} promotion={promo} discountAmount={promo.discountAmount} />
+                          ))
+                        }
                       </div>
                       <button
                         type="button"
@@ -543,9 +678,52 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                 </div>
               )}
 
+              {/* Banner de promociones disponibles hoy */}
+              {activePromotions.length > 0 && (
+                <div className="available-promotions-banner">
+                  <div className="banner-title">🎉 Promociones Disponibles Hoy:</div>
+                  {activePromotions.map((promo, idx) => {
+                    const isApplied = appliedPromotions.some(ap => ap.id === promo.id);
+                    return (
+                      <div key={idx} className={`promo-item ${isApplied ? 'applied' : ''}`}>
+                        <span className="promo-emoji">{promo.emoji || '🎉'}</span>
+                        <span className="promo-name">{promo.name}</span>
+                        {isApplied && <span className="applied-badge">✓ APLICADA</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Resumen del carrito con descuentos */}
               <div className="cart-total-mobile">
-                <span>Total:</span>
-                <span className="total-value-mobile">${calculateTotalPrice()}</span>
+                {calculateTotalDiscount() > 0 && (
+                  <>
+                    <div className="cart-subtotal-row">
+                      <span>Subtotal:</span>
+                      <span>${calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="cart-discount-row">
+                      <span>
+                        Descuentos:
+                        {appliedPromotions.length > 0 && (
+                          <div className="applied-promotions-list">
+                            {appliedPromotions.map((promo, idx) => (
+                              <span key={idx} className="applied-promo-tag">
+                                {promo.emoji || '🎉'} {promo.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </span>
+                      <span className="discount-value">-${calculateTotalDiscount().toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+                <div className="cart-total-row">
+                  <span>Total:</span>
+                  <span className="total-value-mobile">${calculateTotalPrice()}</span>
+                </div>
               </div>
 
               {/* Sección de Asignación de Empleado */}

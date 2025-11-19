@@ -1508,14 +1508,42 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
         } else if (promotion.appliesTo === 'specific' && promotion.specificItems) {
           // Calculate only for specific items
           const applicableTotal = cart
-            .filter(item => promotion.specificItems.includes(item.id))
+            .filter(item => {
+              // Comparar con serviceId o productId, no con el ID temporal del carrito
+              if (item.type === 'service' && item.serviceId) {
+                return promotion.specificItems.includes(item.serviceId);
+              }
+              if (item.type === 'product' && item.productId) {
+                return promotion.specificItems.includes(item.productId);
+              }
+              return false;
+            })
             .reduce((sum, item) => sum + (item.price * item.quantity), 0);
           discountAmount = applicableTotal * (promotion.discountValue / 100);
         }
         break;
 
       case 'fixed':
-        discountAmount = promotion.discountValue;
+        // Si hay items aplicables específicos, calcular solo para esos items
+        if (promotion.applicableItems && promotion.applicableItems.length > 0) {
+          const applicableItems = cart.filter(item => {
+            if (item.type === 'service' && item.serviceId) {
+              return promotion.applicableItems.includes(item.serviceId);
+            }
+            if (item.type === 'product' && item.productId) {
+              return promotion.applicableItems.includes(item.productId);
+            }
+            return false;
+          });
+
+          // Solo aplicar descuento si hay items aplicables en el carrito
+          if (applicableItems.length > 0) {
+            discountAmount = promotion.discountValue;
+          }
+        } else {
+          // Si no hay items específicos, aplicar a todo el carrito
+          discountAmount = promotion.discountValue;
+        }
         break;
 
       case 'dayOfWeek':
@@ -1583,7 +1611,16 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
         // For combo, check if all items are in cart
         if (promotion.comboItems) {
           const hasAllItems = promotion.comboItems.every(comboItem =>
-            cart.some(cartItem => cartItem.id === comboItem.id)
+            cart.some(cartItem => {
+              // Comparar con serviceId o productId, no con el ID temporal del carrito
+              if (cartItem.type === 'service' && cartItem.serviceId) {
+                return cartItem.serviceId === comboItem.id;
+              }
+              if (cartItem.type === 'product' && cartItem.productId) {
+                return cartItem.productId === comboItem.id;
+              }
+              return false;
+            })
           );
           if (hasAllItems) {
             const normalPrice = promotion.comboItems.reduce((sum, item) => sum + item.price, 0);

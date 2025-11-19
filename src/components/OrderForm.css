@@ -764,6 +764,16 @@ select.form-input {
     font-weight: 700;
 }
 
+.subtotal-label {
+    color: #999;
+    font-weight: 700;
+}
+
+.subtotal-value {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
 .discount-label {
     color: #999;
     font-weight: 700;

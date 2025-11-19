@@ -864,19 +864,48 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
                         {/* Show applied promotions for this item */}
                         {appliedPromotions
                           .filter(promo => {
-                            // Si la promoción no tiene items específicos configurados, aplica a todos
-                            if (!promo.applicableItems || promo.applicableItems.length === 0) {
-                              return true;
+                            // Filtrar según el tipo de promoción
+                            switch (promo.type) {
+                              case 'buyXgetY':
+                              case 'fixed':
+                                // Verificar applicableItems (puede ser vacío = aplica a todos)
+                                if (!promo.applicableItems || promo.applicableItems.length === 0) {
+                                  return false; // No mostrar badge si aplica a todo
+                                }
+                                if (item.type === 'service' && item.serviceId) {
+                                  return promo.applicableItems.includes(item.serviceId);
+                                }
+                                if (item.type === 'product' && item.productId) {
+                                  return promo.applicableItems.includes(item.productId);
+                                }
+                                return false;
+
+                              case 'percentage':
+                                // Solo mostrar si es específico
+                                if (promo.appliesTo !== 'specific' || !promo.specificItems) {
+                                  return false;
+                                }
+                                if (item.type === 'service' && item.serviceId) {
+                                  return promo.specificItems.includes(item.serviceId);
+                                }
+                                if (item.type === 'product' && item.productId) {
+                                  return promo.specificItems.includes(item.productId);
+                                }
+                                return false;
+
+                              case 'combo':
+                                // Verificar si el item está en comboItems
+                                if (!promo.comboItems || promo.comboItems.length === 0) {
+                                  return false;
+                                }
+                                const itemId = item.type === 'service' ? item.serviceId : item.productId;
+                                return promo.comboItems.some(ci => ci.id === itemId);
+
+                              case 'dayOfWeek':
+                              default:
+                                // No mostrar badge para promociones generales
+                                return false;
                             }
-                            // Para servicios, verificar si el serviceId del item está en applicableItems
-                            if (item.type === 'service' && item.serviceId) {
-                              return promo.applicableItems.includes(item.serviceId);
-                            }
-                            // Para productos, verificar si el productId del item está en applicableItems
-                            if (item.type === 'product' && item.productId) {
-                              return promo.applicableItems.includes(item.productId);
-                            }
-                            return false;
                           })
                           .map((promo, idx) => (
                             <PromotionBadge

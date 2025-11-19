@@ -161,6 +161,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
         }
       }
 
+      if (formData.type === 'fixed') {
+        promotionData.applicableItems = formData.applicableItems;
+      }
+
       if (formData.type === 'buyXgetY') {
         promotionData.buyQuantity = parseInt(formData.buyQuantity);
         promotionData.getQuantity = parseInt(formData.getQuantity);
@@ -372,20 +376,53 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
           )}
 
           {formData.type === 'fixed' && (
-            <div className="form-group">
-              <label>Monto de Descuento ($) *</label>
-              <input
-                type="number"
-                name="discountValue"
-                value={formData.discountValue}
-                onChange={handleChange}
-                placeholder="100"
-                min="0"
-                step="0.01"
-                className={errors.discountValue ? 'error' : ''}
-              />
-              {errors.discountValue && <span className="error-message">{errors.discountValue}</span>}
-            </div>
+            <>
+              <div className="form-group">
+                <label>Monto de Descuento ($) *</label>
+                <input
+                  type="number"
+                  name="discountValue"
+                  value={formData.discountValue}
+                  onChange={handleChange}
+                  placeholder="100"
+                  min="0"
+                  step="0.01"
+                  className={errors.discountValue ? 'error' : ''}
+                />
+                {errors.discountValue && <span className="error-message">{errors.discountValue}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Items Aplicables (opcional)</label>
+                <div className="items-selector">
+                  {allItems.map(item => (
+                    <label key={item.id} className="item-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={formData.applicableItems.includes(item.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              applicableItems: [...prev.applicableItems, item.id]
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              applicableItems: prev.applicableItems.filter(id => id !== item.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <span>{item.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <small style={{ color: '#666', fontSize: '12px' }}>
+                  Si no seleccionas ninguno, el descuento aplicará a todo el carrito
+                </small>
+              </div>
+            </>
           )}
 
           {formData.type === 'percentage' && (
