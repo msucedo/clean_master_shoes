@@ -15,7 +15,7 @@ const Sidebar = () => {
     { path: '/services', icon: '💼', label: 'Servicios' },
     { path: '/employees', icon: '👨‍💼', label: 'Empleados' },
     { path: '/inventory', icon: '📦', label: 'Inventario' },
-    { path: '/promotions', icon: '🎉', label: 'Promociones' },
+    { path: '/promotions', icon: '🎉', label: 'Promociones', badge: 'BETA' },
     { path: '/reports', icon: '📊', label: 'Reportes' },
     { path: '/settings', icon: '⚙️', label: 'Config' },
   ];
@@ -81,7 +81,10 @@ const Sidebar = () => {
             className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}
           >
             <span className="menu-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span className="menu-item-label">
+              {item.label}
+              {item.badge && <span className="menu-item-badge">{item.badge}</span>}
+            </span>
           </NavLink>
         ))}
       </div>

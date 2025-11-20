@@ -270,7 +270,12 @@ const Promotions = () => {
       )}
 
       {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={selectedPromotion ? 'Editar Promoción' : 'Nueva Promoción'}
+        size="large"
+      >
         <PromotionForm
           onSubmit={handleSubmit}
           onCancel={handleCloseModal}

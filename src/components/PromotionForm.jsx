@@ -309,10 +309,6 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
 
   return (
     <form className="promotion-form" onSubmit={handleSubmit}>
-      <div className="form-header">
-        <h2>{initialData ? 'Editar Promoción' : 'Nueva Promoción'}</h2>
-      </div>
-
       <div className="form-content">
         {/* Basic Info */}
         <div className="form-section">
