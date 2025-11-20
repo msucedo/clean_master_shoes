@@ -569,6 +569,11 @@
   font-size: var(--font-lg);
 }
 
+.payment-value.discount {
+  color: var(--color-secondary-green);
+  font-weight: 600;
+}
+
 .payment-value.paid {
   color: var(--color-secondary-green);
 }

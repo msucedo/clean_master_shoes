@@ -412,6 +412,20 @@ function OrderTracking() {
         <div className="payment-section">
           <h3 className="section-title">Información de Pago</h3>
           <div className="payment-details">
+            {/* Mostrar subtotal solo si hay descuento aplicado */}
+            {order.subtotal && order.subtotal > order.totalPrice && (
+              <div className="payment-row">
+                <span className="payment-label">Subtotal:</span>
+                <span className="payment-value">${order.subtotal?.toFixed(2) || '0.00'}</span>
+              </div>
+            )}
+            {/* Mostrar descuento si existe */}
+            {order.totalDiscount && order.totalDiscount > 0 && (
+              <div className="payment-row">
+                <span className="payment-label">Descuento:</span>
+                <span className="payment-value discount">-${order.totalDiscount?.toFixed(2) || '0.00'}</span>
+              </div>
+            )}
             <div className="payment-row">
               <span className="payment-label">Total:</span>
               <span className="payment-value total">${order.totalPrice?.toFixed(2) || '0.00'}</span>

@@ -200,7 +200,8 @@ ${itemsHTML}
   <div class="line"></div>
 
   <div>
-    <div>Subtotal: ${'.'.repeat(13)} ${formatCurrency(order.totalPrice)}</div>
+    <div>Subtotal: ${'.'.repeat(13)} ${formatCurrency(order.subtotal || order.totalPrice)}</div>
+    ${order.totalDiscount && order.totalDiscount > 0 ? `<div>Descuento: ${'.'.repeat(12)} -${formatCurrency(order.totalDiscount)}</div>` : ''}
     <div class="bold">TOTAL: ${'.'.repeat(16)} ${formatCurrency(order.totalPrice)}</div>
     <div>Anticipo: ${'.'.repeat(13)} ${formatCurrency(order.advancePayment)}</div>
     <div class="bold">SALDO: ${'.'.repeat(16)} ${formatCurrency(saldo)}</div>
@@ -302,7 +303,9 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
   <div class="line"></div>
 
   <div>
-    <div>Total: ${'.'.repeat(16)} ${formatCurrency(order.totalPrice)}</div>
+    ${order.subtotal && order.subtotal > order.totalPrice ? `<div>Subtotal: ${'.'.repeat(13)} ${formatCurrency(order.subtotal)}</div>` : ''}
+    ${order.totalDiscount && order.totalDiscount > 0 ? `<div>Descuento: ${'.'.repeat(12)} -${formatCurrency(order.totalDiscount)}</div>` : ''}
+    <div class="bold">Total: ${'.'.repeat(16)} ${formatCurrency(order.totalPrice)}</div>
     <div>Anticipo: ${'.'.repeat(13)} ${formatCurrency(order.advancePayment)}</div>
     <div class="bold">Pago entrega: ${'.'.repeat(9)} ${formatCurrency(pagoEntrega)}</div>
     <div>Método: ${paymentMethod}</div>
@@ -439,7 +442,14 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
 
   // Totales
   cmd
-    .tableRow('Subtotal:', formatCurrency(order.totalPrice), 32)
+    .tableRow('Subtotal:', formatCurrency(order.subtotal || order.totalPrice), 32);
+
+  // Mostrar descuento si aplica
+  if (order.totalDiscount && order.totalDiscount > 0) {
+    cmd.tableRow('Descuento:', `-${formatCurrency(order.totalDiscount)}`, 32);
+  }
+
+  cmd
     .bold(true)
     .tableRow('TOTAL:', formatCurrency(order.totalPrice), 32)
     .bold(false)
@@ -547,11 +557,23 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
   cmd.hr('-', 32);
 
   // Totales y pago
+  // Mostrar subtotal y descuento si aplica
+  if (order.subtotal && order.subtotal > order.totalPrice) {
+    cmd.tableRow('Subtotal:', formatCurrency(order.subtotal), 32);
+  }
+  if (order.totalDiscount && order.totalDiscount > 0) {
+    cmd.tableRow('Descuento:', `-${formatCurrency(order.totalDiscount)}`, 32);
+  }
+
   cmd
+    .bold(true)
     .tableRow('Total:', formatCurrency(order.totalPrice), 32)
+    .bold(false)
     .tableRow('Anticipo:', formatCurrency(order.advancePayment), 32)
     .bold(true)
     .tableRow('Pago entrega:', formatCurrency(pagoEntrega), 32)
+    .bold(false)
+    .tableRow('Metodo:', paymentMethod, 32);
 
   cmd.hr('-', 32).emptyLine();
 

@@ -4,8 +4,6 @@ Clean master shoes
 
 // WIP
 -[]validar integridad de datos en formularios y campos de entrada de datos del usuario
--[]placeholders cuando data esta cargando
--[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
 -[]buscar bugs en todos los flujos de funcionalidades
 
 // PRIORIDAD ALTA
@@ -19,6 +17,7 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]placeholders cuando data esta cargando
 -[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados.
 -[]agregar campo cumpleaños para el cliente
 -[]remover opcion de agregar cliente directamente desde tabs clientes, solo se agregan al crear una nueva orden en caso de no existir.
@@ -59,6 +58,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
 -[FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 -[EPIC]Pantalla promociones
