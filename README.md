@@ -21,6 +21,7 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]al seeleccionar cola, muestra una alerta que te asegures la impresora del local este encedida y emparejada por bluetooth con la pc del local.
 -[]modals con ui propia
 -[]agregar ux para modal al conectar impresora bluetooth
 -[FEATURE]Validar funcionalidades offline

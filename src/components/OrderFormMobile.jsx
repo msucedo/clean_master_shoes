@@ -354,7 +354,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   };
 
   // Función para crear la orden (extraída para reutilizar)
-  const createOrder = (paymentStatus = null, advancePayment = 0) => {
+  const createOrder = async (paymentStatus = null, advancePayment = 0) => {
     setIsSubmitting(true);
 
     // Separar servicios y productos del carrito
@@ -413,18 +413,16 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       author: selectedEmployee ? selectedEmployee.name : '' // Asignar empleado seleccionado
     };
 
-    // Incrementar uso de promociones
+    // Incrementar uso de promociones (esperar a que termine antes de continuar)
     if (appliedPromotions.length > 0) {
-      (async () => {
-        const { incrementPromotionUsage } = await import('../services/firebaseService');
-        for (const promo of appliedPromotions) {
-          try {
-            await incrementPromotionUsage(promo.id, formData.phone);
-          } catch (error) {
-            console.error('Error incrementing promotion usage:', error);
-          }
+      const { incrementPromotionUsage } = await import('../services/firebaseService');
+      for (const promo of appliedPromotions) {
+        try {
+          await incrementPromotionUsage(promo.id, formData.phone);
+        } catch (error) {
+          console.error('Error incrementing promotion usage:', error);
         }
-      })();
+      }
     }
 
     // Esperar 1.5s para mostrar animación antes de cerrar
@@ -621,6 +619,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                             // Filtrar según el tipo de promoción
                             switch (promo.type) {
                               case 'buyXgetY':
+                              case 'buyXgetYdiscount':
                               case 'fixed':
                                 // Verificar applicableItems (puede ser vacío = aplica a todos)
                                 if (!promo.applicableItems || promo.applicableItems.length === 0) {

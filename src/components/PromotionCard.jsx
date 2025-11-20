@@ -62,6 +62,8 @@ const PromotionCard = ({ promotion, onEdit, onDelete, isAdmin }) => {
         return `$${discountValue} OFF`;
       case 'buyXgetY':
         return `${promotion.buyQuantity}x${promotion.getQuantity}`;
+      case 'buyXgetYdiscount':
+        return `Compra ${promotion.buyQuantity} → ${promotion.discountPercentage}% OFF`;
       case 'combo':
         return `$${promotion.comboPrice}`;
       default:

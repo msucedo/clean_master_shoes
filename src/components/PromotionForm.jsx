@@ -15,6 +15,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
     specificItems: [],
     buyQuantity: 2,
     getQuantity: 1,
+    discountPercentage: '',
     applicableItems: [],
     comboItems: [],
     comboPrice: '',
@@ -46,8 +47,12 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
         specificItems: initialData.specificItems || [],
         buyQuantity: initialData.buyQuantity || 2,
         getQuantity: initialData.getQuantity || 1,
+        discountPercentage: initialData.discountPercentage || '',
         applicableItems: initialData.applicableItems || [],
-        comboItems: initialData.comboItems || [],
+        comboItems: (initialData.comboItems || []).map(ci => ({
+          ...ci,
+          quantity: ci.quantity || 1 // Compatibilidad con combos antiguos sin quantity
+        })),
         comboPrice: initialData.comboPrice || '',
         daysOfWeek: initialData.daysOfWeek || [],
         // Restrictions
@@ -115,6 +120,15 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       }
     }
 
+    if (formData.type === 'buyXgetYdiscount') {
+      if (!formData.buyQuantity || formData.buyQuantity < 2) {
+        newErrors.buyQuantity = 'Mínimo 2 items requeridos';
+      }
+      if (!formData.discountPercentage || formData.discountPercentage <= 0 || formData.discountPercentage > 100) {
+        newErrors.discountPercentage = 'El descuento debe estar entre 1 y 100%';
+      }
+    }
+
     if (formData.type === 'combo') {
       if (!formData.comboPrice || formData.comboPrice <= 0) {
         newErrors.comboPrice = 'El precio del combo es requerido';
@@ -168,6 +182,12 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       if (formData.type === 'buyXgetY') {
         promotionData.buyQuantity = parseInt(formData.buyQuantity);
         promotionData.getQuantity = parseInt(formData.getQuantity);
+        promotionData.applicableItems = formData.applicableItems;
+      }
+
+      if (formData.type === 'buyXgetYdiscount') {
+        promotionData.buyQuantity = parseInt(formData.buyQuantity);
+        promotionData.discountPercentage = parseFloat(formData.discountPercentage);
         promotionData.applicableItems = formData.applicableItems;
       }
 
@@ -321,6 +341,20 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               <span className="type-label">
                 <span className="type-icon">2x1</span>
                 <span>Compra y Lleva</span>
+              </span>
+            </label>
+
+            <label className={`type-option ${formData.type === 'buyXgetYdiscount' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="type"
+                value="buyXgetYdiscount"
+                checked={formData.type === 'buyXgetYdiscount'}
+                onChange={handleChange}
+              />
+              <span className="type-label">
+                <span className="type-icon">🏷️</span>
+                <span>Compra y Descuento</span>
               </span>
             </label>
 
@@ -546,6 +580,85 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
             </>
           )}
 
+          {formData.type === 'buyXgetYdiscount' && (
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Cantidad de Items *</label>
+                  <input
+                    type="number"
+                    name="buyQuantity"
+                    value={formData.buyQuantity}
+                    onChange={handleChange}
+                    min="2"
+                    className={errors.buyQuantity ? 'error' : ''}
+                  />
+                  {errors.buyQuantity && <span className="error-message">{errors.buyQuantity}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>% de Descuento *</label>
+                  <input
+                    type="number"
+                    name="discountPercentage"
+                    value={formData.discountPercentage}
+                    onChange={handleChange}
+                    min="1"
+                    max="100"
+                    placeholder="50"
+                    className={errors.discountPercentage ? 'error' : ''}
+                  />
+                  {errors.discountPercentage && <span className="error-message">{errors.discountPercentage}</span>}
+                </div>
+              </div>
+
+              <div className="help-text" style={{
+                backgroundColor: '#f0f9ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '16px',
+                fontSize: '13px',
+                color: '#1e3a8a'
+              }}>
+                <strong>💡 Ejemplos:</strong>
+                <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                  <li><strong>2do a 50% OFF</strong>: Cantidad=<strong>2</strong>, Descuento=<strong>50</strong>%</li>
+                  <li><strong>3ro a 30% OFF</strong>: Cantidad=<strong>3</strong>, Descuento=<strong>30</strong>%</li>
+                  <li><strong>4to a 25% OFF</strong>: Cantidad=<strong>4</strong>, Descuento=<strong>25</strong>%</li>
+                </ul>
+              </div>
+
+              <div className="form-group">
+                <label>Items Aplicables (opcional)</label>
+                <div className="items-selector">
+                  {allItems.map(item => (
+                    <label key={item.id} className="item-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={formData.applicableItems.includes(item.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              applicableItems: [...prev.applicableItems, item.id]
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              applicableItems: prev.applicableItems.filter(id => id !== item.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <span>{item.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {formData.type === 'combo' && (
             <>
               <div className="form-group">
@@ -575,7 +688,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                           if (e.target.checked) {
                             setFormData(prev => ({
                               ...prev,
-                              comboItems: [...prev.comboItems, { id: item.id, name: item.name, price: item.price }]
+                              comboItems: [...prev.comboItems, { id: item.id, name: item.name, price: item.price, quantity: 1 }]
                             }));
                           } else {
                             setFormData(prev => ({
@@ -589,6 +702,35 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                     </label>
                   ))}
                 </div>
+
+                {/* Mostrar items seleccionados con cantidades */}
+                {formData.comboItems.length > 0 && (
+                  <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                    <strong style={{ display: 'block', marginBottom: '8px' }}>Cantidades por item:</strong>
+                    {formData.comboItems.map((comboItem, idx) => (
+                      <div key={comboItem.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <span style={{ flex: 1 }}>{comboItem.name}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={comboItem.quantity || 1}
+                          onChange={(e) => {
+                            const newQty = parseInt(e.target.value) || 1;
+                            setFormData(prev => ({
+                              ...prev,
+                              comboItems: prev.comboItems.map(ci =>
+                                ci.id === comboItem.id ? { ...ci, quantity: newQty } : ci
+                              )
+                            }));
+                          }}
+                          style={{ width: '70px', padding: '4px 8px', textAlign: 'center' }}
+                        />
+                        <span style={{ width: '30px', textAlign: 'right' }}>x</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {errors.comboItems && <span className="error-message">{errors.comboItems}</span>}
               </div>
             </>

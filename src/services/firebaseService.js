@@ -1592,7 +1592,8 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
           const totalQty = applicableItems.reduce((sum, item) => sum + item.quantity, 0);
           const sets = Math.floor(totalQty / promotion.buyQuantity);
           const freeItems = sets * promotion.getQuantity;
-          const itemPrice = applicableItems[0].price;
+          // Usar el precio más barato para regalar (beneficia al negocio)
+          const itemPrice = Math.min(...applicableItems.map(i => i.price));
           discountAmount = freeItems * itemPrice;
 
           console.log('✅ [Promo Calculation]', {
@@ -1607,12 +1608,58 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
         }
         break;
 
+      case 'buyXgetYdiscount':
+        // For buyXgetYdiscount, apply percentage discount to cheapest item per set
+        const applicableItemsDisc = cart.filter(item => {
+          // Si no hay items específicos configurados, aplicar a todos los items del carrito
+          if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+            return true;
+          }
+
+          // Para servicios, comparar con serviceId
+          if (item.type === 'service' && item.serviceId) {
+            return promotion.applicableItems.includes(item.serviceId);
+          }
+
+          // Para productos, comparar con productId
+          if (item.type === 'product' && item.productId) {
+            return promotion.applicableItems.includes(item.productId);
+          }
+
+          return false;
+        });
+
+        if (applicableItemsDisc.length > 0) {
+          const totalQty = applicableItemsDisc.reduce((sum, item) => sum + item.quantity, 0);
+          const sets = Math.floor(totalQty / promotion.buyQuantity);
+
+          if (sets > 0) {
+            // Encontrar el precio más barato para aplicar el descuento
+            const cheapestPrice = Math.min(...applicableItemsDisc.map(i => i.price));
+            // Aplicar porcentaje de descuento al precio más barato
+            const discountPerItem = cheapestPrice * (promotion.discountPercentage / 100);
+            discountAmount = sets * discountPerItem;
+
+            console.log('✅ [Promo BuyXgetYdiscount]', {
+              totalQuantity: totalQty,
+              setsEarned: sets,
+              cheapestPrice: cheapestPrice,
+              discountPercentage: promotion.discountPercentage,
+              discountPerSet: discountPerItem,
+              totalDiscount: discountAmount
+            });
+          }
+        }
+        break;
+
       case 'combo':
-        // For combo, check if all items are in cart
+        // For combo, check if all items are in cart with sufficient quantities
         if (promotion.comboItems) {
-          const hasAllItems = promotion.comboItems.every(comboItem =>
-            cart.some(cartItem => {
-              // Comparar con serviceId o productId, no con el ID temporal del carrito
+          const hasAllItemsWithQuantity = promotion.comboItems.every(comboItem => {
+            const requiredQty = comboItem.quantity || 1;
+
+            // Buscar el item en el carrito
+            const cartItem = cart.find(cartItem => {
               if (cartItem.type === 'service' && cartItem.serviceId) {
                 return cartItem.serviceId === comboItem.id;
               }
@@ -1620,10 +1667,17 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
                 return cartItem.productId === comboItem.id;
               }
               return false;
-            })
-          );
-          if (hasAllItems) {
-            const normalPrice = promotion.comboItems.reduce((sum, item) => sum + item.price, 0);
+            });
+
+            // Verificar que existe Y tiene suficiente cantidad
+            return cartItem && (cartItem.quantity || 1) >= requiredQty;
+          });
+
+          if (hasAllItemsWithQuantity) {
+            // Calcular precio normal multiplicando por cantidades
+            const normalPrice = promotion.comboItems.reduce((sum, item) =>
+              sum + (item.price * (item.quantity || 1)), 0
+            );
             discountAmount = normalPrice - promotion.comboPrice;
           }
         }
