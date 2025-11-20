@@ -434,6 +434,7 @@ const Orders = () => {
         // Usar paymentStatus si viene desde OrderForm, sino calcularlo
         paymentStatus: formData.paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
         author: formData.author || '', // Asignar empleado seleccionado
+        orderCreatedBy: formData.orderCreatedBy || null, // Empleado que creó la orden
         isOrderWithoutServices: formData.isOrderWithoutServices || false // Flag para firebaseService
       };
 

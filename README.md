@@ -5,7 +5,6 @@ Clean master shoes
 // WIP
 -[]validar integridad de datos en formularios y campos de entrada de datos del usuario
 -[]placeholders cuando data esta cargando
--[EPIC]Pantalla promociones
 -[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
 -[]buscar bugs en todos los flujos de funcionalidades
 
@@ -13,15 +12,14 @@ Clean master shoes
 
 // PRIORIDAD MEDIA
 -[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
--[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
 
 // PRIORIDAD BAJA
 -[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
-- [FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[feature/smoothness]agregar animaciones para que se sienta smooth la app
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados.
 -[]agregar campo cumpleaños para el cliente
 -[]remover opcion de agregar cliente directamente desde tabs clientes, solo se agregan al crear una nueva orden en caso de no existir.
 -[]manualmente puedes asignar vip a un cliente desde la tab clientes, en los datos del cliente
@@ -61,6 +59,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]Habilitar opcion de descuento en la paymentscreen
+-[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
+-[EPIC]Pantalla promociones
 -[]animacion de circulo cargando cuando estamos esperando un envio a firebase como al crear una orden o una promo, o al editar una promo.
 -[]cliente nuevo registrado, marcar con una bandera si al crear una orden el cliente no esta registrado, actualmente lo registramos, entonces quiero que indiquemos que es un cliente nuevo, para asi al momento de agregar una promocion podamos tener algo como, en tu primera compra obten X descuento, a la hora de agregar una nueva promo, podriamos agregar una nueva restriccion que se llame solo a nuevos clientes
 -[]agregarle beta a la tab promociones

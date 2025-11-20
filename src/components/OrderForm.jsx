@@ -7,6 +7,7 @@ import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
 import PromotionBadge from './PromotionBadge';
+import { useAuth } from '../contexts/AuthContext';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -15,6 +16,7 @@ function generateId() {
 }
 
 const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], allOrders = {} }) => {
+  const { employee } = useAuth(); // Obtener empleado logueado
   const [showMenu, setShowMenu] = useState(false);
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPayment, setShowPayment] = useState(false); // Controla si se muestra el carrito o el pago
@@ -667,6 +669,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal', // Asignar automáticamente
       author: selectedEmployee ? selectedEmployee.name : '', // Asignar empleado seleccionado
+      orderCreatedBy: employee ? { id: employee.id, name: employee.name } : null, // Empleado que creó la orden
       isOrderWithoutServices: isOrderWithoutServices // Flag para firebaseService
     };
 

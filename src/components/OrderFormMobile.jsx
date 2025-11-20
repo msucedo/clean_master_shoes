@@ -3,6 +3,7 @@ import ClientAutocomplete from './ClientAutocomplete';
 import PaymentScreen from './PaymentScreen';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
 import PromotionBadge from './PromotionBadge';
+import { useAuth } from '../contexts/AuthContext';
 import './OrderFormMobile.css';
 
 // Función para generar IDs únicos
@@ -11,6 +12,7 @@ function generateId() {
 }
 
 const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [], allOrders = {} }) => {
+  const { employee } = useAuth(); // Obtener empleado logueado
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -601,7 +603,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal',
-      author: selectedEmployee ? selectedEmployee.name : '' // Asignar empleado seleccionado
+      author: selectedEmployee ? selectedEmployee.name : '', // Asignar empleado seleccionado
+      orderCreatedBy: employee ? { id: employee.id, name: employee.name } : null // Empleado que creó la orden
     };
 
     // Incrementar uso de promociones (esperar a que termine antes de continuar)
