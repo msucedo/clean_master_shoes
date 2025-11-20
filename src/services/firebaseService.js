@@ -1505,6 +1505,18 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
       case 'percentage':
         if (promotion.appliesTo === 'all') {
           discountAmount = subtotal * (promotion.discountValue / 100);
+        } else if (promotion.appliesTo === 'services') {
+          // Calculate only for services
+          const servicesTotal = cart
+            .filter(item => item.type === 'service')
+            .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          discountAmount = servicesTotal * (promotion.discountValue / 100);
+        } else if (promotion.appliesTo === 'products') {
+          // Calculate only for products
+          const productsTotal = cart
+            .filter(item => item.type === 'product')
+            .reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          discountAmount = productsTotal * (promotion.discountValue / 100);
         } else if (promotion.appliesTo === 'specific' && promotion.specificItems) {
           // Calculate only for specific items
           const applicableTotal = cart

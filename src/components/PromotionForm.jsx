@@ -106,6 +106,13 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       }
     }
 
+    // Validar que percentage con 'specific' tenga items seleccionados
+    if (formData.type === 'percentage' && formData.appliesTo === 'specific') {
+      if (!formData.specificItems || formData.specificItems.length === 0) {
+        newErrors.specificItems = 'Debes seleccionar al menos un item';
+      }
+    }
+
     if (formData.type === 'fixed') {
       if (!formData.discountValue || formData.discountValue <= 0) {
         newErrors.discountValue = 'El descuento debe ser mayor a 0';
@@ -155,6 +162,9 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      // Detectar si es edición o creación
+      const isEditing = !!initialData;
+
       // Prepare data based on type
       const promotionData = {
         name: formData.name,
@@ -163,6 +173,49 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
         type: formData.type,
         isActive: formData.isActive
       };
+
+      // Limpiar campos huérfanos de otros tipos al editar
+      if (isEditing) {
+        // Campos de percentage
+        if (formData.type !== 'percentage') {
+          promotionData.appliesTo = deleteField();
+          promotionData.specificItems = deleteField();
+        }
+
+        // Campos de fixed, buyXgetY, buyXgetYdiscount
+        if (!['fixed', 'buyXgetY', 'buyXgetYdiscount'].includes(formData.type)) {
+          promotionData.applicableItems = deleteField();
+        }
+
+        // Campos de buyXgetY
+        if (formData.type !== 'buyXgetY') {
+          promotionData.getQuantity = deleteField();
+          // buyQuantity también lo usa buyXgetYdiscount, solo limpiar si no es ninguno de los dos
+          if (formData.type !== 'buyXgetYdiscount') {
+            promotionData.buyQuantity = deleteField();
+          }
+        }
+
+        // Campos de buyXgetYdiscount
+        if (formData.type !== 'buyXgetYdiscount') {
+          promotionData.discountPercentage = deleteField();
+          // buyQuantity solo limpiar si tampoco es buyXgetY
+          if (formData.type !== 'buyXgetY') {
+            promotionData.buyQuantity = deleteField();
+          }
+        }
+
+        // Campos de combo
+        if (formData.type !== 'combo') {
+          promotionData.comboItems = deleteField();
+          promotionData.comboPrice = deleteField();
+        }
+
+        // Campo discountValue (usado por percentage, fixed, dayOfWeek)
+        if (!['percentage', 'fixed', 'dayOfWeek'].includes(formData.type)) {
+          promotionData.discountValue = deleteField();
+        }
+      }
 
       // Add type-specific fields
       if (formData.type === 'percentage' || formData.type === 'fixed' || formData.type === 'dayOfWeek') {
@@ -204,28 +257,44 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       // Add day restriction (applies to all types)
       // Solo aplicar si NO es tipo dayOfWeek (que ya configuró daysOfWeek arriba)
       if (formData.type !== 'dayOfWeek') {
-        promotionData.daysOfWeek = formData.hasDayRestriction && formData.daysOfWeek.length > 0
-          ? formData.daysOfWeek
-          : deleteField();
+        if (formData.hasDayRestriction && formData.daysOfWeek.length > 0) {
+          promotionData.daysOfWeek = formData.daysOfWeek;
+        } else if (isEditing) {
+          // Solo usar deleteField() al editar para eliminar campo existente
+          promotionData.daysOfWeek = deleteField();
+        }
+        // Si es creación y no hay restricción, no incluir el campo
       }
 
       // Add restrictions
-      promotionData.dateRange = formData.hasDateRange && (formData.startDate || formData.endDate)
-        ? {
-            startDate: formData.startDate || null,
-            endDate: formData.endDate || null
-          }
-        : deleteField();
+      if (formData.hasDateRange && (formData.startDate || formData.endDate)) {
+        promotionData.dateRange = {
+          startDate: formData.startDate || null,
+          endDate: formData.endDate || null
+        };
+      } else if (isEditing) {
+        // Solo usar deleteField() al editar para eliminar campo existente
+        promotionData.dateRange = deleteField();
+      }
+      // Si es creación y no hay rango de fechas, no incluir el campo
 
       promotionData.onePerClient = formData.onePerClient;
 
-      promotionData.maxUses = formData.hasMaxUses && formData.maxUses
-        ? parseInt(formData.maxUses)
-        : deleteField();
+      if (formData.hasMaxUses && formData.maxUses) {
+        promotionData.maxUses = parseInt(formData.maxUses);
+      } else if (isEditing) {
+        // Solo usar deleteField() al editar para eliminar campo existente
+        promotionData.maxUses = deleteField();
+      }
+      // Si es creación y no hay maxUses, no incluir el campo
 
-      promotionData.minPurchaseAmount = formData.hasMinPurchase && formData.minPurchaseAmount
-        ? parseFloat(formData.minPurchaseAmount)
-        : deleteField();
+      if (formData.hasMinPurchase && formData.minPurchaseAmount) {
+        promotionData.minPurchaseAmount = parseFloat(formData.minPurchaseAmount);
+      } else if (isEditing) {
+        // Solo usar deleteField() al editar para eliminar campo existente
+        promotionData.minPurchaseAmount = deleteField();
+      }
+      // Si es creación y no hay minPurchaseAmount, no incluir el campo
 
       onSubmit(promotionData);
     }
