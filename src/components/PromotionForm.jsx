@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { deleteField } from 'firebase/firestore';
 import { useAdminCheck } from '../contexts/AuthContext';
 import './PromotionForm.css';
 
@@ -201,27 +202,30 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       }
 
       // Add day restriction (applies to all types)
-      if (formData.hasDayRestriction && formData.daysOfWeek.length > 0) {
-        promotionData.daysOfWeek = formData.daysOfWeek;
+      // Solo aplicar si NO es tipo dayOfWeek (que ya configuró daysOfWeek arriba)
+      if (formData.type !== 'dayOfWeek') {
+        promotionData.daysOfWeek = formData.hasDayRestriction && formData.daysOfWeek.length > 0
+          ? formData.daysOfWeek
+          : deleteField();
       }
 
       // Add restrictions
-      if (formData.hasDateRange && (formData.startDate || formData.endDate)) {
-        promotionData.dateRange = {
-          startDate: formData.startDate || null,
-          endDate: formData.endDate || null
-        };
-      }
+      promotionData.dateRange = formData.hasDateRange && (formData.startDate || formData.endDate)
+        ? {
+            startDate: formData.startDate || null,
+            endDate: formData.endDate || null
+          }
+        : deleteField();
 
       promotionData.onePerClient = formData.onePerClient;
 
-      if (formData.hasMaxUses && formData.maxUses) {
-        promotionData.maxUses = parseInt(formData.maxUses);
-      }
+      promotionData.maxUses = formData.hasMaxUses && formData.maxUses
+        ? parseInt(formData.maxUses)
+        : deleteField();
 
-      if (formData.hasMinPurchase && formData.minPurchaseAmount) {
-        promotionData.minPurchaseAmount = parseFloat(formData.minPurchaseAmount);
-      }
+      promotionData.minPurchaseAmount = formData.hasMinPurchase && formData.minPurchaseAmount
+        ? parseFloat(formData.minPurchaseAmount)
+        : deleteField();
 
       onSubmit(promotionData);
     }
@@ -312,7 +316,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               />
               <span className="type-label">
                 <span className="type-icon">%</span>
-                <span>Descuento %</span>
+                <span>
+                  <span>Descuento %</span>
+                  <small className="type-example">Ej: 20% OFF en Limpieza calzado blanco y gamusa</small>
+                </span>
               </span>
             </label>
 
@@ -326,7 +333,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               />
               <span className="type-label">
                 <span className="type-icon">$</span>
-                <span>Descuento Fijo</span>
+                <span>
+                  <span>Descuento Fijo</span>
+                  <small className="type-example">Ej: $50 OFF en cualquier servicio</small>
+                </span>
               </span>
             </label>
 
@@ -340,7 +350,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               />
               <span className="type-label">
                 <span className="type-icon">2x1</span>
-                <span>Compra y Lleva</span>
+                <span>
+                  <span>Compra y Lleva</span>
+                  <small className="type-example">Ej: 2x1, 3x2 gratis</small>
+                </span>
               </span>
             </label>
 
@@ -354,7 +367,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               />
               <span className="type-label">
                 <span className="type-icon">🏷️</span>
-                <span>Compra y Descuento</span>
+                <span>
+                  <span>Compra y Descuento</span>
+                  <small className="type-example">Ej: 2do a 50% OFF</small>
+                </span>
               </span>
             </label>
 
@@ -368,7 +384,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               />
               <span className="type-label">
                 <span className="type-icon">📦</span>
-                <span>Combo/Paquete</span>
+                <span>
+                  <span>Combo/Paquete</span>
+                  <small className="type-example">Ej: 2 servicios por $200</small>
+                </span>
               </span>
             </label>
 
@@ -382,7 +401,10 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
               />
               <span className="type-label">
                 <span className="type-icon">📅</span>
-                <span>Día de Semana</span>
+                <span>
+                  <span>Día de Semana</span>
+                  <small className="type-example">Ej: Martes 15% OFF</small>
+                </span>
               </span>
             </label>
           </div>

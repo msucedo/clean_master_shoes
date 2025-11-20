@@ -1413,3 +1413,13 @@ select.form-input {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+.not-applied-reason {
+  font-size: 10px;
+  font-weight: 600;
+  color: #999;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-style: italic;
+}

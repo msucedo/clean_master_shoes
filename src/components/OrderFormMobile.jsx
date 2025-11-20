@@ -18,6 +18,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   const [showCalendarModal, setShowCalendarModal] = useState(false); // Controla modal de calendario de entregas
   const [activePromotions, setActivePromotions] = useState([]);
   const [appliedPromotions, setAppliedPromotions] = useState([]);
+  // Validaciones de todas las promociones (incluye razón de no aplicación)
+  const [promotionValidations, setPromotionValidations] = useState({});
 
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
@@ -99,6 +101,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   const checkApplicablePromotions = async () => {
     if (cart.length === 0 || activePromotions.length === 0) {
       setAppliedPromotions([]);
+      setPromotionValidations({});
       return;
     }
 
@@ -107,8 +110,18 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
     const clientPhone = formData.phone;
 
     const validPromotions = [];
+    const validations = {};
+
     for (const promotion of activePromotions) {
       const result = await validatePromotion(promotion, cart, clientPhone, subtotal);
+
+      // Guardar resultado de validación para mostrar razón si no aplica
+      validations[promotion.id] = {
+        isValid: result.isValid,
+        reason: result.reason || '',
+        discountAmount: result.discountAmount || 0
+      };
+
       if (result.isValid && result.discountAmount > 0) {
         validPromotions.push({
           ...promotion,
@@ -116,7 +129,9 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
         });
       }
     }
+
     setAppliedPromotions(validPromotions);
+    setPromotionValidations(validations);
   };
 
   useEffect(() => {
@@ -131,6 +146,182 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   // Calcular descuento total
   const calculateTotalDiscount = () => {
     return appliedPromotions.reduce((total, promo) => total + (promo.discountAmount || 0), 0);
+  };
+
+  // Determinar si una promoción es relevante para el carrito actual
+  const isPromotionRelevantForCart = (promotion, cart) => {
+    if (cart.length === 0) return false;
+
+    switch (promotion.type) {
+      case 'percentage':
+        if (promotion.appliesTo === 'all') {
+          return true; // Aplica a todo
+        } else if (promotion.appliesTo === 'services') {
+          return cart.some(item => item.type === 'service');
+        } else if (promotion.appliesTo === 'products') {
+          return cart.some(item => item.type === 'product');
+        } else if (promotion.appliesTo === 'specific' && promotion.specificItems) {
+          return cart.some(item => {
+            if (item.type === 'service' && item.serviceId) {
+              return promotion.specificItems.includes(item.serviceId);
+            }
+            if (item.type === 'product' && item.productId) {
+              return promotion.specificItems.includes(item.productId);
+            }
+            return false;
+          });
+        }
+        return false;
+
+      case 'fixed':
+        // Si no hay items específicos, aplica a todo
+        if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+          return true;
+        }
+        // Si hay items específicos, verificar que estén en el carrito
+        return cart.some(item => {
+          if (item.type === 'service' && item.serviceId) {
+            return promotion.applicableItems.includes(item.serviceId);
+          }
+          if (item.type === 'product' && item.productId) {
+            return promotion.applicableItems.includes(item.productId);
+          }
+          return false;
+        });
+
+      case 'buyXgetY':
+      case 'buyXgetYdiscount':
+        // Si no hay items específicos, aplica a todo
+        if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+          return true;
+        }
+        // Si hay items específicos, verificar que estén en el carrito
+        return cart.some(item => {
+          if (item.type === 'service' && item.serviceId) {
+            return promotion.applicableItems.includes(item.serviceId);
+          }
+          if (item.type === 'product' && item.productId) {
+            return promotion.applicableItems.includes(item.productId);
+          }
+          return false;
+        });
+
+      case 'combo':
+        // Relevante si AL MENOS UN item del combo está en el carrito
+        if (!promotion.comboItems || promotion.comboItems.length === 0) {
+          return false;
+        }
+        return promotion.comboItems.some(comboItem => {
+          return cart.some(cartItem => {
+            if (cartItem.type === 'service' && cartItem.serviceId) {
+              return cartItem.serviceId === comboItem.id;
+            }
+            if (cartItem.type === 'product' && cartItem.productId) {
+              return cartItem.productId === comboItem.id;
+            }
+            return false;
+          });
+        });
+
+      case 'dayOfWeek':
+        // Aplica a cualquier compra en ese día
+        return true;
+
+      default:
+        return false;
+    }
+  };
+
+  // Determinar la prioridad de una promoción (1 = alta, 3 = baja)
+  const getPromotionPriority = (promo) => {
+    // Prioridad ALTA (específicas): 1
+    if (promo.type === 'percentage' && promo.appliesTo === 'specific') return 1;
+    if (promo.type === 'fixed' && promo.applicableItems?.length > 0) return 1;
+    if (promo.type === 'buyXgetY' && promo.applicableItems?.length > 0) return 1;
+    if (promo.type === 'buyXgetYdiscount' && promo.applicableItems?.length > 0) return 1;
+    if (promo.type === 'combo') return 1;
+
+    // Prioridad MEDIA (por tipo): 2
+    if (promo.type === 'percentage' && promo.appliesTo === 'services') return 2;
+    if (promo.type === 'percentage' && promo.appliesTo === 'products') return 2;
+
+    // Prioridad BAJA (generales): 3
+    return 3;
+  };
+
+  // Determinar qué items del carrito deben mostrar badge para buyXgetY y buyXgetYdiscount
+  const getItemsWithPromoBadge = (promotion, cart, itemPromotionMap = new Map()) => {
+    // Filtrar items aplicables según la configuración de la promoción
+    const applicableItems = cart.filter(item => {
+      // Si el item ya tiene una promo asignada diferente, excluirlo
+      const assignedPromo = itemPromotionMap.get(item.id);
+      if (assignedPromo && assignedPromo.id !== promotion.id) {
+        return false;
+      }
+
+      // Verificar si la promo aplica a este item
+      if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+        return true; // Aplica a todos los items
+      }
+      const itemId = item.type === 'service' ? item.serviceId : item.productId;
+      return promotion.applicableItems.includes(itemId);
+    });
+
+    if (promotion.type === 'buyXgetY') {
+      // Calcular cuántos items son gratis
+      const totalQty = applicableItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
+      const sets = Math.floor(totalQty / promotion.buyQuantity);
+      const freeItemsCount = sets * promotion.getQuantity;
+
+      if (freeItemsCount === 0) return [];
+
+      // Ordenar por precio (menor a mayor) para encontrar los más baratos
+      const sorted = [...applicableItems].sort((a, b) => a.price - b.price);
+      const freeItemIds = [];
+      let remaining = freeItemsCount;
+
+      for (const item of sorted) {
+        if (remaining <= 0) break;
+        const itemQty = item.quantity || 1;
+        const qtyToMark = Math.min(itemQty, remaining);
+
+        // Si el item completo (todas sus cantidades) es gratis, agregarlo
+        if (qtyToMark === itemQty) {
+          freeItemIds.push(item.id);
+        }
+        remaining -= qtyToMark;
+      }
+
+      return freeItemIds;
+    }
+
+    if (promotion.type === 'buyXgetYdiscount') {
+      // Calcular cuántos items reciben descuento (los más baratos)
+      const totalQty = applicableItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
+      const sets = Math.floor(totalQty / promotion.buyQuantity);
+
+      if (sets === 0) return [];
+
+      const sorted = [...applicableItems].sort((a, b) => a.price - b.price);
+      const discountedItemIds = [];
+      let remaining = sets;
+
+      for (const item of sorted) {
+        if (remaining <= 0) break;
+        const itemQty = item.quantity || 1;
+        const qtyToMark = Math.min(itemQty, remaining);
+
+        // Si el item completo recibe descuento, agregarlo
+        if (qtyToMark === itemQty) {
+          discountedItemIds.push(item.id);
+        }
+        remaining -= qtyToMark;
+      }
+
+      return discountedItemIds;
+    }
+
+    return [];
   };
 
   // Calcular precio total del carrito (con descuentos)
@@ -601,7 +792,68 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                   <span className="empty-icon-mobile">🛒</span>
                   <p>Agrega servicios o productos</p>
                 </div>
-              ) : (
+              ) : (() => {
+                  // Construir mapa de items -> promoción asignada (solo UNA promo por item)
+                  const itemPromotionMap = new Map();
+
+                  // Ordenar promociones por prioridad (específicas primero)
+                  const sortedPromotions = [...appliedPromotions].sort((a, b) =>
+                    getPromotionPriority(a) - getPromotionPriority(b)
+                  );
+
+                  // Asignar promociones a items según prioridad
+                  sortedPromotions.forEach(promo => {
+                    cart.forEach(item => {
+                      if (itemPromotionMap.has(item.id)) return; // Ya tiene promo asignada
+
+                      // Verificar si esta promo aplica a este item
+                      let applies = false;
+
+                      switch (promo.type) {
+                        case 'percentage':
+                          if (promo.appliesTo === 'all') applies = true;
+                          else if (promo.appliesTo === 'services') applies = item.type === 'service';
+                          else if (promo.appliesTo === 'products') applies = item.type === 'product';
+                          else if (promo.appliesTo === 'specific' && promo.specificItems) {
+                            const itemId = item.type === 'service' ? item.serviceId : item.productId;
+                            applies = promo.specificItems.includes(itemId);
+                          }
+                          break;
+
+                        case 'fixed':
+                          if (!promo.applicableItems || promo.applicableItems.length === 0) {
+                            applies = true;
+                          } else {
+                            const itemId = item.type === 'service' ? item.serviceId : item.productId;
+                            applies = promo.applicableItems.includes(itemId);
+                          }
+                          break;
+
+                        case 'buyXgetY':
+                        case 'buyXgetYdiscount':
+                          const itemsWithBadge = getItemsWithPromoBadge(promo, cart, itemPromotionMap);
+                          applies = itemsWithBadge.includes(item.id);
+                          break;
+
+                        case 'combo':
+                          if (promo.comboItems && promo.comboItems.length > 0) {
+                            const itemId = item.type === 'service' ? item.serviceId : item.productId;
+                            applies = promo.comboItems.some(ci => ci.id === itemId);
+                          }
+                          break;
+
+                        case 'dayOfWeek':
+                          applies = true;
+                          break;
+                      }
+
+                      if (applies) {
+                        itemPromotionMap.set(item.id, promo);
+                      }
+                    });
+                  });
+
+                  return (
                 <div className="cart-items-mobile">
                   {cart.map((item) => (
                     <div key={item.id} className="cart-item-mobile">
@@ -614,56 +866,19 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                           ${item.price} × {item.quantity} = ${item.price * item.quantity}
                         </span>
                         {/* Badges de promociones aplicables a este item */}
-                        {appliedPromotions
-                          .filter(promo => {
-                            // Filtrar según el tipo de promoción
-                            switch (promo.type) {
-                              case 'buyXgetY':
-                              case 'buyXgetYdiscount':
-                              case 'fixed':
-                                // Verificar applicableItems (puede ser vacío = aplica a todos)
-                                if (!promo.applicableItems || promo.applicableItems.length === 0) {
-                                  return false; // No mostrar badge si aplica a todo
-                                }
-                                if (item.type === 'service' && item.serviceId) {
-                                  return promo.applicableItems.includes(item.serviceId);
-                                }
-                                if (item.type === 'product' && item.productId) {
-                                  return promo.applicableItems.includes(item.productId);
-                                }
-                                return false;
+                        {(() => {
+                          // Solo mostrar la promo asignada a este item (UNA promo por item)
+                          const assignedPromo = itemPromotionMap.get(item.id);
+                          if (!assignedPromo) return null;
 
-                              case 'percentage':
-                                // Solo mostrar si es específico
-                                if (promo.appliesTo !== 'specific' || !promo.specificItems) {
-                                  return false;
-                                }
-                                if (item.type === 'service' && item.serviceId) {
-                                  return promo.specificItems.includes(item.serviceId);
-                                }
-                                if (item.type === 'product' && item.productId) {
-                                  return promo.specificItems.includes(item.productId);
-                                }
-                                return false;
-
-                              case 'combo':
-                                // Verificar si el item está en comboItems
-                                if (!promo.comboItems || promo.comboItems.length === 0) {
-                                  return false;
-                                }
-                                const itemId = item.type === 'service' ? item.serviceId : item.productId;
-                                return promo.comboItems.some(ci => ci.id === itemId);
-
-                              case 'dayOfWeek':
-                              default:
-                                // No mostrar badge para promociones generales
-                                return false;
-                            }
-                          })
-                          .map((promo, idx) => (
-                            <PromotionBadge key={idx} promotion={promo} discountAmount={promo.discountAmount} />
-                          ))
-                        }
+                          return (
+                            <PromotionBadge
+                              key={assignedPromo.id}
+                              promotion={assignedPromo}
+                              discountAmount={assignedPromo.discountAmount}
+                            />
+                          );
+                        })()}
                       </div>
                       <button
                         type="button"
@@ -675,7 +890,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                     </div>
                   ))}
                 </div>
-              )}
+              )
+            })()}
 
               {/* Banner de promociones disponibles hoy */}
               {activePromotions.length > 0 && (
@@ -683,11 +899,16 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                   <div className="banner-title">🎉 Promociones Disponibles Hoy:</div>
                   {activePromotions.map((promo, idx) => {
                     const isApplied = appliedPromotions.some(ap => ap.id === promo.id);
+                    const validation = promotionValidations[promo.id];
+                    const isRelevant = isPromotionRelevantForCart(promo, cart);
+                    const notAppliedReason = !isApplied && validation && !validation.isValid && isRelevant ? validation.reason : null;
+
                     return (
                       <div key={idx} className={`promo-item ${isApplied ? 'applied' : ''}`}>
                         <span className="promo-emoji">{promo.emoji || '🎉'}</span>
                         <span className="promo-name">{promo.name}</span>
                         {isApplied && <span className="applied-badge">✓ APLICADA</span>}
+                        {notAppliedReason && <span className="not-applied-reason">{notAppliedReason}</span>}
                       </div>
                     );
                   })}

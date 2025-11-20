@@ -210,6 +210,19 @@
   color: var(--color-primary);
 }
 
+.type-example {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 400;
+  margin-top: 2px;
+  font-style: normal;
+}
+
+.type-option.selected .type-example {
+  color: #9ca3af;
+}
+
 /* Items Selector */
 .items-selector {
   display: flex;
