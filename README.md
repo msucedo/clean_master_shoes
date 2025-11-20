@@ -4,7 +4,6 @@ Clean master shoes
 
 // WIP
 -[]validar integridad de datos en formularios y campos de entrada de datos del usuario
--[]animacion de circulo cargando cuando estamos esperando un envio a firebase como al crear una orden o una promo, o al editar una promo.
 -[]placeholders cuando data esta cargando
 -[EPIC]Pantalla promociones
 -[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
@@ -62,6 +61,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]animacion de circulo cargando cuando estamos esperando un envio a firebase como al crear una orden o una promo, o al editar una promo.
 -[]cliente nuevo registrado, marcar con una bandera si al crear una orden el cliente no esta registrado, actualmente lo registramos, entonces quiero que indiquemos que es un cliente nuevo, para asi al momento de agregar una promocion podamos tener algo como, en tu primera compra obten X descuento, a la hora de agregar una nueva promo, podriamos agregar una nueva restriccion que se llame solo a nuevos clientes
 -[]agregarle beta a la tab promociones
 -[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado

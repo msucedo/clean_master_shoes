@@ -6,6 +6,15 @@
   padding: 20px;
 }
 
+.promotion-form.submitting {
+  overflow: hidden;
+}
+
+.promotion-form-wrapper {
+  position: relative;
+  min-height: 100%;
+}
+
 .form-header {
   margin-bottom: 30px;
 }
@@ -369,6 +378,120 @@
 .promotion-form::-webkit-scrollbar-thumb:hover,
 .items-selector::-webkit-scrollbar-thumb:hover {
   background: #3a3a3a;
+}
+
+/* Success Animation Overlay */
+.promotion-form .success-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 30vh;
+  z-index: 9999;
+  border-radius: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.success-animation {
+  text-align: center;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-checkmark {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 30px;
+}
+
+.checkmark {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3;
+  stroke: #00ff88;
+  stroke-miterlimit: 10;
+  box-shadow: inset 0px 0px 0px #00ff88;
+  animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3;
+  stroke-miterlimit: 10;
+  stroke: #00ff88;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke: #00ff88;
+  stroke-width: 3;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+@keyframes fill {
+  100% {
+    box-shadow: inset 0px 0px 0px 60px rgba(0, 255, 136, 0.1);
+  }
+}
+
+.success-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #00ff88;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.success-message {
+  font-size: 16px;
+  color: #999;
+  font-weight: 600;
 }
 
 /* Responsive */

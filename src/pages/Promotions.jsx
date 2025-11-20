@@ -27,6 +27,7 @@ const Promotions = () => {
   const [services, setServices] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -152,6 +153,7 @@ const Promotions = () => {
   };
 
   const handleSubmit = async (promotionData) => {
+    setIsSubmitting(true);
     try {
       if (selectedPromotion) {
         // Update existing promotion
@@ -167,6 +169,8 @@ const Promotions = () => {
     } catch (error) {
       console.error('Error saving promotion:', error);
       showError('Error al guardar la promoción');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -289,6 +293,7 @@ const Promotions = () => {
           initialData={selectedPromotion}
           services={services}
           products={products}
+          isSubmitting={isSubmitting}
         />
       </Modal>
 

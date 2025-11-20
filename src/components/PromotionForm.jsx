@@ -3,7 +3,7 @@ import { deleteField } from 'firebase/firestore';
 import { useAdminCheck } from '../contexts/AuthContext';
 import './PromotionForm.css';
 
-const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, services = [], products = [] }) => {
+const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, services = [], products = [], isSubmitting = false }) => {
   const isAdmin = useAdminCheck();
   const [formData, setFormData] = useState({
     name: '',
@@ -71,6 +71,16 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       });
     }
   }, [initialData]);
+
+  // Auto-scroll al top cuando se está enviando
+  useEffect(() => {
+    if (isSubmitting) {
+      const formElement = document.querySelector('.promotion-form');
+      if (formElement) {
+        formElement.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }, [isSubmitting]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -311,8 +321,9 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   return (
-    <form className="promotion-form" onSubmit={handleSubmit}>
-      <div className="form-content">
+    <form className={`promotion-form ${isSubmitting ? 'submitting' : ''}`} onSubmit={handleSubmit}>
+      <div className="promotion-form-wrapper">
+        <div className="form-content">
         {/* Basic Info */}
         <div className="form-section">
           <h3>Información Básica</h3>
@@ -1015,6 +1026,25 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
         <button type="submit" className="btn-primary">
           {initialData ? 'Actualizar' : 'Crear'} Promoción
         </button>
+      </div>
+
+      {/* Success Animation Overlay */}
+      {isSubmitting && (
+        <div className="success-overlay">
+          <div className="success-animation">
+            <div className="success-checkmark">
+              <svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle className="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+              </svg>
+            </div>
+            <h2 className="success-title">
+              {initialData ? '¡Promoción Actualizada!' : '¡Promoción Creada!'}
+            </h2>
+            <p className="success-message">Procesando...</p>
+          </div>
+        </div>
+      )}
       </div>
     </form>
   );
