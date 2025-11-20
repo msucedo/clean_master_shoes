@@ -57,16 +57,17 @@ const formatPhoneNumber = (phone) => {
 /**
  * Format the list of services for the WhatsApp message
  * @param {Array} services - Array of service objects
- * @returns {string} Formatted services list
+ * @returns {string} Formatted services list (single line for template compatibility)
  */
 const formatServicesList = (services) => {
   if (!services || services.length === 0) {
     return 'Tu pedido';
   }
 
+  // Use comma separation instead of newlines for WhatsApp template compatibility
   return services
-    .map((service) => `• ${service.serviceName}`)
-    .join('\n');
+    .map((service) => service.serviceName)
+    .join(', ');
 };
 
 /**
@@ -103,8 +104,7 @@ const buildDeliveryMessage = (order) => {
 
 Tu orden #${order.orderNumber || order.id} está lista para entrega. 🎉
 
-Servicios listos:
-${servicesList}${addressInfo}
+Servicios: ${servicesList}${addressInfo}
 
 ¡Gracias por tu preferencia!
 
@@ -398,11 +398,11 @@ Tu orden #${orderNumber} está lista para recoger 🎉
 Lunes - Viernes 10:00 am - 6:00 pm
 Sabado hasta las 4:00 pm
 
-📦 Servicios completados: ${servicesList}
+📦 Servicios: ${servicesList}
 
-📍 Te esperamos en:${businessAddress}
+📍 Te esperamos en: ${businessAddress}
 
-🔍 Rastrea tu orden aquí:${trackingUrl}
+🔍 Rastrea tu orden aquí: ${trackingUrl}
 
 ¡Gracias por tu confianza!
 - Clean Master Shoes`;
