@@ -79,13 +79,17 @@ const Promotions = () => {
     if (filterStatus === 'active') {
       if (!promotion.isActive) return false;
 
-      const now = new Date().toISOString();
+      // Comparar solo fechas (sin hora) para evitar problemas de timezone
+      const today = new Date().toISOString().split('T')[0];
 
       // Check date range
       if (promotion.dateRange) {
         const { startDate, endDate } = promotion.dateRange;
-        if (startDate && now < startDate) return false;
-        if (endDate && now > endDate) return false;
+        const promotionStartDate = startDate ? startDate.split('T')[0] : null;
+        const promotionEndDate = endDate ? endDate.split('T')[0] : null;
+
+        if (promotionStartDate && today < promotionStartDate) return false;
+        if (promotionEndDate && today > promotionEndDate) return false;
       }
 
       // Check max uses
@@ -176,8 +180,10 @@ const Promotions = () => {
     total: promotions.length,
     active: promotions.filter(p => {
       if (!p.isActive) return false;
-      const now = new Date().toISOString();
-      if (p.dateRange?.endDate && now > p.dateRange.endDate) return false;
+      // Comparar solo fechas (sin hora) para evitar problemas de timezone
+      const today = new Date().toISOString().split('T')[0];
+      const endDate = p.dateRange?.endDate ? p.dateRange.endDate.split('T')[0] : null;
+      if (endDate && today > endDate) return false;
       if (p.maxUses && p.currentUses >= p.maxUses) return false;
       return true;
     }).length,

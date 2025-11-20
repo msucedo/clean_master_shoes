@@ -3,11 +3,10 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]validar integridad de datos en formularios y campos de entrada de datos del usuario
+-[]animacion de circulo cargando cuando estamos esperando un envio a firebase como al crear una orden o una promo, o al editar una promo.
 -[]placeholders cuando data esta cargando
--[]hacer validacion de entrada de datos para todos los formularios
 -[EPIC]Pantalla promociones
--[]cliente nuevo registrado, marcar con una bandera si al crear una orden el cliente no esta registrado, actualmente lo registramos, entonces quiero que indiquemos que es un cliente nuevo, para asi al momento de agregar una promocion podamos tener algo como, en tu primera compra obten X descuento, a la hora de agregar una nueva promo, podriamos agregar una nueva restriccion que se llame solo a nuevos clientes
--[]agregarle beta a la tab promociones
 -[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
 -[]buscar bugs en todos los flujos de funcionalidades
 
@@ -24,6 +23,9 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]agregar campo cumpleaños para el cliente
+-[]remover opcion de agregar cliente directamente desde tabs clientes, solo se agregan al crear una nueva orden en caso de no existir.
+-[]manualmente puedes asignar vip a un cliente desde la tab clientes, en los datos del cliente
 -[]al seeleccionar cola, muestra una alerta que te asegures la impresora del local este encedida y emparejada por bluetooth con la pc del local.
 -[]modals con ui propia
 -[]agregar ux para modal al conectar impresora bluetooth
@@ -60,6 +62,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]cliente nuevo registrado, marcar con una bandera si al crear una orden el cliente no esta registrado, actualmente lo registramos, entonces quiero que indiquemos que es un cliente nuevo, para asi al momento de agregar una promocion podamos tener algo como, en tu primera compra obten X descuento, a la hora de agregar una nueva promo, podriamos agregar una nueva restriccion que se llame solo a nuevos clientes
+-[]agregarle beta a la tab promociones
 -[FIX]movil, menu sidebar, reorganizar emoji de admin arriba del emoji del empleado
 -[FIX]reportes y corte de caja podrian tener mejor organizacion en los botones del header
 -[FIX]agregar número total de productos vendidos al corte de caja

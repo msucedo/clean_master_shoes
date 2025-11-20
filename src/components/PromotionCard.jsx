@@ -20,16 +20,23 @@ const PromotionCard = ({ promotion, onEdit, onDelete, isAdmin }) => {
   const getPromotionStatus = () => {
     if (!isActive) return { label: 'Inactiva', color: 'gray' };
 
-    const now = new Date().toISOString();
+    // Comparar solo fechas (sin hora) para evitar problemas de timezone
+    const today = new Date().toISOString().split('T')[0];
 
     // Check if expired
-    if (dateRange?.endDate && now > dateRange.endDate) {
-      return { label: 'Expirada', color: 'red' };
+    if (dateRange?.endDate) {
+      const endDate = dateRange.endDate.split('T')[0];
+      if (today > endDate) {
+        return { label: 'Expirada', color: 'red' };
+      }
     }
 
     // Check if not started yet
-    if (dateRange?.startDate && now < dateRange.startDate) {
-      return { label: 'Próximamente', color: 'blue' };
+    if (dateRange?.startDate) {
+      const startDate = dateRange.startDate.split('T')[0];
+      if (today < startDate) {
+        return { label: 'Próximamente', color: 'blue' };
+      }
     }
 
     // Check if max uses reached
@@ -77,7 +84,10 @@ const PromotionCard = ({ promotion, onEdit, onDelete, isAdmin }) => {
 
     const formatDate = (isoDate) => {
       if (!isoDate) return null;
-      const date = new Date(isoDate);
+      // Parsear como fecha local (no UTC) para evitar problemas de timezone
+      const dateOnly = isoDate.split('T')[0]; // "2025-11-20"
+      const [year, month, day] = dateOnly.split('-');
+      const date = new Date(year, month - 1, day); // Crear en zona local
       return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
     };
 

@@ -1407,7 +1407,8 @@ export const getActivePromotions = async () => {
     const promotionsRef = collection(db, 'promotions');
     const querySnapshot = await getDocs(promotionsRef);
 
-    const now = new Date().toISOString();
+    // Comparar solo fechas (sin hora) para evitar problemas de timezone
+    const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
     const activePromotions = [];
 
     querySnapshot.forEach((doc) => {
@@ -1419,8 +1420,12 @@ export const getActivePromotions = async () => {
       // Check if within date range (if dateRange is set)
       if (promo.dateRange) {
         const { startDate, endDate } = promo.dateRange;
-        if (startDate && now < startDate) return;
-        if (endDate && now > endDate) return;
+        // Extraer solo la parte de fecha para comparación
+        const promotionStartDate = startDate ? startDate.split('T')[0] : null;
+        const promotionEndDate = endDate ? endDate.split('T')[0] : null;
+
+        if (promotionStartDate && today < promotionStartDate) return;
+        if (promotionEndDate && today > promotionEndDate) return;
       }
 
       // Check if max uses reached (if maxUses is set)
@@ -1446,7 +1451,8 @@ export const getActivePromotions = async () => {
  */
 export const validatePromotion = async (promotion, cart, clientPhone, subtotal) => {
   try {
-    const now = new Date().toISOString();
+    // Comparar solo fechas (sin hora) para evitar problemas de timezone
+    const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
 
     // 1. Check if promotion is active
     if (!promotion.isActive) {
@@ -1456,10 +1462,14 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
     // 2. Check date range
     if (promotion.dateRange) {
       const { startDate, endDate } = promotion.dateRange;
-      if (startDate && now < startDate) {
+      // Extraer solo la parte de fecha para comparación
+      const promotionStartDate = startDate ? startDate.split('T')[0] : null;
+      const promotionEndDate = endDate ? endDate.split('T')[0] : null;
+
+      if (promotionStartDate && today < promotionStartDate) {
         return { isValid: false, reason: 'Promoción aún no válida' };
       }
-      if (endDate && now > endDate) {
+      if (promotionEndDate && today > promotionEndDate) {
         return { isValid: false, reason: 'Promoción expirada' };
       }
     }
@@ -1485,7 +1495,19 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
       }
     }
 
-    // 6. Check day of week restriction (applies to all promotion types)
+    // 6. Check new clients only restriction
+    if (promotion.newClientsOnly && clientPhone) {
+      const clientsRef = collection(db, 'clients');
+      const q = query(clientsRef, where('phone', '==', clientPhone));
+      const clientSnapshot = await getDocs(q);
+
+      // Si el cliente ya existe, no aplicar la promoción
+      if (!clientSnapshot.empty) {
+        return { isValid: false, reason: 'Promoción solo para clientes nuevos' };
+      }
+    }
+
+    // 7. Check day of week restriction (applies to all promotion types)
     if (promotion.daysOfWeek && promotion.daysOfWeek.length > 0) {
       const currentDay = new Date().getDay();
       if (!promotion.daysOfWeek.includes(currentDay)) {
@@ -1548,13 +1570,15 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
             return false;
           });
 
-          // Solo aplicar descuento si hay items aplicables en el carrito
+          // Calcular cantidad total de items aplicables y multiplicar por descuento fijo
           if (applicableItems.length > 0) {
-            discountAmount = promotion.discountValue;
+            const totalQuantity = applicableItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            discountAmount = promotion.discountValue * totalQuantity;
           }
         } else {
-          // Si no hay items específicos, aplicar a todo el carrito
-          discountAmount = promotion.discountValue;
+          // Si no hay items específicos, aplicar a cada item del carrito
+          const totalQuantity = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+          discountAmount = promotion.discountValue * totalQuantity;
         }
         break;
 

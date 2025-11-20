@@ -26,6 +26,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
     startDate: '',
     endDate: '',
     onePerClient: false,
+    newClientsOnly: false,
     hasMaxUses: false,
     maxUses: '',
     hasMinPurchase: false,
@@ -61,6 +62,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
         startDate: initialData.dateRange?.startDate || '',
         endDate: initialData.dateRange?.endDate || '',
         onePerClient: initialData.onePerClient || false,
+        newClientsOnly: initialData.newClientsOnly || false,
         hasMaxUses: !!initialData.maxUses,
         maxUses: initialData.maxUses || '',
         hasMinPurchase: !!initialData.minPurchaseAmount,
@@ -279,6 +281,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       // Si es creación y no hay rango de fechas, no incluir el campo
 
       promotionData.onePerClient = formData.onePerClient;
+      promotionData.newClientsOnly = formData.newClientsOnly;
 
       if (formData.hasMaxUses && formData.maxUses) {
         promotionData.maxUses = parseInt(formData.maxUses);
@@ -892,6 +895,18 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                 onChange={handleChange}
               />
               <span>Un uso por cliente</span>
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="newClientsOnly"
+                checked={formData.newClientsOnly}
+                onChange={handleChange}
+              />
+              <span>Solo clientes nuevos</span>
             </label>
           </div>
 
