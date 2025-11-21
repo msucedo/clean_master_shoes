@@ -5,54 +5,29 @@
  */
 
 import { useState } from 'react';
-import { connectPrinter } from '../services/printService';
-import { setPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
+import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
 import './BluetoothConnectionAlert.css';
 
 const STORAGE_KEY = 'bluetooth_alert_dont_ask';
 
 const BluetoothConnectionAlert = ({ isOpen, onClose, onConnected }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dontAskAgain, setDontAskAgain] = useState(false);
 
-  const handleConnect = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await connectPrinter();
-
-      if (result.success) {
-        // Conexión exitosa
-        console.log('✅ Impresora conectada:', result.deviceName);
-
-        // Guardar preferencia si el usuario marcó "No volver a preguntar"
-        if (dontAskAgain) {
-          sessionStorage.setItem(STORAGE_KEY, 'true');
-        }
-
-        // Notificar al padre que se conectó exitosamente
-        if (onConnected) {
-          onConnected(result);
-        }
-
-        // Cerrar modal
-        onClose();
-      } else if (result.cancelled) {
-        // Usuario canceló la selección de dispositivo
-        setError('Selección de impresora cancelada');
-      } else {
-        // Error en la conexión
-        setError(result.error || 'Error al conectar con la impresora');
-      }
-    } catch (err) {
-      console.error('Error en handleConnect:', err);
-      setError(err.message || 'Error inesperado al conectar');
-    } finally {
-      setLoading(false);
+  const handleGoToSettings = () => {
+    // Guardar preferencia si el usuario marcó "No volver a preguntar"
+    if (dontAskAgain) {
+      sessionStorage.setItem(STORAGE_KEY, 'true');
     }
+
+    // Cerrar modal
+    onClose();
+
+    // Navegar a la página de configuración
+    navigate('/settings');
   };
 
   const handleClose = () => {
@@ -63,25 +38,6 @@ const BluetoothConnectionAlert = ({ isOpen, onClose, onConnected }) => {
 
     setError(null);
     onClose();
-  };
-
-  const handleChangeToQueue = () => {
-    // Cambiar método de impresión a Cola de Trabajo
-    const success = setPrinterMethodPreference(PRINTER_METHODS.QUEUE);
-
-    if (success) {
-      console.log('✅ Método de impresión cambiado a Cola de Trabajo');
-
-      // Guardar preferencia si el usuario marcó "No volver a preguntar"
-      if (dontAskAgain) {
-        sessionStorage.setItem(STORAGE_KEY, 'true');
-      }
-
-      // Cerrar modal
-      onClose();
-    } else {
-      setError('Error al cambiar el método de impresión');
-    }
   };
 
   return (
@@ -113,25 +69,15 @@ const BluetoothConnectionAlert = ({ isOpen, onClose, onConnected }) => {
 
         <div className="bluetooth-alert-actions">
           <button
-            className="btn btn-primary btn-connect"
-            onClick={handleConnect}
-            disabled={loading}
+            className="btn btn-primary"
+            onClick={handleGoToSettings}
           >
-            {loading ? 'Conectando...' : '🔗 Conectar Impresora'}
-          </button>
-
-          <button
-            className="btn btn-warning"
-            onClick={handleChangeToQueue}
-            disabled={loading}
-          >
-            📋 Cambiar a Impresión Remota
+            ⚙️ Ir a Configuración
           </button>
 
           <button
             className="btn btn-secondary"
             onClick={handleClose}
-            disabled={loading}
           >
             Cerrar
           </button>
