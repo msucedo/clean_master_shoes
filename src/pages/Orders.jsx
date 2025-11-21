@@ -413,11 +413,33 @@ const Orders = () => {
         shouldCreateClient = true;
       }
 
-      // Crear la orden
+      // Crear cliente PRIMERO si es completamente nuevo
+      let newClientId = null;
+      if (shouldCreateClient) {
+        const newClient = {
+          name: formData.client,
+          phone: formData.phone,
+          email: formData.email || ''
+        };
+        newClientId = await addClient(newClient);
+        showSuccess('Cliente agregado exitosamente');
+      }
+
+      // Determinar el clientId correcto para la orden
+      let orderClientId = formData.clientId || null; // Por si viene del autocomplete
+      if (clientByPhone) {
+        orderClientId = clientByPhone.id;
+      } else if (clientByName) {
+        orderClientId = clientByName.id;
+      } else if (newClientId) {
+        orderClientId = newClientId; // Usar el ID del cliente recién creado
+      }
+
+      // Crear la orden CON el clientId correcto
       const newOrder = {
         orderNumber: generateOrderId(), // Número de orden visible para el usuario
         client: formData.client,
-        clientId: formData.clientId || null, // ID del cliente en Firestore
+        clientId: orderClientId, // ID del cliente en Firestore (ahora siempre está asignado correctamente)
         phone: formData.phone,
         email: formData.email || '',
         services: formData.services || [],
@@ -503,17 +525,6 @@ const Orders = () => {
 
       // Después de crear la orden exitosamente
       showSuccess('Orden creada exitosamente');
-
-      // Crear cliente solo si es completamente nuevo
-      if (shouldCreateClient) {
-        const newClient = {
-          name: formData.client,
-          phone: formData.phone,
-          email: formData.email || ''
-        };
-        await addClient(newClient);
-        showSuccess('Cliente agregado exitosamente');
-      }
 
       handleCloseModal();
       // Real-time listener will update the UI automatically
