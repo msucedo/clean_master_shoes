@@ -396,7 +396,7 @@ Tu orden #${orderNumber} está lista para recoger 🎉
 
 ⏰ Horario:
 Lunes - Viernes 10:00 am - 6:00 pm
-Sabado hasta las 4:00 pm
+Sabados 10:00 am - 4:00 pm
 
 📦 Servicios: ${servicesList}
 
