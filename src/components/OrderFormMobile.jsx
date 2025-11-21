@@ -26,6 +26,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
     client: '',
+    clientId: null, // ID del cliente en Firestore
     phone: '',
     email: '',
     deliveryDate: '',
@@ -339,19 +340,19 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   };
 
   // Calcular número de órdenes activas por empleado (recibidos + proceso)
-  const getEmployeeOrderCount = (employeeName) => {
+  const getEmployeeOrderCount = (employeeId) => {
     const recibidos = allOrders.recibidos || [];
     const proceso = allOrders.proceso || [];
 
     const activeOrders = [...recibidos, ...proceso];
-    return activeOrders.filter(order => order.author === employeeName).length;
+    return activeOrders.filter(order => order.authorId === employeeId).length;
   };
 
   // Obtener empleados con su conteo de órdenes, ordenados por menos órdenes
   const getEmployeesWithOrderCount = () => {
     return employees.map(emp => ({
       ...emp,
-      orderCount: getEmployeeOrderCount(emp.name)
+      orderCount: getEmployeeOrderCount(emp.id)
     })).sort((a, b) => a.orderCount - b.orderCount);
   };
 
@@ -496,6 +497,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
     setFormData(prev => ({
       ...prev,
       client: client.name,
+      clientId: client.id, // Guardar ID del cliente
       phone: client.phone,
       email: client.email || ''
     }));
@@ -560,7 +562,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       for (let i = 0; i < (item.quantity || 1); i++) {
         expandedServices.push({
           id: generateId(),
-          serviceName: item.serviceName,
+          serviceId: item.serviceId, // ID del servicio en Firestore
+          serviceName: item.serviceName, // Snapshot del nombre
           price: item.price,
           icon: item.icon,
           images: [],
@@ -587,6 +590,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
 
     const orderData = {
       ...formData,
+      clientId: formData.clientId, // ID del cliente en Firestore
+      clientName: formData.client, // Snapshot del nombre del cliente
       services,
       products,
       orderImages: [],
@@ -603,7 +608,8 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal',
-      author: selectedEmployee ? selectedEmployee.name : '', // Asignar empleado seleccionado
+      author: selectedEmployee ? selectedEmployee.name : '', // Employee assigned to work the order
+      authorId: selectedEmployee ? selectedEmployee.id : null, // ID del empleado asignado
       orderCreatedBy: employee ? { id: employee.id, name: employee.name } : null // Empleado que creó la orden
     };
 

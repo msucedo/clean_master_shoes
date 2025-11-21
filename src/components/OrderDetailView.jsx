@@ -68,7 +68,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const [localProducts, setLocalProducts] = useState(order.products || []);
   const [orderImages, setOrderImages] = useState(order.orderImages || []);
   const [activeEmployees, setActiveEmployees] = useState([]);
-  const [orderAuthor, setOrderAuthor] = useState(order.author || '');
+  const [orderAuthor, setOrderAuthor] = useState(order.author || ''); // Nombre del empleado
+  const [orderAuthorId, setOrderAuthorId] = useState(order.authorId || null); // ID del empleado
   const [orderStatus, setOrderStatus] = useState(order.orderStatus || currentTab || 'recibidos');
   const [paymentData, setPaymentData] = useState({
     advancePayment: parseFloat(order.advancePayment) || 0,
@@ -106,7 +107,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     paymentMethod: order.paymentMethod || 'pending',
     deliveryDate: order.deliveryDate,
     generalNotes: order.generalNotes || '',
-    author: order.author || '',
+    authorId: order.authorId || null, // ID del empleado
+    author: order.author || '', // Nombre del empleado
     totalPrice: order.totalPrice || 0
   });
 
@@ -132,10 +134,11 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
       paymentMethod: paymentData.paymentMethod,
       deliveryDate: localDeliveryDate,
       generalNotes: generalNotes,
-      author: orderAuthor,
+      authorId: orderAuthorId, // ID del empleado
+      author: orderAuthor, // Nombre del empleado (snapshot)
       totalPrice: totalPrice
     };
-  }, [localServices, localProducts, orderImages, orderStatus, paymentData, localDeliveryDate, generalNotes, orderAuthor, totalPrice]);
+  }, [localServices, localProducts, orderImages, orderStatus, paymentData, localDeliveryDate, generalNotes, orderAuthor, orderAuthorId, totalPrice]);
 
   // Marcar mensajes de WhatsApp como leídos al abrir la orden
   useEffect(() => {
@@ -162,13 +165,14 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
         orderNumber: parseInt(order.orderNumber, 10),
         client: order.client,
         createdAt: getRelativeTimeWithHour(order.createdAt),
-        author: orderAuthor,
+        author: orderAuthor, // Nombre del empleado
+        authorId: orderAuthorId, // ID del empleado
         activeEmployees: activeEmployees,
         onAuthorChange: handleAuthorChange,
         isReadOnly: isReadOnly
       });
     }
-  }, [renderHeader, order.orderNumber, order.client, order.createdAt, orderAuthor, activeEmployees, isReadOnly]);
+  }, [renderHeader, order.orderNumber, order.client, order.createdAt, orderAuthor, orderAuthorId, activeEmployees, isReadOnly]);
 
   // Función que se ejecuta antes de cerrar el modal
   // Usamos useCallback para memoizar la función y evitar closures obsoletas
@@ -430,7 +434,21 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
   // Handler para cambiar el autor de la orden
   const handleAuthorChange = (e) => {
-    setOrderAuthor(e.target.value);
+    const selectedEmployeeId = e.target.value;
+
+    if (!selectedEmployeeId || selectedEmployeeId === '') {
+      // Si se deselecciona el empleado
+      setOrderAuthorId(null);
+      setOrderAuthor('');
+    } else {
+      // Buscar el empleado seleccionado por ID
+      const selectedEmployee = activeEmployees.find(emp => emp.id === selectedEmployeeId);
+
+      if (selectedEmployee) {
+        setOrderAuthorId(selectedEmployee.id);
+        setOrderAuthor(selectedEmployee.name);
+      }
+    }
     // Cambios se guardarán al cerrar el modal
   };
 

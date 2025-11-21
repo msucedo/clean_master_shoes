@@ -75,9 +75,9 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
         ...(ordersData.enEntrega || [])
       ];
 
-      // Filter orders by this employee's name
+      // Filter orders by this employee's ID
       const employeeOrders = allActiveOrders
-        .filter(order => order.author === empleado.name)
+        .filter(order => order.authorId === empleado.id)
         .sort((a, b) => {
           // Primero ordenar por prioridad (high primero)
           if (a.priority === 'high' && b.priority !== 'high') return -1;
@@ -93,7 +93,7 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
 
       // Get unassigned orders in "recibidos" status
       const ordersWithoutEmployee = (ordersData.recibidos || [])
-        .filter(order => !order.author || order.author === '')
+        .filter(order => !order.authorId)
         .sort((a, b) => {
           // Primero ordenar por prioridad (high primero)
           if (a.priority === 'high' && b.priority !== 'high') return -1;
@@ -133,6 +133,7 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
     try {
       await updateOrder(order.id, {
         author: empleado.name,
+        authorId: empleado.id,
         orderStatus: 'proceso'
       });
       showSuccess(`Orden #${parseInt(order.orderNumber, 10)} asignada a ${empleado.name} y puesta en proceso ✓`);

@@ -417,6 +417,7 @@ const Orders = () => {
       const newOrder = {
         orderNumber: generateOrderId(), // Número de orden visible para el usuario
         client: formData.client,
+        clientId: formData.clientId || null, // ID del cliente en Firestore
         phone: formData.phone,
         email: formData.email || '',
         services: formData.services || [],
@@ -433,7 +434,8 @@ const Orders = () => {
         generalNotes: formData.generalNotes || '',
         // Usar paymentStatus si viene desde OrderForm, sino calcularlo
         paymentStatus: formData.paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
-        author: formData.author || '', // Asignar empleado seleccionado
+        author: formData.author || '', // Nombre del empleado asignado
+        authorId: formData.authorId || null, // ID del empleado asignado
         orderCreatedBy: formData.orderCreatedBy || null, // Empleado que creó la orden
         isOrderWithoutServices: formData.isOrderWithoutServices || false // Flag para firebaseService
       };
@@ -614,7 +616,7 @@ const Orders = () => {
             <div className="order-header-author">
               <select
                 className="order-header-author-select"
-                value={headerData.author}
+                value={headerData.authorId || ''}
                 onChange={headerData.onAuthorChange}
                 onClick={(e) => e.stopPropagation()}
                 disabled={headerData.isReadOnly}
@@ -625,7 +627,7 @@ const Orders = () => {
               >
                 <option value="">Sin autor</option>
                 {headerData.activeEmployees?.map(employee => (
-                  <option key={employee.id} value={employee.name}>
+                  <option key={employee.id} value={employee.id}>
                     {employee.emoji ? `${employee.emoji} ` : ''}{employee.name}
                   </option>
                 ))}

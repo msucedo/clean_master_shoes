@@ -396,7 +396,7 @@ const Empleados = () => {
               <div className="order-header-author">
                 <select
                   className="order-header-author-select"
-                  value={headerData.author}
+                  value={headerData.authorId || ''}
                   onChange={headerData.onAuthorChange}
                   onClick={(e) => e.stopPropagation()}
                   disabled={headerData.isReadOnly}
@@ -407,7 +407,7 @@ const Empleados = () => {
                 >
                   <option value="">Sin autor</option>
                   {headerData.activeEmployees?.map(employee => (
-                    <option key={employee.id} value={employee.name}>
+                    <option key={employee.id} value={employee.id}>
                       {employee.emoji ? `${employee.emoji} ` : ''}{employee.name}
                     </option>
                   ))}

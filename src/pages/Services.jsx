@@ -87,7 +87,7 @@ const Services = () => {
         if (order.services && Array.isArray(order.services)) {
           // Contar cuántas veces aparece este servicio en la orden
           const serviceCount = order.services.filter(
-            s => s.serviceName === service.name
+            s => s.serviceId === service.id
           ).length;
 
           if (serviceCount > 0) {
@@ -200,7 +200,8 @@ const Services = () => {
           // Real-time listener will update the UI automatically
         } catch (error) {
           console.error('Error deleting service:', error);
-          showError('Error al eliminar el servicio');
+          // Mostrar el mensaje de error específico de la validación
+          showError(error.message || 'Error al eliminar el servicio');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         }
       }

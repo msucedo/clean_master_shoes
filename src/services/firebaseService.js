@@ -515,11 +515,53 @@ export const updateService = async (serviceId, serviceData) => {
 };
 
 /**
+ * Check if a service can be deleted (not referenced in active orders)
+ * @param {string} serviceId - Service document ID
+ * @returns {Promise<{canDelete: boolean, orderCount: number}>}
+ */
+export const canDeleteService = async (serviceId) => {
+  try {
+    const ordersRef = collection(db, 'orders');
+    const querySnapshot = await getDocs(ordersRef);
+
+    const activeStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega'];
+    let orderCount = 0;
+
+    querySnapshot.forEach((doc) => {
+      const order = doc.data();
+
+      // Check if order is active
+      if (activeStatuses.includes(order.orderStatus)) {
+        // Check if any service in the order references this serviceId
+        const hasService = order.services?.some(service => service.serviceId === serviceId);
+        if (hasService) {
+          orderCount++;
+        }
+      }
+    });
+
+    return {
+      canDelete: orderCount === 0,
+      orderCount
+    };
+  } catch (error) {
+    console.error('Error checking if service can be deleted:', error);
+    throw error;
+  }
+};
+
+/**
  * Delete a service
  * @param {string} serviceId - Service document ID
  */
 export const deleteService = async (serviceId) => {
   try {
+    // Validate that service can be deleted
+    const validation = await canDeleteService(serviceId);
+    if (!validation.canDelete) {
+      throw new Error(`No se puede eliminar este servicio. Está referenciado en ${validation.orderCount} orden(es) activa(s).`);
+    }
+
     const serviceRef = doc(db, 'services', serviceId);
     await deleteDoc(serviceRef);
   } catch (error) {
@@ -667,11 +709,49 @@ export const updateClient = async (clientId, clientData) => {
 };
 
 /**
+ * Check if a client can be deleted (not referenced in active orders)
+ * @param {string} clientId - Client document ID
+ * @returns {Promise<{canDelete: boolean, orderCount: number}>}
+ */
+export const canDeleteClient = async (clientId) => {
+  try {
+    const ordersRef = collection(db, 'orders');
+    const querySnapshot = await getDocs(ordersRef);
+
+    const activeStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega'];
+    let orderCount = 0;
+
+    querySnapshot.forEach((doc) => {
+      const order = doc.data();
+
+      // Check if order is active and references this clientId
+      if (activeStatuses.includes(order.orderStatus) && order.clientId === clientId) {
+        orderCount++;
+      }
+    });
+
+    return {
+      canDelete: orderCount === 0,
+      orderCount
+    };
+  } catch (error) {
+    console.error('Error checking if client can be deleted:', error);
+    throw error;
+  }
+};
+
+/**
  * Delete a client
  * @param {string} clientId - Client document ID
  */
 export const deleteClient = async (clientId) => {
   try {
+    // Validate that client can be deleted
+    const validation = await canDeleteClient(clientId);
+    if (!validation.canDelete) {
+      throw new Error(`No se puede eliminar este cliente. Tiene ${validation.orderCount} orden(es) activa(s).`);
+    }
+
     const clientRef = doc(db, 'clients', clientId);
     await deleteDoc(clientRef);
   } catch (error) {
@@ -844,11 +924,49 @@ export const updateEmployee = async (employeeId, employeeData) => {
 };
 
 /**
+ * Check if an employee can be deleted (not assigned to active orders)
+ * @param {string} employeeId - Employee document ID
+ * @returns {Promise<{canDelete: boolean, orderCount: number}>}
+ */
+export const canDeleteEmployee = async (employeeId) => {
+  try {
+    const ordersRef = collection(db, 'orders');
+    const querySnapshot = await getDocs(ordersRef);
+
+    const activeStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega'];
+    let orderCount = 0;
+
+    querySnapshot.forEach((doc) => {
+      const order = doc.data();
+
+      // Check if order is active and assigned to this employee
+      if (activeStatuses.includes(order.orderStatus) && order.authorId === employeeId) {
+        orderCount++;
+      }
+    });
+
+    return {
+      canDelete: orderCount === 0,
+      orderCount
+    };
+  } catch (error) {
+    console.error('Error checking if employee can be deleted:', error);
+    throw error;
+  }
+};
+
+/**
  * Delete an employee
  * @param {string} employeeId - Employee document ID
  */
 export const deleteEmployee = async (employeeId) => {
   try {
+    // VALIDACIÓN 1: Check if employee has active orders assigned
+    const validation = await canDeleteEmployee(employeeId);
+    if (!validation.canDelete) {
+      throw new Error(`No se puede eliminar este empleado. Tiene ${validation.orderCount} orden(es) asignada(s).`);
+    }
+
     // Get current employee data
     const employeeRef = doc(db, 'employees', employeeId);
     const employeeSnap = await getDoc(employeeRef);
@@ -859,7 +977,7 @@ export const deleteEmployee = async (employeeId) => {
 
     const currentData = employeeSnap.data();
 
-    // VALIDACIÓN: No se puede eliminar al último admin activo
+    // VALIDACIÓN 2: No se puede eliminar al último admin activo
     if (currentData.isAdmin === true && currentData.status === 'active') {
       const adminCount = await getAdminCount();
 

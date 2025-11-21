@@ -32,6 +32,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   // Estructura de datos simplificada con servicios
   const [formData, setFormData] = useState({
     client: '',
+    clientId: null, // ID del cliente en Firestore
     phone: '',
     email: '',
     deliveryDate: '',
@@ -348,19 +349,19 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   }, [cart, formData.phone, activePromotions]);
 
   // Calcular número de órdenes activas por empleado (recibidos + proceso)
-  const getEmployeeOrderCount = (employeeName) => {
+  const getEmployeeOrderCount = (employeeId) => {
     const recibidos = allOrders.recibidos || [];
     const proceso = allOrders.proceso || [];
 
     const activeOrders = [...recibidos, ...proceso];
-    return activeOrders.filter(order => order.author === employeeName).length;
+    return activeOrders.filter(order => order.authorId === employeeId).length;
   };
 
   // Obtener empleados con su conteo de órdenes, ordenados por menos órdenes
   const getEmployeesWithOrderCount = () => {
     return employees.map(emp => ({
       ...emp,
-      orderCount: getEmployeeOrderCount(emp.name)
+      orderCount: getEmployeeOrderCount(emp.id)
     })).sort((a, b) => a.orderCount - b.orderCount);
   };
 
@@ -470,7 +471,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
   useEffect(() => {
     if (initialData) {
       setFormData({
-        client: initialData.client || '',
+        client: initialData.client || initialData.clientName || '',
+        clientId: initialData.clientId || null,
         phone: initialData.phone || '',
         email: initialData.email || '',
         deliveryDate: initialData.deliveryDate || '',
@@ -505,6 +507,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
     setFormData(prev => ({
       ...prev,
       client: client.name,
+      clientId: client.id, // Guardar ID del cliente
       phone: client.phone,
       email: client.email || ''
     }));
@@ -626,7 +629,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
       for (let i = 0; i < (item.quantity || 1); i++) {
         expandedServices.push({
           id: generateId(),
-          serviceName: item.serviceName,
+          serviceId: item.serviceId, // ID del servicio en Firestore
+          serviceName: item.serviceName, // Snapshot del nombre
           price: item.price,
           icon: item.icon,
           images: [], // Servicios sin imágenes individuales
@@ -653,6 +657,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
 
     const orderData = {
       ...formData,
+      clientId: formData.clientId, // ID del cliente en Firestore
+      clientName: formData.client, // Snapshot del nombre del cliente
       services,
       products,
       orderImages: orderImages, // Imágenes a nivel de orden (ya en base64)
@@ -668,7 +674,8 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
       advancePayment: advancePayment,
       paymentStatus: paymentStatus || (formData.paymentMethod === 'pending' ? 'pending' : 'partial'),
       priority: hasExpressService() ? 'high' : 'normal', // Asignar automáticamente
-      author: selectedEmployee ? selectedEmployee.name : '', // Asignar empleado seleccionado
+      author: selectedEmployee ? selectedEmployee.name : '', // Employee assigned to work the order
+      authorId: selectedEmployee ? selectedEmployee.id : null, // ID del empleado asignado
       orderCreatedBy: employee ? { id: employee.id, name: employee.name } : null, // Empleado que creó la orden
       isOrderWithoutServices: isOrderWithoutServices // Flag para firebaseService
     };

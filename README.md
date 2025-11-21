@@ -3,6 +3,9 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]linkear tablas por id y no por name
+-[]fixes iphoto
+-[]restringir el poder actualizar el nombre del servicio para no perder el link entre ordenes onflight y el servicio utilizado
 -[]validar integridad de datos en formularios y campos de entrada de datos del usuario
 -[]buscar bugs en todos los flujos de funcionalidades
 

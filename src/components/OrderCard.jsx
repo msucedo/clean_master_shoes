@@ -44,10 +44,19 @@ const OrderCard = ({ order, onOrderClick }) => {
 
   // Obtener emoji del autor si existe
   const authorEmoji = useMemo(() => {
-    if (!order.author) return null;
-    const author = employees.find(emp => emp.name === order.author);
+    // Priorizar authorId (nuevo formato) sobre author (formato viejo)
+    const authorId = order.authorId || null;
+    const authorName = order.author || null;
+
+    if (!authorId && !authorName) return null;
+
+    // Buscar por ID si existe, sino por nombre (retrocompatibilidad)
+    const author = authorId
+      ? employees.find(emp => emp.id === authorId)
+      : employees.find(emp => emp.name === authorName);
+
     return author?.emoji || null;
-  }, [order.author, employees]);
+  }, [order.authorId, order.author, employees]);
 
   // Obtener servicios activos (no cancelados)
   const activeServices = useMemo(() => {
@@ -130,7 +139,7 @@ const OrderCard = ({ order, onOrderClick }) => {
           </div>
         )}
         {authorEmoji && (
-          <div className="order-author-badge" title={`Autor: ${order.author}`}>
+          <div className="order-author-badge" title={`Autor: ${order.author || 'Sin asignar'}`}>
             {authorEmoji}
           </div>
         )}

@@ -90,17 +90,17 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
       // Get cancelled orders
       const allCancelledOrders = ordersData.cancelado || [];
 
-      // Filter orders by this client's name
+      // Filter orders by this client's ID
       const clientActiveOrders = allActiveOrders.filter(
-        order => order.client === client.name
+        order => order.clientId === client.id
       );
 
       const clientCompletedOrders = allCompletedOrders.filter(
-        order => order.client === client.name
+        order => order.clientId === client.id
       );
 
       const clientCancelledOrders = allCancelledOrders.filter(
-        order => order.client === client.name
+        order => order.clientId === client.id
       );
 
       // Ordenar por fecha de creación (más reciente primero)

@@ -236,7 +236,8 @@ const Clients = () => {
           // Real-time listener will update the UI automatically
         } catch (error) {
           console.error('Error deleting client:', error);
-          showError('Error al eliminar el cliente');
+          // Mostrar el mensaje de error específico de la validación
+          showError(error.message || 'Error al eliminar el cliente');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         }
       }
@@ -504,7 +505,7 @@ const Clients = () => {
               <div className="order-header-author">
                 <select
                   className="order-header-author-select"
-                  value={headerData.author}
+                  value={headerData.authorId || ''}
                   onChange={headerData.onAuthorChange}
                   onClick={(e) => e.stopPropagation()}
                   disabled={headerData.isReadOnly}
@@ -515,7 +516,7 @@ const Clients = () => {
                 >
                   <option value="">Sin autor</option>
                   {headerData.activeEmployees?.map(employee => (
-                    <option key={employee.id} value={employee.name}>
+                    <option key={employee.id} value={employee.id}>
                       {employee.emoji ? `${employee.emoji} ` : ''}{employee.name}
                     </option>
                   ))}
