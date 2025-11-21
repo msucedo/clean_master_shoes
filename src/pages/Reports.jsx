@@ -130,6 +130,8 @@ const Reports = () => {
     const clientData = {};
 
     filteredOrders.forEach(order => {
+      // Use clientId as key to avoid grouping clients with same name
+      const clientId = order.clientId || order.client || 'sin-id';
       const clientName = order.client || 'Sin nombre';
       const total = parseFloat(order.totalPrice) || 0;
       const advance = parseFloat(order.advancePayment) || 0;
@@ -141,24 +143,25 @@ const Reports = () => {
         revenue = advance;
       }
 
-      if (!clientData[clientName]) {
-        clientData[clientName] = {
+      if (!clientData[clientId]) {
+        clientData[clientId] = {
+          name: clientName,
           orders: 0,
           revenue: 0
         };
       }
 
-      clientData[clientName].orders += 1;
-      clientData[clientName].revenue += revenue;
+      clientData[clientId].orders += 1;
+      clientData[clientId].revenue += revenue;
     });
 
     // Sort by revenue and get top 5
     return Object.entries(clientData)
       .sort((a, b) => b[1].revenue - a[1].revenue)
       .slice(0, 5)
-      .map(([name, data], index) => ({
+      .map(([id, data], index) => ({
         rank: index + 1,
-        name,
+        name: data.name,
         detail: `${data.orders} ${data.orders === 1 ? 'orden' : 'órdenes'}`,
         value: data.revenue,
         gold: index < 3

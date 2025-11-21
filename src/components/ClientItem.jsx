@@ -251,8 +251,10 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
           ) : (
             <div className="client-orders-list">
               {filteredOrders.map((order) => {
-                // Buscar emoji del autor
-                const authorEmployee = employees.find(emp => emp.name === order.author);
+                // Buscar emoji del autor (priorizar authorId)
+                const authorEmployee = order.authorId
+                  ? employees.find(emp => emp.id === order.authorId)
+                  : employees.find(emp => emp.name === order.author);
                 const authorEmoji = authorEmployee?.emoji || null;
 
                 return (
