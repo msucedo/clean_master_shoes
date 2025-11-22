@@ -54,6 +54,43 @@
   transform: rotate(90deg);
 }
 
+/* Warning Banner for Flexible Closures */
+.ccd-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-left: 4px solid #ffd700;
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.ccd-warning-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.ccd-warning-content {
+  flex: 1;
+}
+
+.ccd-warning-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffd700;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.ccd-warning-text {
+  font-size: 14px;
+  color: #e6c200;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 /* Author Info */
 .ccd-author {
   display: flex;

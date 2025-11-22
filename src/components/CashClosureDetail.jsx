@@ -85,6 +85,27 @@ const CashClosureDetail = ({ closure, onClose }) => {
         </button>
       </div>
 
+      {/* Warning Banner for Flexible Closures */}
+      {(closure.totalOrdenes === 0 || closure.diferencias?.total !== 0) && (
+        <div className="ccd-warning-banner">
+          <div className="ccd-warning-icon">⚠️</div>
+          <div className="ccd-warning-content">
+            <div className="ccd-warning-title">Corte guardado sin validación completa</div>
+            <div className="ccd-warning-text">
+              {closure.totalOrdenes === 0 && closure.diferencias?.total !== 0 && (
+                <span>Este corte no tiene órdenes registradas y presenta diferencias en el conteo de dinero.</span>
+              )}
+              {closure.totalOrdenes === 0 && closure.diferencias?.total === 0 && (
+                <span>Este corte no tiene órdenes registradas.</span>
+              )}
+              {closure.totalOrdenes > 0 && closure.diferencias?.total !== 0 && (
+                <span>Este corte presenta diferencias entre el dinero contado y el registrado en el sistema.</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Author Info */}
       <div className="ccd-section ccd-author">
         <div className="ccd-author-icon">👤</div>
@@ -101,16 +122,24 @@ const CashClosureDetail = ({ closure, onClose }) => {
           <div className="ccd-stat-card total">
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Total Ingresos + Dinero inicial en caja</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.total || 0)}</div>
+              <div className="ccd-stat-label">Total Ingresos</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.conteoIngresos?.totalGeneral || 0)}</div>
             </div>
           </div>
 
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Ingresos de Efectivo + Dinero inicial en caja</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.efectivo || 0)}</div>
+              <div className="ccd-stat-label">Total Efectivo</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.conteoIngresos?.efectivo?.total || 0)}</div>
+            </div>
+          </div>
+
+          <div className="ccd-stat-card">
+            <div className="ccd-stat-icon">💰</div>
+            <div className="ccd-stat-info">
+              <div className="ccd-stat-label">Dinero Inicial en Caja</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.dineroInicial || 0)}</div>
             </div>
           </div>
 
@@ -118,7 +147,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             <div className="ccd-stat-icon">💳</div>
             <div className="ccd-stat-info">
               <div className="ccd-stat-label">Ingresos de Tarjeta</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.tarjeta || 0)}</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.conteoIngresos?.tarjeta?.total || 0)}</div>
             </div>
           </div>
 
@@ -126,7 +155,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             <div className="ccd-stat-icon">🏦</div>
             <div className="ccd-stat-info">
               <div className="ccd-stat-label">Ingresos de Transferencia</div>
-              <div className="ccd-stat-value">{formatCurrency(closure.dineroEnSistema?.transferencia || 0)}</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.conteoIngresos?.transferencia?.total || 0)}</div>
             </div>
           </div>
 
@@ -143,6 +172,24 @@ const CashClosureDetail = ({ closure, onClose }) => {
             <div className="ccd-stat-info">
               <div className="ccd-stat-label">Productos</div>
               <div className="ccd-stat-value">{closure.totalProductos || 0}</div>
+            </div>
+          </div>
+
+          <div className="ccd-stat-card">
+            <div className="ccd-stat-icon">📝</div>
+            <div className="ccd-stat-info">
+              <div className="ccd-stat-label">Gastos Totales</div>
+              <div className="ccd-stat-value expense">{formatCurrency(closure.resultados?.gastosTotal || 0)}</div>
+            </div>
+          </div>
+
+          <div className="ccd-stat-card">
+            <div className="ccd-stat-icon">🎯</div>
+            <div className="ccd-stat-info">
+              <div className="ccd-stat-label">Ganancia del Día</div>
+              <div className={`ccd-stat-value ${(closure.resultados?.gananciaDia || 0) >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(closure.resultados?.gananciaDia || 0)}
+              </div>
             </div>
           </div>
         </div>

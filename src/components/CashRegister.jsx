@@ -28,6 +28,7 @@ const CashRegister = ({ orders, dateFilter }) => {
     message: '',
     onConfirm: null
   });
+  const [habilitarCorteSinValidacion, setHabilitarCorteSinValidacion] = useState(false);
 
   // Nuevo: Estados para conteo de ingresos
   const [dineroInicial, setDineroInicial] = useState('');
@@ -718,7 +719,7 @@ const CashRegister = ({ orders, dateFilter }) => {
 
         <div className="cr-comparison-grid">
           <div className="cr-comparison-row">
-            <span className="cr-comp-label">💵 Efectivo en Sistema(órdenes + caja inicial):</span>
+            <span className="cr-comp-label">💵 Efectivo en Sistema(caja inicial + órdenes):</span>
             <span className="cr-comp-amount">{formatCurrency(efectivoSistema)}</span>
             <span className={`cr-comp-diff ${diferenciaEfectivo >= 0 ? 'positive' : 'negative'}`}>
               {diferenciaEfectivo >= 0 ? '+' : ''}{formatCurrency(diferenciaEfectivo)}
@@ -886,10 +887,24 @@ const CashRegister = ({ orders, dateFilter }) => {
         />
         <div className="cr-char-counter">{notes.length}/500</div>
 
+        {/* Checkbox para habilitar corte sin validaciones */}
+        <div className="cr-flexible-closure-checkbox">
+          <label className="cr-checkbox-label">
+            <input
+              type="checkbox"
+              checked={habilitarCorteSinValidacion}
+              onChange={(e) => setHabilitarCorteSinValidacion(e.target.checked)}
+            />
+            <span className="cr-checkbox-text">
+              Habilitar corte sin órdenes y con diferencias de dinero en el sistema
+            </span>
+          </label>
+        </div>
+
         <button
           className="cr-btn-close"
           onClick={handleCloseCashRegister}
-          disabled={orders.length === 0 || !selectedEmployee || diferenciasTotal !== 0}
+          disabled={!selectedEmployee || (!habilitarCorteSinValidacion && (orders.length === 0 || diferenciasTotal !== 0))}
         >
           🔒 Cerrar Corte de Caja
         </button>

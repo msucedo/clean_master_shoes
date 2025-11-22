@@ -494,6 +494,44 @@
   margin-bottom: 24px;
 }
 
+/* Flexible Closure Checkbox */
+.cr-flexible-closure-checkbox {
+  margin: 24px 0;
+  padding: 16px 20px;
+  background: rgba(255, 215, 0, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.cr-flexible-closure-checkbox:hover {
+  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.cr-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cr-checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #ffd700;
+  flex-shrink: 0;
+}
+
+.cr-checkbox-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffd700;
+  line-height: 1.4;
+}
+
 .cr-btn-close {
   width: 100%;
   background: linear-gradient(135deg, #FF006E 0%, #E91E63 100%);
