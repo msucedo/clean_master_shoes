@@ -4,6 +4,10 @@ import Modal from './Modal';
 import ExpenseForm from './ExpenseForm';
 import ConfirmDialog from './ConfirmDialog';
 import {
+  addExpense,
+  getExpensesByDateRange,
+  deleteExpense,
+  deleteMultipleExpenses,
   saveCashRegisterClosure,
   subscribeToEmployees
 } from '../services/firebaseService';
@@ -64,6 +68,23 @@ const CashRegister = ({ orders, dateFilter }) => {
 
     return () => unsubscribe();
   }, []);
+
+  // Load expenses on mount (always for today)
+  useEffect(() => {
+    loadExpenses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadExpenses = async () => {
+    try {
+      const { startDate, endDate } = getDateRange();
+      const expensesData = await getExpensesByDateRange(startDate, endDate);
+      setExpenses(expensesData);
+    } catch (error) {
+      console.error('Error loading expenses:', error);
+      showError('Error al cargar los gastos');
+    }
+  };
 
   const getDateRange = () => {
     // Helper para convertir Date a formato YYYY-MM-DD local (sin UTC)
@@ -268,15 +289,10 @@ const CashRegister = ({ orders, dateFilter }) => {
     }
   };
 
-  const handleAddExpense = (expenseData) => {
+  const handleAddExpense = async (expenseData) => {
     try {
-      // Generar ID único para el gasto local
-      const newExpense = {
-        ...expenseData,
-        id: `temp_${Date.now()}_${Math.random()}`,
-        createdAt: new Date().toISOString()
-      };
-      setExpenses([...expenses, newExpense]);
+      await addExpense(expenseData);
+      await loadExpenses();
       showSuccess('Gasto agregado exitosamente');
       setIsExpenseModalOpen(false);
     } catch (error) {
@@ -290,9 +306,10 @@ const CashRegister = ({ orders, dateFilter }) => {
       isOpen: true,
       title: 'Eliminar Gasto',
       message: '¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.',
-      onConfirm: () => {
+      onConfirm: async () => {
         try {
-          setExpenses(expenses.filter(e => e.id !== expenseId));
+          await deleteExpense(expenseId);
+          await loadExpenses();
           showSuccess('Gasto eliminado');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
@@ -383,6 +400,13 @@ const CashRegister = ({ orders, dateFilter }) => {
           };
 
           await saveCashRegisterClosure(closureData);
+
+          // Delete expenses from Firestore after successful save
+          const expenseIds = expenses.map(e => e.id);
+          if (expenseIds.length > 0) {
+            await deleteMultipleExpenses(expenseIds);
+          }
+
           showSuccess('Corte de caja cerrado exitosamente');
 
           // Reset form

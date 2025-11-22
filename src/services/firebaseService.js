@@ -1512,6 +1512,90 @@ export const getAllSettings = async () => {
   }
 };
 
+// ==================== EXPENSES ====================
+
+/**
+ * Add a new expense
+ * @param {Object} expenseData - Expense data
+ * @returns {Promise<string>} Document ID of the created expense
+ */
+export const addExpense = async (expenseData) => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const docRef = await addDoc(expensesRef, {
+      ...expenseData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding expense:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get expenses by date range
+ * @param {string} startDate - Start date in ISO format
+ * @param {string} endDate - End date in ISO format
+ * @returns {Promise<Array>} Array of expenses
+ */
+export const getExpensesByDateRange = async (startDate, endDate) => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const q = query(
+      expensesRef,
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
+      orderBy('date', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    const expenses = [];
+    querySnapshot.forEach((doc) => {
+      expenses.push({ id: doc.id, ...doc.data() });
+    });
+
+    return expenses;
+  } catch (error) {
+    console.error('Error getting expenses:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an expense
+ * @param {string} expenseId - Expense document ID
+ */
+export const deleteExpense = async (expenseId) => {
+  try {
+    const expenseRef = doc(db, 'expenses', expenseId);
+    await deleteDoc(expenseRef);
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete multiple expenses by their IDs
+ * @param {Array<string>} expenseIds - Array of expense document IDs
+ */
+export const deleteMultipleExpenses = async (expenseIds) => {
+  try {
+    const deletePromises = expenseIds.map(expenseId => {
+      const expenseRef = doc(db, 'expenses', expenseId);
+      return deleteDoc(expenseRef);
+    });
+    await Promise.all(deletePromises);
+  } catch (error) {
+    console.error('Error deleting multiple expenses:', error);
+    throw error;
+  }
+};
+
 // ==================== CASH REGISTER ====================
 
 /**
