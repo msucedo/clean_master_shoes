@@ -4,9 +4,6 @@ import Modal from './Modal';
 import ExpenseForm from './ExpenseForm';
 import ConfirmDialog from './ConfirmDialog';
 import {
-  addExpense,
-  getExpensesByDateRange,
-  deleteExpense,
   saveCashRegisterClosure,
   subscribeToEmployees
 } from '../services/firebaseService';
@@ -67,23 +64,6 @@ const CashRegister = ({ orders, dateFilter }) => {
 
     return () => unsubscribe();
   }, []);
-
-  // Load expenses on mount (always for today)
-  useEffect(() => {
-    loadExpenses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadExpenses = async () => {
-    try {
-      const { startDate, endDate } = getDateRange();
-      const expensesData = await getExpensesByDateRange(startDate, endDate);
-      setExpenses(expensesData);
-    } catch (error) {
-      console.error('Error loading expenses:', error);
-      showError('Error al cargar los gastos');
-    }
-  };
 
   const getDateRange = () => {
     // Helper para convertir Date a formato YYYY-MM-DD local (sin UTC)
@@ -288,12 +268,17 @@ const CashRegister = ({ orders, dateFilter }) => {
     }
   };
 
-  const handleAddExpense = async (expenseData) => {
+  const handleAddExpense = (expenseData) => {
     try {
-      await addExpense(expenseData);
+      // Generar ID único para el gasto local
+      const newExpense = {
+        ...expenseData,
+        id: `temp_${Date.now()}_${Math.random()}`,
+        createdAt: new Date().toISOString()
+      };
+      setExpenses([...expenses, newExpense]);
       showSuccess('Gasto agregado exitosamente');
       setIsExpenseModalOpen(false);
-      loadExpenses();
     } catch (error) {
       console.error('Error adding expense:', error);
       showError('Error al agregar el gasto');
@@ -305,11 +290,10 @@ const CashRegister = ({ orders, dateFilter }) => {
       isOpen: true,
       title: 'Eliminar Gasto',
       message: '¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.',
-      onConfirm: async () => {
+      onConfirm: () => {
         try {
-          await deleteExpense(expenseId);
+          setExpenses(expenses.filter(e => e.id !== expenseId));
           showSuccess('Gasto eliminado');
-          loadExpenses();
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
           console.error('Error deleting expense:', error);
@@ -409,6 +393,8 @@ const CashRegister = ({ orders, dateFilter }) => {
           setTransferencias([{ monto: '' }]);
           setNotes('');
           setSelectedEmployee('');
+          setExpenses([]); // Limpiar gastos
+          setHabilitarCorteSinValidacion(false); // Resetear checkbox
 
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
@@ -765,7 +751,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           <div className="cr-result-card">
             <div className="cr-result-icon">💰</div>
             <div className="cr-result-info">
-              <div className="cr-result-label">Total en Caja</div>
+              <div className="cr-result-label">Total</div>
               <div className="cr-result-sublabel">Efectivo + Tarjeta + Transferencia</div>
               <div className="cr-result-value">{formatCurrency(ingresosTotal)}</div>
             </div>
