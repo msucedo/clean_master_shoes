@@ -296,6 +296,162 @@ const sendTemplateMessage = async (to, templateName, components) => {
 };
 
 /**
+ * Upload media (image) to WhatsApp Cloud API
+ * Returns media_id that can be used to send the image
+ *
+ * @param {string} base64Image - Base64 encoded image (with data:image prefix)
+ * @returns {Promise<Object>} Result with mediaId or error
+ */
+const uploadMediaToWhatsApp = async (base64Image) => {
+  try {
+    // Convertir base64 a Blob
+    const base64Data = base64Image.split(',')[1]; // Quitar "data:image/jpeg;base64,"
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+    // Crear FormData
+    const formData = new FormData();
+    formData.append('file', blob, 'order-image.jpg');
+    formData.append('type', 'image/jpeg');
+    formData.append('messaging_product', 'whatsapp');
+
+    const url = `https://graph.facebook.com/${WHATSAPP_CONFIG.apiVersion}/${WHATSAPP_CONFIG.phoneNumberId}/media`;
+
+    // 📤 LOG: Upload inicio
+    console.log('📤 [WhatsApp Media] Subiendo imagen:', {
+      timestamp: new Date().toISOString(),
+      url: url,
+      fileSize: blob.size,
+      fileType: blob.type
+    });
+
+    const response = await axios.post(url, formData, {
+      headers: {
+        'Authorization': `Bearer ${WHATSAPP_CONFIG.accessToken}`
+      }
+    });
+
+    // ✅ LOG: Upload exitoso
+    console.log('✅ [WhatsApp Media] Imagen subida exitosamente:', {
+      mediaId: response.data.id,
+      timestamp: new Date().toISOString()
+    });
+
+    return {
+      success: true,
+      mediaId: response.data.id,
+      timestamp: new Date().toISOString()
+    };
+
+  } catch (error) {
+    // ❌ LOG: Error en upload
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
+      httpStatus: error.response?.status,
+      whatsappErrorCode: error.response?.data?.error?.code,
+      whatsappErrorMessage: error.response?.data?.error?.message,
+      fullError: error.response?.data || error.message
+    };
+
+    console.error('❌ [WhatsApp Media] Error subiendo imagen:', errorDetails);
+
+    return {
+      success: false,
+      error: error.response?.data?.error?.message || error.message,
+      errorCode: error.response?.data?.error?.code,
+      timestamp: new Date().toISOString()
+    };
+  }
+};
+
+/**
+ * Send image message using media_id from upload
+ *
+ * @param {string} to - Recipient phone number (with country code)
+ * @param {string} mediaId - Media ID from uploadMediaToWhatsApp()
+ * @param {string} caption - Optional caption for the image
+ * @returns {Promise<Object>} API response with message ID and status
+ */
+const sendImageMessage = async (to, mediaId, caption = '') => {
+  const url = `https://graph.facebook.com/${WHATSAPP_CONFIG.apiVersion}/${WHATSAPP_CONFIG.phoneNumberId}/messages`;
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    to: to,
+    type: 'image',
+    image: {
+      id: mediaId,
+      caption: caption
+    }
+  };
+
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${WHATSAPP_CONFIG.accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  };
+
+  try {
+    // 📤 LOG: Enviando imagen
+    console.log('📤 [WhatsApp Image] Enviando imagen:', {
+      timestamp: new Date().toISOString(),
+      to: to,
+      mediaId: mediaId,
+      caption: caption,
+      payload: JSON.stringify(payload, null, 2)
+    });
+
+    const response = await axios.post(url, payload, config);
+
+    // ✅ LOG: Imagen enviada
+    console.log('✅ [WhatsApp Image] Imagen enviada exitosamente:', {
+      messageId: response.data.messages[0].id,
+      to: to,
+      timestamp: new Date().toISOString(),
+      statusCode: response.status
+    });
+
+    return {
+      success: true,
+      messageId: response.data.messages[0].id,
+      timestamp: new Date().toISOString(),
+      status: 'sent'
+    };
+
+  } catch (error) {
+    // ❌ LOG: Error enviando imagen
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
+      to: to,
+      mediaId: mediaId,
+      httpStatus: error.response?.status,
+      whatsappErrorCode: error.response?.data?.error?.code,
+      whatsappErrorMessage: error.response?.data?.error?.message,
+      fullError: error.response?.data || error.message
+    };
+
+    console.error('❌ [WhatsApp Image] Error enviando imagen:', errorDetails);
+
+    return {
+      success: false,
+      error: error.response?.data?.error?.message || error.message,
+      errorCode: error.response?.data?.error?.code,
+      timestamp: new Date().toISOString(),
+      status: 'failed'
+    };
+  }
+};
+
+/**
  * Send delivery notification to customer when order status changes to "En Entrega"
  * This is the main function called by firebaseService when updating order status
  *
@@ -442,6 +598,169 @@ Sabados 10:00 am - 4:00 pm
 
   } catch (error) {
     console.error('❌ [WhatsApp] Error inesperado en sendDeliveryNotification:', {
+      error: error.message,
+      stack: error.stack,
+      orderId: order.id,
+      orderNumber: order.orderNumber
+    });
+    return {
+      success: false,
+      error: error.message,
+      orderId: order.id,
+      timestamp: new Date().toISOString(),
+      status: 'failed'
+    };
+  }
+};
+
+/**
+ * Send "Order Received" notification with image
+ * Sends 2 messages:
+ *   1. Template message with order details
+ *   2. Image of the order (first image)
+ *
+ * @param {Object} order - Order object with all details
+ * @returns {Promise<Object>} Result with both message statuses
+ */
+export const sendOrderReceivedNotification = async (order) => {
+  // 📋 LOG: Inicio del proceso de notificación
+  console.log('🔔 [WhatsApp] Iniciando envío de notificación orden recibida:', {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    client: order.client,
+    phone: order.phone,
+    hasImages: order.orderImages?.length > 0
+  });
+
+  // Check if WhatsApp is configured
+  if (!isWhatsAppConfigured()) {
+    console.warn('⚠️ [WhatsApp] WhatsApp no está configurado. Saltando notificación.');
+    return {
+      success: false,
+      error: 'WhatsApp not configured',
+      skipped: true
+    };
+  }
+
+  // Validate order has required fields
+  if (!order.client || !order.phone) {
+    console.error('❌ [WhatsApp] Orden sin campos requeridos:', {
+      orderId: order.id,
+      hasClient: !!order.client,
+      hasPhone: !!order.phone
+    });
+    return {
+      success: false,
+      error: 'Missing client name or phone number'
+    };
+  }
+
+  try {
+    // Format phone number
+    console.log('📞 [WhatsApp] Formateando número:', { original: order.phone });
+    const formattedPhone = formatPhoneNumber(order.phone);
+    console.log('📞 [WhatsApp] Número formateado:', { formatted: formattedPhone });
+
+    if (!formattedPhone) {
+      throw new Error('Invalid phone number format');
+    }
+
+    // Build template parameters
+    const servicesList = formatServicesList(order.services);
+    const orderNumber = order.orderNumber || order.id;
+
+    console.log('✨ [WhatsApp] Usando plantilla de Meta:', 'orden_enproceso');
+
+    // Construir componentes del template
+    // Body: 3 parámetros ({{1}} nombre, {{2}} orden, {{3}} servicios)
+    // Button: 1 parámetro ({{1}} trackingToken para URL)
+    const components = [
+      {
+        type: 'body',
+        parameters: [
+          { type: 'text', text: order.client },           // {{1}} Nombre
+          { type: 'text', text: orderNumber },            // {{2}} Número orden
+          { type: 'text', text: servicesList }            // {{3}} Servicios
+        ]
+      },
+      {
+        type: 'button',
+        sub_type: 'url',
+        index: '0',
+        parameters: [
+          { type: 'text', text: order.trackingToken }     // {{1}} en botón URL
+        ]
+      }
+    ];
+
+    console.log('📋 [WhatsApp] Parámetros de plantilla:', {
+      cliente: order.client,
+      orden: orderNumber,
+      servicios: servicesList,
+      trackingToken: order.trackingToken
+    });
+
+    // MENSAJE 1: Send template message
+    const templateResult = await sendTemplateMessage(
+      formattedPhone,
+      'orden_enproceso',
+      components
+    );
+
+    // Build the complete template message for display in conversation
+    const templateMessage = `¡Hola ${order.client}! 👋
+
+Tu orden #${orderNumber} está en proceso🎉
+
+📦 Servicios a trabajar: ${servicesList}
+
+🔍 Selecciona el botón inferior para rastrear tu orden
+
+¡Gracias por tu confianza!
+- Clean Master Shoes`;
+
+    // MENSAJE 2: Send image (SOLO si template fue exitoso)
+    let imageResult = null;
+    if (templateResult.success && order.orderImages && order.orderImages.length > 0) {
+      try {
+        console.log('📸 [WhatsApp] Preparando envío de imagen...');
+        const firstImage = order.orderImages[0];
+
+        // Upload image to WhatsApp
+        const uploadResult = await uploadMediaToWhatsApp(firstImage);
+
+        if (uploadResult.success) {
+          // Send image message
+          imageResult = await sendImageMessage(
+            formattedPhone,
+            uploadResult.mediaId,
+            '📸 Foto de la orden enviada al cliente'
+          );
+        } else {
+          console.error('❌ [WhatsApp] Error subiendo imagen:', uploadResult.error);
+        }
+      } catch (imageError) {
+        console.error('❌ [WhatsApp] Error en proceso de imagen:', imageError);
+        // No bloquear si falla la imagen
+      }
+    } else if (!templateResult.success && order.orderImages && order.orderImages.length > 0) {
+      console.warn('⚠️ [WhatsApp] Template falló, saltando envío de imagen');
+    }
+
+    // Return result with additional order context
+    return {
+      ...templateResult,
+      imageResult: imageResult,
+      orderId: order.id,
+      orderNumber: orderNumber,
+      clientName: order.client,
+      phone: formattedPhone,
+      message: templateMessage,
+      usingTemplate: true
+    };
+
+  } catch (error) {
+    console.error('❌ [WhatsApp] Error inesperado en sendOrderReceivedNotification:', {
       error: error.message,
       stack: error.stack,
       orderId: order.id,

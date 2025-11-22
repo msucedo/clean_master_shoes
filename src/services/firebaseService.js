@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
-import { sendDeliveryNotification } from './whatsappService';
+import { sendDeliveryNotification, sendOrderReceivedNotification } from './whatsappService';
 
 // ==================== TRACKING TOKEN ====================
 
@@ -139,7 +139,7 @@ export const addOrder = async (orderData) => {
 
     // Si hay productos en la orden, usar transacción para garantizar atomicidad
     if (orderData.products && orderData.products.length > 0) {
-      return await runTransaction(db, async (transaction) => {
+      const orderId = await runTransaction(db, async (transaction) => {
         // 1. Verificar stock disponible para todos los productos
         const productRefs = [];
         const productDocs = [];
@@ -193,6 +193,99 @@ export const addOrder = async (orderData) => {
 
         return orderRef.id;
       });
+
+      // ==================== WHATSAPP: ORDEN RECIBIDA CON FOTO ====================
+      // Enviar notificación WhatsApp si la orden tiene fotos Y servicios (después de la transacción)
+      const orderImages = cleanOrderData.orderImages;
+      const whatsappPhone = cleanOrderData.phone;
+      const hasServices = cleanOrderData.services && cleanOrderData.services.length > 0;
+
+      if (hasServices && orderImages && orderImages.length > 0 && whatsappPhone) {
+        // Necesitamos obtener el trackingToken que se generó en la transacción
+        const orderDoc = await getDoc(doc(db, 'orders', orderId));
+        const orderDataFromDb = orderDoc.data();
+
+        const newOrderWithId = {
+          id: orderId,
+          ...orderDataFromDb
+        };
+
+        try {
+          const orderReceivedResult = await sendOrderReceivedNotification(newOrderWithId);
+
+          // Actualizar documento con historial de WhatsApp
+          if (orderReceivedResult.success) {
+            console.log('✅ [Firebase] Notificación orden recibida enviada exitosamente');
+
+            const newNotifications = [];
+
+            // Agregar mensaje 1: Template
+            newNotifications.push({
+              type: 'template_order_received',
+              sentAt: orderReceivedResult.timestamp,
+              status: orderReceivedResult.status,
+              messageId: orderReceivedResult.messageId,
+              message: orderReceivedResult.message
+            });
+
+            // Agregar mensaje 2: Imagen (si se envió exitosamente)
+            if (orderReceivedResult.imageResult && orderReceivedResult.imageResult.success) {
+              newNotifications.push({
+                type: 'image_order_received',
+                sentAt: orderReceivedResult.imageResult.timestamp,
+                status: orderReceivedResult.imageResult.status,
+                messageId: orderReceivedResult.imageResult.messageId,
+                message: '📸 Foto de la orden enviada al cliente'
+              });
+            }
+
+            await updateDoc(doc(db, 'orders', orderId), {
+              whatsappNotifications: newNotifications
+            });
+          } else if (!orderReceivedResult.skipped) {
+            console.error('❌ [Firebase] Error enviando notificación orden recibida:', orderReceivedResult.error);
+
+            // Registrar error en historial
+            const failedNotifications = [{
+              type: 'template_order_received',
+              sentAt: orderReceivedResult.timestamp,
+              status: 'failed',
+              error: orderReceivedResult.error,
+              errorCode: orderReceivedResult.errorCode
+            }];
+
+            // Agregar resultado de imagen (exitosa o fallida)
+            if (orderReceivedResult.imageResult) {
+              if (orderReceivedResult.imageResult.success) {
+                failedNotifications.push({
+                  type: 'image_order_received',
+                  sentAt: orderReceivedResult.imageResult.timestamp,
+                  status: orderReceivedResult.imageResult.status,
+                  messageId: orderReceivedResult.imageResult.messageId,
+                  message: '📸 Foto de la orden enviada al cliente'
+                });
+              } else {
+                failedNotifications.push({
+                  type: 'image_order_received',
+                  sentAt: orderReceivedResult.imageResult.timestamp,
+                  status: 'failed',
+                  error: orderReceivedResult.imageResult.error,
+                  errorCode: orderReceivedResult.imageResult.errorCode
+                });
+              }
+            }
+
+            await updateDoc(doc(db, 'orders', orderId), {
+              whatsappNotifications: failedNotifications
+            });
+          }
+        } catch (error) {
+          console.error('❌ [Firebase] Error inesperado enviando notificación WhatsApp:', error);
+          // No bloquear la creación de la orden si falla WhatsApp
+        }
+      }
+
+      return orderId;
     } else {
       // Si no hay productos, crear orden normalmente
       const ordersRef = collection(db, 'orders');
@@ -209,6 +302,96 @@ export const addOrder = async (orderData) => {
       await updateDoc(docRef, {
         id: docRef.id
       });
+
+      // ==================== WHATSAPP: ORDEN RECIBIDA CON FOTO ====================
+      // Enviar notificación WhatsApp si la orden tiene fotos Y servicios
+      const orderImages = cleanOrderData.orderImages;
+      const whatsappPhone = cleanOrderData.phone;
+      const hasServices = cleanOrderData.services && cleanOrderData.services.length > 0;
+
+      if (hasServices && orderImages && orderImages.length > 0 && whatsappPhone) {
+        // Construir objeto completo de la orden para WhatsApp
+        const newOrderWithId = {
+          id: docRef.id,
+          ...cleanOrderData,
+          orderStatus: initialStatus,
+          trackingToken: trackingToken
+        };
+
+        try {
+          const orderReceivedResult = await sendOrderReceivedNotification(newOrderWithId);
+
+          // Actualizar documento con historial de WhatsApp
+          if (orderReceivedResult.success) {
+            console.log('✅ [Firebase] Notificación orden recibida enviada exitosamente');
+
+            const newNotifications = [];
+
+            // Agregar mensaje 1: Template
+            newNotifications.push({
+              type: 'template_order_received',
+              sentAt: orderReceivedResult.timestamp,
+              status: orderReceivedResult.status,
+              messageId: orderReceivedResult.messageId,
+              message: orderReceivedResult.message
+            });
+
+            // Agregar mensaje 2: Imagen (si se envió exitosamente)
+            if (orderReceivedResult.imageResult && orderReceivedResult.imageResult.success) {
+              newNotifications.push({
+                type: 'image_order_received',
+                sentAt: orderReceivedResult.imageResult.timestamp,
+                status: orderReceivedResult.imageResult.status,
+                messageId: orderReceivedResult.imageResult.messageId,
+                message: '📸 Foto de la orden enviada al cliente'
+              });
+            }
+
+            await updateDoc(docRef, {
+              whatsappNotifications: newNotifications
+            });
+          } else if (!orderReceivedResult.skipped) {
+            console.error('❌ [Firebase] Error enviando notificación orden recibida:', orderReceivedResult.error);
+
+            // Registrar error en historial
+            const failedNotifications = [{
+              type: 'template_order_received',
+              sentAt: orderReceivedResult.timestamp,
+              status: 'failed',
+              error: orderReceivedResult.error,
+              errorCode: orderReceivedResult.errorCode
+            }];
+
+            // Agregar resultado de imagen (exitosa o fallida)
+            if (orderReceivedResult.imageResult) {
+              if (orderReceivedResult.imageResult.success) {
+                failedNotifications.push({
+                  type: 'image_order_received',
+                  sentAt: orderReceivedResult.imageResult.timestamp,
+                  status: orderReceivedResult.imageResult.status,
+                  messageId: orderReceivedResult.imageResult.messageId,
+                  message: '📸 Foto de la orden enviada al cliente'
+                });
+              } else {
+                failedNotifications.push({
+                  type: 'image_order_received',
+                  sentAt: orderReceivedResult.imageResult.timestamp,
+                  status: 'failed',
+                  error: orderReceivedResult.imageResult.error,
+                  errorCode: orderReceivedResult.imageResult.errorCode
+                });
+              }
+            }
+
+            await updateDoc(docRef, {
+              whatsappNotifications: failedNotifications
+            });
+          }
+        } catch (error) {
+          console.error('❌ [Firebase] Error inesperado enviando notificación WhatsApp:', error);
+          // No bloquear la creación de la orden si falla WhatsApp
+        }
+      }
 
       return docRef.id;
     }
@@ -294,13 +477,106 @@ export const updateOrder = async (orderId, orderData) => {
       }
     }
 
+    // ==================== WHATSAPP: DETECTAR PRIMERA FOTO AGREGADA ====================
+    // Detectar si se agregó la primera foto a una orden existente
+    const oldImages = currentOrderData.orderImages || [];
+    const newImages = orderData.orderImages || [];
+    const isFirstImageAdded = oldImages.length === 0 && newImages.length > 0;
+
+    let orderReceivedResult = null;
+
+    // Solo enviar si tiene servicios Y es primera foto agregada
+    const completeOrderData = {
+      id: orderId,
+      ...currentOrderData,
+      ...orderData
+    };
+    const hasServices = completeOrderData.services && completeOrderData.services.length > 0;
+
+    if (isFirstImageAdded && hasServices) {
+      console.log('📱 [Firebase] Primera foto agregada, enviando notificación orden recibida...');
+      orderReceivedResult = await sendOrderReceivedNotification(completeOrderData);
+
+      // Add WhatsApp notifications to the notifications array
+      if (orderReceivedResult.success) {
+        console.log('✅ [Firebase] Notificación orden recibida enviada exitosamente');
+
+        const existingNotifications = currentOrderData.whatsappNotifications || [];
+        const newNotifications = [...existingNotifications];
+
+        // Agregar mensaje 1: Template
+        newNotifications.push({
+          type: 'template_order_received',
+          sentAt: orderReceivedResult.timestamp,
+          status: orderReceivedResult.status,
+          messageId: orderReceivedResult.messageId,
+          message: orderReceivedResult.message
+        });
+
+        // Agregar mensaje 2: Imagen (si se envió exitosamente)
+        if (orderReceivedResult.imageResult && orderReceivedResult.imageResult.success) {
+          newNotifications.push({
+            type: 'image_order_received',
+            sentAt: orderReceivedResult.imageResult.timestamp,
+            status: orderReceivedResult.imageResult.status,
+            messageId: orderReceivedResult.imageResult.messageId,
+            message: '📸 Foto de la orden enviada al cliente'
+          });
+        }
+
+        updateData.whatsappNotifications = newNotifications;
+
+      } else if (!orderReceivedResult.skipped) {
+        // Only log errors if it wasn't skipped due to configuration
+        console.error('❌ [Firebase] Notificación orden recibida falló:', orderReceivedResult.error);
+
+        const existingNotifications = currentOrderData.whatsappNotifications || [];
+        const failedNotifications = [
+          {
+            type: 'template_order_received',
+            sentAt: orderReceivedResult.timestamp,
+            status: 'failed',
+            error: orderReceivedResult.error,
+            errorCode: orderReceivedResult.errorCode
+          }
+        ];
+
+        // Agregar resultado de imagen (exitosa o fallida)
+        if (orderReceivedResult.imageResult) {
+          if (orderReceivedResult.imageResult.success) {
+            failedNotifications.push({
+              type: 'image_order_received',
+              sentAt: orderReceivedResult.imageResult.timestamp,
+              status: orderReceivedResult.imageResult.status,
+              messageId: orderReceivedResult.imageResult.messageId,
+              message: '📸 Foto de la orden enviada al cliente'
+            });
+          } else {
+            failedNotifications.push({
+              type: 'image_order_received',
+              sentAt: orderReceivedResult.imageResult.timestamp,
+              status: 'failed',
+              error: orderReceivedResult.imageResult.error,
+              errorCode: orderReceivedResult.imageResult.errorCode
+            });
+          }
+        }
+
+        updateData.whatsappNotifications = [
+          ...existingNotifications,
+          ...failedNotifications
+        ];
+      }
+    }
+
     // Update the order
     await updateDoc(orderRef, updateData);
 
     // Return result with WhatsApp info if applicable
     return {
       success: true,
-      whatsappResult: whatsappResult
+      whatsappResult: whatsappResult,
+      orderReceivedResult: orderReceivedResult
     };
 
   } catch (error) {

@@ -3,11 +3,13 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]linkear tablas por id y no por name
--[]fixes iphoto
--[]restringir el poder actualizar el nombre del servicio para no perder el link entre ordenes onflight y el servicio utilizado
--[]validar integridad de datos en formularios y campos de entrada de datos del usuario
--[]buscar bugs en todos los flujos de funcionalidades
+-[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
+    -listo solo falta que meta aprueba la plantilla
+-[FIX]poder hacer un corte de caja sin meter ordenes como insumos, es decir, sin validar de donde viene el dinero
+-[]al agregar producto al inventario, agregar boton generar código de barras aleatorio para ofrecer la opcion al usuario
+-[]Imprimir doble ticket
+-[]Clientes enumerados
+-[]Al ver un preview de la foto se corta la x para cerrar el preview
 
 // PRIORIDAD ALTA
 
@@ -20,6 +22,7 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
+-[]validar integridad de datos en formularios y campos de entrada de datos del usuario
 -[]placeholders cuando data esta cargando
 -[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados.
 -[]agregar campo cumpleaños para el cliente
@@ -61,6 +64,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]buscar bugs en todos los flujos de funcionalidades
+-[]linkear tablas por id y no por name
 -[]agregar orderCreatedBy property en orders, que sea el empleado de la app el nombre que guarde
 -[FEATURE]Habilitar opcion de descuento en la paymentscreen
 -[FEATURE]que al momento de agregar los items al carrito cuando se crea una orden, validar automaticamente si aplica alguna promoción a la orden y mostrar la promo y el descuento a la orden
