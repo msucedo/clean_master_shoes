@@ -9,7 +9,6 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     name: '',
     category: 'Tenis',
     description: '',
-    sku: '',
     barcode: '',
     emoji: '📦',
     purchasePrice: '',
@@ -29,7 +28,6 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         name: initialData.name || '',
         category: initialData.category || 'Tenis',
         description: initialData.description || '',
-        sku: initialData.sku || '',
         barcode: initialData.barcode || '',
         emoji: initialData.emoji || '📦',
         purchasePrice: initialData.purchasePrice || '',
@@ -50,10 +48,6 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
 
     if (!formData.category) {
       newErrors.category = 'La categoría es requerida';
-    }
-
-    if (!formData.sku.trim()) {
-      newErrors.sku = 'El SKU es requerido';
     }
 
     if (formData.purchasePrice === '' || isNaN(formData.purchasePrice) || parseFloat(formData.purchasePrice) < 0) {
@@ -131,6 +125,37 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     return { profit, percentage };
   };
 
+  const generateEAN13 = () => {
+    // Solo genera si el campo está vacío
+    if (formData.barcode.trim() !== '') {
+      return;
+    }
+
+    // Generar los primeros 12 dígitos aleatorios
+    let digits = '';
+    for (let i = 0; i < 12; i++) {
+      digits += Math.floor(Math.random() * 10);
+    }
+
+    // Calcular el dígito verificador usando el algoritmo EAN-13
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      const digit = parseInt(digits[i]);
+      // Multiplicar por 1 si la posición es par (0, 2, 4...), por 3 si es impar (1, 3, 5...)
+      sum += (i % 2 === 0) ? digit : digit * 3;
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+
+    // Generar el código EAN-13 completo
+    const ean13 = digits + checkDigit;
+
+    // Actualizar el campo de código de barras
+    setFormData(prev => ({
+      ...prev,
+      barcode: ean13
+    }));
+  };
+
   const { profit, percentage } = calculateProfit();
 
   return (
@@ -168,32 +193,28 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
           {errors.category && <span className="error-message">{errors.category}</span>}
         </div>
 
-        {/* SKU */}
-        <div className="form-group">
-          <label htmlFor="sku">SKU (Código Interno) *</label>
-          <input
-            type="text"
-            id="sku"
-            name="sku"
-            value={formData.sku}
-            onChange={handleChange}
-            className={errors.sku ? 'error' : ''}
-            placeholder="Ej: TNK-001"
-          />
-          {errors.sku && <span className="error-message">{errors.sku}</span>}
-        </div>
-
         {/* Código de Barras */}
         <div className="form-group">
           <label htmlFor="barcode">Código de Barras</label>
-          <input
-            type="text"
-            id="barcode"
-            name="barcode"
-            value={formData.barcode}
-            onChange={handleChange}
-            placeholder="Ej: 1234567890123"
-          />
+          <div className="barcode-input-group">
+            <input
+              type="text"
+              id="barcode"
+              name="barcode"
+              value={formData.barcode}
+              onChange={handleChange}
+              placeholder="Ej: 1234567890123"
+            />
+            <button
+              type="button"
+              className="btn-generate-barcode"
+              onClick={generateEAN13}
+              disabled={formData.barcode.trim() !== ''}
+              title={formData.barcode.trim() !== '' ? 'El campo ya tiene un código' : 'Generar código EAN-13 aleatorio'}
+            >
+              🎲 Generar
+            </button>
+          </div>
         </div>
 
         {/* Emoji */}

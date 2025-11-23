@@ -97,6 +97,42 @@
     color: #ef4444;
 }
 
+/* Barcode Input Group */
+.barcode-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.barcode-input-group input {
+    flex: 1;
+}
+
+.btn-generate-barcode {
+    padding: 12px 16px;
+    border: 1px solid var(--color-primary);
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-generate-barcode:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-generate-barcode:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #666;
+    color: #666;
+}
+
 .error-message {
     font-size: 12px;
     color: #ff4444;

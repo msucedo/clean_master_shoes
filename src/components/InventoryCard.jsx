@@ -47,14 +47,13 @@ const InventoryCard = ({ product, onClick }) => {
       <div className="product-info">
         <div className="product-header">
           <h3 className="product-name">{product.name}</h3>
-          <div className="product-codes">
-            <span className="product-sku" title="SKU">SKU: {product.sku}</span>
-            {product.barcode && (
+          {product.barcode && (
+            <div className="product-codes">
               <span className="product-barcode" title="Código de Barras">
                 📊 {product.barcode}
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Stock Section */}

@@ -53,7 +53,6 @@ const Inventory = () => {
     if (searchTerm) {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (product.barcode && product.barcode.includes(searchTerm)) ||
         (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
@@ -155,7 +154,7 @@ const Inventory = () => {
         showSearch={true}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Buscar por nombre, SKU o código de barras..."
+        searchPlaceholder="Buscar por nombre o código de barras..."
         filters={[
           {
             label: 'Todas',
