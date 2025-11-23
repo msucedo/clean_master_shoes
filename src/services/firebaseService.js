@@ -235,7 +235,7 @@ export const addOrder = async (orderData) => {
                 sentAt: orderReceivedResult.imageResult.timestamp,
                 status: orderReceivedResult.imageResult.status,
                 messageId: orderReceivedResult.imageResult.messageId,
-                message: '📸 Foto de la orden enviada al cliente'
+                message: '📸 Foto de su orden'
               });
             }
 
@@ -262,7 +262,7 @@ export const addOrder = async (orderData) => {
                   sentAt: orderReceivedResult.imageResult.timestamp,
                   status: orderReceivedResult.imageResult.status,
                   messageId: orderReceivedResult.imageResult.messageId,
-                  message: '📸 Foto de la orden enviada al cliente'
+                  message: '📸 Foto de su orden'
                 });
               } else {
                 failedNotifications.push({
@@ -343,7 +343,7 @@ export const addOrder = async (orderData) => {
                 sentAt: orderReceivedResult.imageResult.timestamp,
                 status: orderReceivedResult.imageResult.status,
                 messageId: orderReceivedResult.imageResult.messageId,
-                message: '📸 Foto de la orden enviada al cliente'
+                message: '📸 Foto de su orden'
               });
             }
 
@@ -370,7 +370,7 @@ export const addOrder = async (orderData) => {
                   sentAt: orderReceivedResult.imageResult.timestamp,
                   status: orderReceivedResult.imageResult.status,
                   messageId: orderReceivedResult.imageResult.messageId,
-                  message: '📸 Foto de la orden enviada al cliente'
+                  message: '📸 Foto de su orden'
                 });
               } else {
                 failedNotifications.push({
@@ -520,7 +520,7 @@ export const updateOrder = async (orderId, orderData) => {
             sentAt: orderReceivedResult.imageResult.timestamp,
             status: orderReceivedResult.imageResult.status,
             messageId: orderReceivedResult.imageResult.messageId,
-            message: '📸 Foto de la orden enviada al cliente'
+            message: '📸 Foto de su orden'
           });
         }
 
@@ -549,7 +549,7 @@ export const updateOrder = async (orderId, orderData) => {
               sentAt: orderReceivedResult.imageResult.timestamp,
               status: orderReceivedResult.imageResult.status,
               messageId: orderReceivedResult.imageResult.messageId,
-              message: '📸 Foto de la orden enviada al cliente'
+              message: '📸 Foto de su orden'
             });
           } else {
             failedNotifications.push({

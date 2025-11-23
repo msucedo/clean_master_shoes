@@ -217,7 +217,7 @@ const sendTemplateMessage = async (to, templateName, components) => {
     template: {
       name: templateName,
       language: {
-        code: 'es_MX' // Spanish (Mexico)
+        code: templateName === 'orden_enproceso' ? 'en' : 'es_MX' // en for orden_enproceso, es_MX for others
       },
       components: components
     }
@@ -734,7 +734,7 @@ Tu orden #${orderNumber} está en proceso🎉
           imageResult = await sendImageMessage(
             formattedPhone,
             uploadResult.mediaId,
-            '📸 Foto de la orden enviada al cliente'
+            '📸 Foto de su orden'
           );
         } else {
           console.error('❌ [WhatsApp] Error subiendo imagen:', uploadResult.error);

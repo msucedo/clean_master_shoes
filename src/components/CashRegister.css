@@ -794,6 +794,36 @@
   box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
 }
 
+.cr-tipo-tarjeta-select {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 100px;
+}
+
+.cr-tipo-tarjeta-select:hover {
+  border-color: #FF006E;
+  background: rgba(255, 0, 110, 0.05);
+}
+
+.cr-tipo-tarjeta-select:focus {
+  outline: none;
+  border-color: #FF006E;
+  box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
+}
+
+.cr-tipo-tarjeta-select option {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 10px;
+}
+
 .cr-payment-delete {
   background: rgba(255, 0, 110, 0.1);
   border: 1px solid rgba(255, 0, 110, 0.2);

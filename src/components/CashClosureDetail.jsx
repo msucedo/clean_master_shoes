@@ -263,22 +263,40 @@ const CashClosureDetail = ({ closure, onClose }) => {
         {closure.conteoIngresos && closure.conteoIngresos.tarjeta && (
           <div className="ccd-subsection">
             <h4 className="ccd-subsection-title">💳 Tarjeta (Terminal/TPV)</h4>
-            {closure.conteoIngresos.tarjeta.cobros && closure.conteoIngresos.tarjeta.cobros.length > 0 && (
-              <div className="ccd-payments-list">
-                {closure.conteoIngresos.tarjeta.cobros.map((monto, index) => (
-                  monto > 0 && (
-                    <div key={index} className="ccd-payment-item">
-                      <span>Cobro #{index + 1}:</span>
-                      <span>{formatCurrency(monto)}</span>
-                    </div>
-                  )
-                ))}
-              </div>
-            )}
-            <div className="ccd-subtotal">
-              <span>Total Tarjeta:</span>
-              <span>{formatCurrency(closure.conteoIngresos.tarjeta.total)}</span>
-            </div>
+            {closure.conteoIngresos.tarjeta.cobros && closure.conteoIngresos.tarjeta.cobros.length > 0 && (() => {
+              // Calcular totales por tipo
+              let totalDebito = 0;
+              let totalCredito = 0;
+
+              closure.conteoIngresos.tarjeta.cobros.forEach(cobro => {
+                // Manejar formato anterior (solo número) y nuevo formato (objeto)
+                const monto = typeof cobro === 'object' ? cobro.monto : cobro;
+                const tipo = typeof cobro === 'object' ? cobro.tipo : 'debito';
+
+                if (tipo === 'debito') {
+                  totalDebito += monto;
+                } else if (tipo === 'credito') {
+                  totalCredito += monto;
+                }
+              });
+
+              return (
+                <>
+                  <div className="ccd-subtotal">
+                    <span>Total Tarjetas Débito:</span>
+                    <span>{formatCurrency(totalDebito)}</span>
+                  </div>
+                  <div className="ccd-subtotal">
+                    <span>Total Tarjetas Crédito:</span>
+                    <span>{formatCurrency(totalCredito)}</span>
+                  </div>
+                  <div className="ccd-subtotal">
+                    <span>Total Tarjeta:</span>
+                    <span>{formatCurrency(closure.conteoIngresos.tarjeta.total)}</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
 

@@ -53,7 +53,7 @@ const CashRegister = ({ orders, dateFilter }) => {
   });
 
   // Tarjeta - Lista de cobros
-  const [cobrosTarjeta, setCobrosTarjeta] = useState([{ monto: '' }]);
+  const [cobrosTarjeta, setCobrosTarjeta] = useState([{ monto: '', tipo: 'debito' }]);
 
   // Transferencia - Lista de transferencias
   const [transferencias, setTransferencias] = useState([{ monto: '' }]);
@@ -260,8 +260,14 @@ const CashRegister = ({ orders, dateFilter }) => {
     setCobrosTarjeta(nuevosCobros);
   };
 
+  const handleTipoTarjetaChange = (index, tipo) => {
+    const nuevosCobros = [...cobrosTarjeta];
+    nuevosCobros[index].tipo = tipo;
+    setCobrosTarjeta(nuevosCobros);
+  };
+
   const agregarCobroTarjeta = () => {
-    setCobrosTarjeta([...cobrosTarjeta, { monto: '' }]);
+    setCobrosTarjeta([...cobrosTarjeta, { monto: '', tipo: 'debito' }]);
   };
 
   const eliminarCobroTarjeta = (index) => {
@@ -358,7 +364,7 @@ const CashRegister = ({ orders, dateFilter }) => {
                 total: efectivoContado
               },
               tarjeta: {
-                cobros: cobrosTarjeta.map(c => parseFloat(c.monto) || 0),
+                cobros: cobrosTarjeta.map(c => ({ monto: parseFloat(c.monto) || 0, tipo: c.tipo })),
                 total: tarjetaContada
               },
               transferencia: {
@@ -656,6 +662,14 @@ const CashRegister = ({ orders, dateFilter }) => {
                   step="0.01"
                   min="0"
                 />
+                <select
+                  className="cr-tipo-tarjeta-select"
+                  value={cobro.tipo}
+                  onChange={(e) => handleTipoTarjetaChange(index, e.target.value)}
+                >
+                  <option value="debito">Débito</option>
+                  <option value="credito">Crédito</option>
+                </select>
                 {cobrosTarjeta.length > 1 && (
                   <button
                     className="cr-payment-delete"
