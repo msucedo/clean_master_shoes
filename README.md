@@ -3,13 +3,11 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[FEATURE]corte de caja>conteo de efectivo>tarjetas:se agrega tipo debito/credito
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
 -[]al agregar producto al inventario, agregar boton generar código de barras aleatorio para ofrecer la opcion al usuario
 -[]Imprimir doble ticket
 -[]Clientes enumerados
--[]Al ver un preview de la foto se corta la x para cerrar el preview
 
 // PRIORIDAD ALTA
 
@@ -64,6 +62,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]Al ver un preview de la foto se corta la x para cerrar el preview
+-[FEATURE]corte de caja>conteo de efectivo>tarjetas:se agrega tipo debito/credito
 -[FIX]poder hacer un corte de caja sin meter ordenes como insumos, es decir, sin validar de donde viene el dinero
 -[]buscar bugs en todos los flujos de funcionalidades
 -[]linkear tablas por id y no por name
