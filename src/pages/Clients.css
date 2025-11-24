@@ -108,6 +108,86 @@
     }
 }
 
+/* Table Headers (Sortable) */
+.clients-table-header {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 1.25rem);
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 4vw, 1.875rem);
+    margin: 0 var(--space-md) var(--gap-sm) var(--space-md);
+    border-bottom: 2px solid #2a2a2a;
+}
+
+.header-cell {
+    font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-cell:hover {
+    color: #999;
+}
+
+.header-cell.active {
+    color: var(--color-primary);
+}
+
+.header-number {
+    min-width: clamp(2rem, 5vw, 2.5rem);
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.header-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-spacer {
+    flex: 1;
+}
+
+.header-orders,
+.header-debt {
+    min-width: clamp(4rem, 8vw, 5rem);
+    text-align: center;
+}
+
+.sort-indicator {
+    font-size: 1rem;
+    color: var(--color-primary);
+    font-weight: 900;
+}
+
+@media (max-width: 768px) {
+    .clients-table-header {
+        font-size: 0.7rem;
+    }
+
+    .header-spacer {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .clients-table-header {
+        gap: clamp(0.5rem, 2vw, 1rem);
+        padding: 0.5rem 1rem;
+    }
+
+    .header-cell {
+        font-size: 0.65rem;
+    }
+}
+
 /* Clients List */
 .clients-list {
     background: transparent;

@@ -24,6 +24,8 @@ const Clients = () => {
   const { showSuccess, showError, showInfo } = useNotification();
   const isAdmin = useAdminCheck();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('id'); // 'id', 'name', 'orders', 'debt'
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc', 'desc'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [clients, setClients] = useState([]);
@@ -222,6 +224,17 @@ const Clients = () => {
     }
 
     return filtered;
+  };
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      // Si es el mismo campo, invertir dirección
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Si es campo nuevo, establecer ese campo con dirección ascendente
+      setSortBy(field);
+      setSortDirection('asc');
+    }
   };
 
   const handleOpenNewClient = () => {
@@ -436,7 +449,44 @@ const Clients = () => {
     });
   };
 
-  const filteredClients = filterClients(clients);
+  const filteredClients = useMemo(() => {
+    const filtered = filterClients(clients);
+
+    // Aplicar sorting
+    return [...filtered].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case 'id':
+          aValue = clientNumbers.get(a.id) || 0;
+          bValue = clientNumbers.get(b.id) || 0;
+          break;
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'orders':
+          const aMetrics = clientMetrics.get(a.id);
+          const bMetrics = clientMetrics.get(b.id);
+          aValue = aMetrics?.orders || 0;
+          bValue = bMetrics?.orders || 0;
+          break;
+        case 'debt':
+          const aMetricsDebt = clientMetrics.get(a.id);
+          const bMetricsDebt = clientMetrics.get(b.id);
+          aValue = aMetricsDebt?.debt || 0;
+          bValue = bMetricsDebt?.debt || 0;
+          break;
+        default:
+          return 0;
+      }
+
+      // Comparar valores
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [clients, searchTerm, sortBy, sortDirection, clientNumbers, clientMetrics]);
 
   return (
     <div className="clients-page">
@@ -503,6 +553,57 @@ const Clients = () => {
             value={clientStats.avgOrdersPerClient}
             type="promedio"
           />
+        </div>
+      )}
+
+      {/* Table Headers (Sortable) */}
+      {!loading && clients.length > 0 && (
+        <div className="clients-table-header">
+          <div
+            className={`header-cell header-number ${sortBy === 'id' ? 'active' : ''}`}
+            onClick={() => handleSort('id')}
+          >
+            #
+            {sortBy === 'id' && (
+              <span className="sort-indicator">
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </span>
+            )}
+          </div>
+          <div
+            className={`header-cell header-name ${sortBy === 'name' ? 'active' : ''}`}
+            onClick={() => handleSort('name')}
+          >
+            Nombre
+            {sortBy === 'name' && (
+              <span className="sort-indicator">
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </span>
+            )}
+          </div>
+          <div className="header-spacer"></div>
+          <div
+            className={`header-cell header-orders ${sortBy === 'orders' ? 'active' : ''}`}
+            onClick={() => handleSort('orders')}
+          >
+            Órdenes
+            {sortBy === 'orders' && (
+              <span className="sort-indicator">
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </span>
+            )}
+          </div>
+          <div
+            className={`header-cell header-debt ${sortBy === 'debt' ? 'active' : ''}`}
+            onClick={() => handleSort('debt')}
+          >
+            Deuda
+            {sortBy === 'debt' && (
+              <span className="sort-indicator">
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
