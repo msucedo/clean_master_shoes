@@ -326,6 +326,10 @@
     box-shadow: 0 2px 8px rgba(255, 0, 110, 0.15);
 }
 
+.client-order-item.overdue {
+    border-left: 3px solid #ef4444 !important;
+}
+
 .client-order-item:active {
     transform: translateX(2px);
 }

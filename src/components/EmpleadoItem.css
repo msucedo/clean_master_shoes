@@ -252,6 +252,10 @@
     box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
 }
 
+.empleado-order-item.overdue {
+    border-left: 3px solid #ef4444 !important;
+}
+
 .empleado-order-item:active {
     transform: translateX(2px);
 }

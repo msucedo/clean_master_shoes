@@ -16,7 +16,14 @@ const formatDeliveryDate = (dateString) => {
   tomorrow.setHours(0, 0, 0, 0);
   date.setHours(0, 0, 0, 0);
 
-  if (date.getTime() === today.getTime()) {
+  // Verificar si la fecha es pasada (ayer o anterior)
+  if (date.getTime() < today.getTime()) {
+    const options = { day: 'numeric', month: 'short' };
+    return {
+      text: date.toLocaleDateString('es-ES', options),
+      className: 'overdue'
+    };
+  } else if (date.getTime() === today.getTime()) {
     return { text: 'Hoy', className: 'urgent' };
   } else if (date.getTime() === tomorrow.getTime()) {
     return { text: 'Mañana', className: 'soon' };
@@ -115,7 +122,7 @@ const OrderCard = ({ order, onOrderClick }) => {
   }, [order.whatsappNotifications, order.hasUnreadMessages]);
 
   return (
-    <div className="order-card" onClick={() => onOrderClick(order)}>
+    <div className={`order-card ${dateInfo.className === 'overdue' ? 'overdue' : ''}`} onClick={() => onOrderClick(order)}>
       {/* Header */}
       <div className="order-card-header">
         <div className="order-id-badge">#{parseInt(order.orderNumber, 10)}</div>

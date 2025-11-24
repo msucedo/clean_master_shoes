@@ -16,6 +16,14 @@
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
+.order-card.overdue {
+    border: 2px solid #ef4444 !important;
+}
+
+.order-card.overdue:hover {
+    border-color: #dc2626 !important;
+}
+
 /* Order Card Header */
 .order-card-header {
     display: flex;

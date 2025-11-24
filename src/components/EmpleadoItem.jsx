@@ -62,6 +62,20 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
     return `hace ${Math.floor(diffInDays / 365)} años`;
   };
 
+  const isDeliveryOverdue = (deliveryDateString) => {
+    if (!deliveryDateString) return false;
+
+    const [year, month, day] = deliveryDateString.split('-').map(Number);
+    const deliveryDate = new Date(year, month - 1, day);
+    const today = new Date();
+
+    deliveryDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    // Retorna true si la fecha de entrega es anterior a hoy
+    return deliveryDate.getTime() < today.getTime();
+  };
+
   const isActive = empleado.status === 'active';
 
   // Subscribe to orders and filter by employee
@@ -226,7 +240,7 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
               {activeOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="empleado-order-item"
+                  className={`empleado-order-item ${isDeliveryOverdue(order.deliveryDate) ? 'overdue' : ''}`}
                   onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
                   style={{ cursor: 'pointer' }}
                   title="Click para ver detalles de la orden"
@@ -287,7 +301,7 @@ const EmpleadoItem = ({ empleado, onClick, onOrderClick, showSuccess, showError 
               {unassignedOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="empleado-order-item assign-order-item"
+                  className={`empleado-order-item assign-order-item ${isDeliveryOverdue(order.deliveryDate) ? 'overdue' : ''}`}
                   onClick={() => onOrderClick && onOrderClick({ ...order, currentStatus: order.orderStatus })}
                   style={{ cursor: 'pointer' }}
                   title="Click para ver detalles de la orden"

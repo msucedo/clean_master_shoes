@@ -6,13 +6,11 @@ Clean master shoes
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
     -[]esperando meta apruebe plantilla con foto
--[]Clientes enumerados
 -[]agregar la foto de la orden a la pagina de rastreo
 
 // PRIORIDAD ALTA
 
 // PRIORIDAD MEDIA
--[FEATURE]Si la fecha de entrega ya pasó y el estado no es en entrega entonces en ordercard ponle retrasado, escenario 2: si la fecha de entrega ya pasó y si esta en estado en entrega ponle cliente retrasado
 
 // PRIORIDAD BAJA
 -[FEATURE]en el header agregar icono de notificaciones y que aparezca un desplegable con las ultimas 10 notificaciones lanzadas
@@ -62,6 +60,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]Si la fecha de entrega ya pasó y la orden aun tiene uno de los cuatro estados, pintar rojo el borde
+-[FEATURE]Clientes enumerados and clients stats cards
 -[FEATURE]Imprimir doble ticket
 -[FEATURE]habilitar en configuracion opcion para activar o desactivar envio de mensajes por wapp
 -[FIX]loading animation cuando carga la pagina de rastreo
