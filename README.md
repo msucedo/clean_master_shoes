@@ -3,6 +3,7 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[FIX]fix animacion de carga de pantalla de rastreo de ordenes
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
     -[]esperando meta apruebe plantilla con foto
@@ -20,7 +21,7 @@ Clean master shoes
 // BACKLOG
 -[]validar integridad de datos en formularios y campos de entrada de datos del usuario
 -[]placeholders cuando data esta cargando
--[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados.
+-[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados., quien puede crear o editar inventario o eliminar clientes?
 -[]agregar campo cumpleaños para el cliente
 -[]remover opcion de agregar cliente directamente desde tabs clientes, solo se agregan al crear una nueva orden en caso de no existir.
 -[]manualmente puedes asignar vip a un cliente desde la tab clientes, en los datos del cliente
