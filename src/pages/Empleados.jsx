@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import EmpleadoItem from '../components/EmpleadoItem';
+import EmpleadoItemSkeleton from '../components/EmpleadoItemSkeleton';
 import Modal from '../components/Modal';
 import EmpleadoForm from '../components/EmpleadoForm';
 import OrderDetailView from '../components/OrderDetailView';
@@ -330,10 +331,13 @@ const Empleados = () => {
       {/* Empleados List */}
       <div className="empleados-list">
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <div className="empty-text">Cargando empleados...</div>
-          </div>
+          <>
+            <EmpleadoItemSkeleton />
+            <EmpleadoItemSkeleton />
+            <EmpleadoItemSkeleton />
+            <EmpleadoItemSkeleton />
+            <EmpleadoItemSkeleton />
+          </>
         ) : filteredEmpleados.length > 0 ? (
           filteredEmpleados.map((empleado) => (
             <EmpleadoItem

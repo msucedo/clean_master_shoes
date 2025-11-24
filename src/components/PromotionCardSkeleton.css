@@ -1,0 +1,120 @@
+/* Promotion Card Skeleton */
+.promotion-card-skeleton {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  padding: clamp(1.25rem, 3vw, 1.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  transition: all 0.3s;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1a1a1a 0%,
+    #2a2a2a 50%,
+    #1a1a1a 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Header */
+.promotion-header-skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--gap-md);
+}
+
+.promotion-title-section-skeleton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.skeleton-promotion-emoji {
+  width: clamp(2rem, 5vw, 2.5rem);
+  height: clamp(2rem, 5vw, 2.5rem);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.skeleton-text-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.skeleton-promotion-name {
+  width: 75%;
+  height: clamp(1.125rem, 3vw, 1.25rem);
+  border-radius: 6px;
+}
+
+.skeleton-promotion-type {
+  width: 45%;
+  height: clamp(0.75rem, 2vw, 0.875rem);
+  border-radius: 4px;
+}
+
+.skeleton-promotion-discount {
+  width: clamp(4.5rem, 12vw, 6rem);
+  height: clamp(2rem, 5vw, 2.5rem);
+  border-radius: 12px;
+}
+
+/* Status Badge */
+.skeleton-status-badge {
+  width: clamp(5rem, 15vw, 7rem);
+  height: clamp(1.75rem, 4vw, 2rem);
+  border-radius: 12px;
+  align-self: flex-start;
+}
+
+/* Description */
+.skeleton-promotion-description {
+  width: 100%;
+  height: clamp(2rem, 5vw, 2.5rem);
+  border-radius: 8px;
+}
+
+/* Details */
+.promotion-details-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.skeleton-detail {
+  width: 80%;
+  height: clamp(1.125rem, 3vw, 1.25rem);
+  border-radius: 6px;
+}
+
+/* Actions */
+.promotion-actions-skeleton {
+  display: flex;
+  gap: var(--gap-sm);
+  margin-top: var(--gap-sm);
+}
+
+.skeleton-btn-action {
+  flex: 1;
+  height: clamp(2.5rem, 6vw, 3rem);
+  border-radius: 12px;
+}

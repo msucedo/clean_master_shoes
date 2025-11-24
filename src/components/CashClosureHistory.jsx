@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getAllCashRegisterClosures } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import CashClosureHistorySkeleton from './CashClosureHistorySkeleton';
 import './CashClosureHistory.css';
 
 const CashClosureHistory = ({ onViewDetails }) => {
@@ -66,12 +67,7 @@ const CashClosureHistory = ({ onViewDetails }) => {
   });
 
   if (loading) {
-    return (
-      <div className="ch-loading">
-        <div className="ch-loading-icon">⏳</div>
-        <div className="ch-loading-text">Cargando historial...</div>
-      </div>
-    );
+    return <CashClosureHistorySkeleton />;
   }
 
   if (closures.length === 0) {

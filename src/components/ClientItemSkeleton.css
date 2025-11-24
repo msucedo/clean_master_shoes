@@ -1,0 +1,107 @@
+/* Client Item Skeleton */
+.client-item-skeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: clamp(1rem, 3vw, 1.25rem);
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  transition: all 0.3s;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1a1a1a 0%,
+    #2a2a2a 50%,
+    #1a1a1a 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-client-avatar {
+  width: clamp(3rem, 8vw, 3.75rem);
+  height: clamp(3rem, 8vw, 3.75rem);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.client-info-skeleton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  min-width: 0;
+}
+
+.skeleton-client-name-skel {
+  width: 60%;
+  height: clamp(1.125rem, 3vw, 1.25rem);
+  border-radius: 6px;
+}
+
+.skeleton-client-phone-skel {
+  width: 45%;
+  height: clamp(0.875rem, 2vw, 1rem);
+  border-radius: 4px;
+}
+
+.client-meta-skeleton {
+  display: flex;
+  gap: var(--gap-lg);
+}
+
+.client-meta-item-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.skeleton-meta-value {
+  width: clamp(2rem, 5vw, 3rem);
+  height: clamp(1.25rem, 3vw, 1.5rem);
+  border-radius: 6px;
+}
+
+.skeleton-meta-label {
+  width: clamp(2.5rem, 6vw, 3.5rem);
+  height: clamp(0.625rem, 2vw, 0.75rem);
+  border-radius: 4px;
+}
+
+.skeleton-last-visit {
+  width: clamp(4rem, 10vw, 6rem);
+  height: clamp(0.875rem, 2vw, 1rem);
+  border-radius: 4px;
+}
+
+.client-actions-skeleton {
+  display: flex;
+  gap: var(--gap-sm);
+  align-items: center;
+}
+
+.skeleton-btn {
+  width: clamp(2rem, 5vw, 2.5rem);
+  height: clamp(2rem, 5vw, 2.5rem);
+  border-radius: 8px;
+}
+
+.skeleton-btn-history {
+  width: clamp(8rem, 20vw, 12rem);
+  height: clamp(2rem, 5vw, 2.5rem);
+  border-radius: 8px;
+}

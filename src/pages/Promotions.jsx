@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Modal from '../components/Modal';
 import PromotionForm from '../components/PromotionForm';
 import PromotionCard from '../components/PromotionCard';
+import PromotionCardSkeleton from '../components/PromotionCardSkeleton';
+import StatCardSkeleton from '../components/StatCardSkeleton';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
@@ -207,20 +209,24 @@ const Promotions = () => {
       />
 
       {/* Stats */}
-      <div className="promotions-stats">
-        <div className="stat-card">
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Total</div>
+      {loading ? (
+        <StatCardSkeleton count={3} />
+      ) : (
+        <div className="promotions-stats">
+          <div className="stat-card">
+            <div className="stat-value">{stats.total}</div>
+            <div className="stat-label">Total</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value active">{stats.active}</div>
+            <div className="stat-label">Activas</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value inactive">{stats.inactive}</div>
+            <div className="stat-label">Inactivas</div>
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value active">{stats.active}</div>
-          <div className="stat-label">Activas</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value inactive">{stats.inactive}</div>
-          <div className="stat-label">Inactivas</div>
-        </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="promotions-filters">
@@ -246,9 +252,13 @@ const Promotions = () => {
 
       {/* Promotions Grid */}
       {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Cargando promociones...</p>
+        <div className="promotions-grid">
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
+          <PromotionCardSkeleton />
         </div>
       ) : filteredPromotions.length === 0 ? (
         <div className="empty-state">

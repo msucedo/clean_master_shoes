@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Modal from '../components/Modal';
 import ServiceForm from '../components/ServiceForm';
 import ServiceCard from '../components/ServiceCard';
+import ServiceCardSkeleton from '../components/ServiceCardSkeleton';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
@@ -225,10 +226,14 @@ const Services = () => {
       {/* Services Grid */}
       <div className="services-grid">
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <h3>Cargando servicios...</h3>
-          </div>
+          <>
+            <ServiceCardSkeleton />
+            <ServiceCardSkeleton />
+            <ServiceCardSkeleton />
+            <ServiceCardSkeleton />
+            <ServiceCardSkeleton />
+            <ServiceCardSkeleton />
+          </>
         ) : error ? (
           <div className="empty-state">
             <div className="empty-icon">⚠️</div>

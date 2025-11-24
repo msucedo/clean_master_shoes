@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import ClientItem from '../components/ClientItem';
+import ClientItemSkeleton from '../components/ClientItemSkeleton';
 import Modal from '../components/Modal';
 import ClientForm from '../components/ClientForm';
 import OrderDetailView from '../components/OrderDetailView';
@@ -421,10 +422,14 @@ const Clients = () => {
       {/* Clients List */}
       <div className="clients-list">
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <div className="empty-text">Cargando clientes...</div>
-          </div>
+          <>
+            <ClientItemSkeleton />
+            <ClientItemSkeleton />
+            <ClientItemSkeleton />
+            <ClientItemSkeleton />
+            <ClientItemSkeleton />
+            <ClientItemSkeleton />
+          </>
         ) : filteredClients.length > 0 ? (
           filteredClients.map((client) => {
             const metrics = clientMetrics.get(client.id) || {

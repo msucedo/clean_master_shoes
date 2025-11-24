@@ -1,0 +1,64 @@
+/* Stat Cards Skeleton */
+.stat-cards-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: var(--gap-md);
+  margin-bottom: var(--space-lg);
+}
+
+.stat-card-skeleton-item {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: clamp(1rem, 3vw, 1.25rem);
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1a1a1a 0%,
+    #2a2a2a 50%,
+    #1a1a1a 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-stat-icon-card {
+  width: clamp(3rem, 8vw, 3.75rem);
+  height: clamp(3rem, 8vw, 3.75rem);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.stat-content-skeleton-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.skeleton-stat-value-card {
+  width: 60%;
+  height: clamp(1.5rem, 4vw, 2rem);
+  border-radius: 6px;
+}
+
+.skeleton-stat-label-card {
+  width: 80%;
+  height: clamp(0.75rem, 2vw, 0.875rem);
+  border-radius: 4px;
+}

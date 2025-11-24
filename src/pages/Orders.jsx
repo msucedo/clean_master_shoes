@@ -4,6 +4,7 @@ import OrderForm from '../components/OrderForm';
 import OrderFormMobile from '../components/OrderFormMobile';
 import OrderDetailView from '../components/OrderDetailView';
 import OrderCard from '../components/OrderCard';
+import OrderCardSkeleton from '../components/OrderCardSkeleton';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
@@ -582,10 +583,13 @@ const Orders = () => {
       {/* Orders List */}
       <div className="orders-list">
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <h3>Cargando órdenes...</h3>
-          </div>
+          <>
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+          </>
         ) : error ? (
           <div className="empty-state">
             <div className="empty-icon">⚠️</div>
