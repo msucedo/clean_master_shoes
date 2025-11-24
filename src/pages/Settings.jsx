@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import PrinterSettings from '../components/PrinterSettings';
+import SettingsFormSkeleton from '../components/SettingsFormSkeleton';
+import ToggleSkeleton from '../components/ToggleSkeleton';
 import { downloadBackup, getBackupInfo } from '../utils/backup';
 import { saveBusinessProfile, getBusinessProfile, saveWhatsAppConfig, getWhatsAppConfig } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
@@ -35,8 +37,8 @@ const Settings = () => {
   const [detectedPlatform, setDetectedPlatform] = useState(null);
 
   // WhatsApp Config State
-  const [enableOrderReceived, setEnableOrderReceived] = useState(true);
-  const [enableDeliveryReady, setEnableDeliveryReady] = useState(true);
+  const [enableOrderReceived, setEnableOrderReceived] = useState(null);
+  const [enableDeliveryReady, setEnableDeliveryReady] = useState(null);
   const [whatsappSaving, setWhatsappSaving] = useState(false);
   const [whatsappLoading, setWhatsappLoading] = useState(true);
 
@@ -230,55 +232,61 @@ const Settings = () => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Nombre del Negocio</label>
-            <input
-              type="text"
-              className="form-input"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Nombre del negocio"
-            />
-          </div>
+          {loading ? (
+            <SettingsFormSkeleton rows={3} />
+          ) : (
+            <>
+              <div className="form-group">
+                <label className="form-label">Nombre del Negocio</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Nombre del negocio"
+                />
+              </div>
 
-          <div className="form-group">
-            <label className="form-label">Teléfono</label>
-            <input
-              type="tel"
-              className="form-input"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Teléfono de contacto"
-            />
-          </div>
+              <div className="form-group">
+                <label className="form-label">Teléfono</label>
+                <input
+                  type="tel"
+                  className="form-input"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Teléfono de contacto"
+                />
+              </div>
 
-          <div className="form-group">
-            <label className="form-label">Dirección</label>
-            <input
-              type="text"
-              className="form-input"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Dirección del local"
-            />
-          </div>
+              <div className="form-group">
+                <label className="form-label">Dirección</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Dirección del local"
+                />
+              </div>
 
-          <div className="btn-group">
-            <button
-              className="btn-primary"
-              onClick={handleSaveProfile}
-              disabled={saving || loading}
-            >
-              {saving ? '⏳ Guardando...' : 'Guardar Cambios'}
-            </button>
-            <button
-              className="btn-secondary"
-              onClick={handleCancelProfile}
-              disabled={loading}
-            >
-              Cancelar
-            </button>
-          </div>
+              <div className="btn-group">
+                <button
+                  className="btn-primary"
+                  onClick={handleSaveProfile}
+                  disabled={saving || loading}
+                >
+                  {saving ? '⏳ Guardando...' : 'Guardar Cambios'}
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={handleCancelProfile}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Backup de Datos */}
@@ -372,66 +380,70 @@ const Settings = () => {
             </div>
           </div>
 
-          <div className="whatsapp-config">
-            <p className="config-description">
-              Activa o desactiva el envío de notificaciones automáticas de WhatsApp a tus clientes.
-            </p>
+          {whatsappLoading ? (
+            <ToggleSkeleton count={2} />
+          ) : (
+            <div className="whatsapp-config">
+              <p className="config-description">
+                Activa o desactiva el envío de notificaciones automáticas de WhatsApp a tus clientes.
+              </p>
 
-            <div className="toggle-group">
-              <div className="toggle-item">
-                <div className="toggle-info">
-                  <div className="toggle-title">Notificación de Orden Recibida</div>
-                  <div className="toggle-description">
-                    Envía mensaje automático cuando se crea una orden (plantilla: orden_enproceso)
+              <div className="toggle-group">
+                <div className="toggle-item">
+                  <div className="toggle-info">
+                    <div className="toggle-title">Notificación de Orden Recibida</div>
+                    <div className="toggle-description">
+                      Envía mensaje automático cuando se crea una orden (plantilla: orden_enproceso)
+                    </div>
                   </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={enableOrderReceived}
+                      onChange={(e) => setEnableOrderReceived(e.target.checked)}
+                      disabled={whatsappLoading}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={enableOrderReceived}
-                    onChange={(e) => setEnableOrderReceived(e.target.checked)}
-                    disabled={whatsappLoading}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
+
+                <div className="toggle-item">
+                  <div className="toggle-info">
+                    <div className="toggle-title">Notificación de Orden Lista</div>
+                    <div className="toggle-description">
+                      Envía mensaje automático cuando la orden está lista para entrega (plantilla: orden_lista_entrega)
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={enableDeliveryReady}
+                      onChange={(e) => setEnableDeliveryReady(e.target.checked)}
+                      disabled={whatsappLoading}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
               </div>
 
-              <div className="toggle-item">
-                <div className="toggle-info">
-                  <div className="toggle-title">Notificación de Orden Lista</div>
-                  <div className="toggle-description">
-                    Envía mensaje automático cuando la orden está lista para entrega (plantilla: orden_lista_entrega)
-                  </div>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={enableDeliveryReady}
-                    onChange={(e) => setEnableDeliveryReady(e.target.checked)}
-                    disabled={whatsappLoading}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
+              <div className="btn-group">
+                <button
+                  className="btn-primary"
+                  onClick={handleSaveWhatsAppConfig}
+                  disabled={whatsappSaving || whatsappLoading}
+                >
+                  {whatsappSaving ? '⏳ Guardando...' : 'Guardar Cambios'}
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={handleCancelWhatsAppConfig}
+                  disabled={whatsappLoading}
+                >
+                  Cancelar
+                </button>
               </div>
             </div>
-
-            <div className="btn-group">
-              <button
-                className="btn-primary"
-                onClick={handleSaveWhatsAppConfig}
-                disabled={whatsappSaving || whatsappLoading}
-              >
-                {whatsappSaving ? '⏳ Guardando...' : 'Guardar Cambios'}
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={handleCancelWhatsAppConfig}
-                disabled={whatsappLoading}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Método de Impresión */}
