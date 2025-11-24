@@ -22,6 +22,7 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { getNumberOfCopies } from '../utils/printerConfig';
 
 const COLLECTION_NAME = 'printQueue';
 
@@ -51,23 +52,57 @@ const getDeviceId = () => {
  */
 export const addPrintJob = async (orderId, orderNumber, ticketType = 'receipt') => {
   try {
-    const jobData = {
-      orderId,
-      orderNumber,
-      ticketType,
-      status: 'pending',
-      createdAt: serverTimestamp(),
-      createdBy: getDeviceId(),
-      assignedTo: null,
-      completedAt: null,
-      error: null
-    };
+    // Obtener número de copias configurado
+    const numberOfCopies = getNumberOfCopies();
+    console.log(`📋 Agregando ${numberOfCopies} trabajo(s) a la cola`);
 
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), jobData);
+    const jobIds = [];
 
-    console.log('📤 Print job added to queue:', docRef.id);
+    if (numberOfCopies === 1) {
+      // Crear un solo trabajo sin identificador de copia
+      const jobData = {
+        orderId,
+        orderNumber,
+        ticketType,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        createdBy: getDeviceId(),
+        assignedTo: null,
+        completedAt: null,
+        error: null,
+        copyInfo: null
+      };
 
-    return docRef.id;
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), jobData);
+      console.log('📤 Print job added to queue:', docRef.id);
+      jobIds.push(docRef.id);
+    } else {
+      // Crear múltiples trabajos con identificadores
+      const copyLabels = ['COPIA CLIENTE', 'COPIA NEGOCIO'];
+
+      for (let i = 0; i < numberOfCopies; i++) {
+        const jobData = {
+          orderId,
+          orderNumber,
+          ticketType,
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          createdBy: getDeviceId(),
+          assignedTo: null,
+          completedAt: null,
+          error: null,
+          copyInfo: copyLabels[i],
+          copyNumber: i + 1,
+          totalCopies: numberOfCopies
+        };
+
+        const docRef = await addDoc(collection(db, COLLECTION_NAME), jobData);
+        console.log(`📤 Print job added to queue (${copyLabels[i]}):`, docRef.id);
+        jobIds.push(docRef.id);
+      }
+    }
+
+    return jobIds;
   } catch (error) {
     console.error('Error adding print job:', error);
     throw error;

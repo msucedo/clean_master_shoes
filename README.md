@@ -3,11 +3,9 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[FEATURE]habilitar en configuracion opcion para activar o desactivar envio de mensajes por wapp
--[FIX]loading animation cuando carga la pagina de rastreo
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
--[]Imprimir doble ticket
+    -[]esperando meta apruebe plantilla con foto
 -[]Clientes enumerados
 -[]agregar la foto de la orden a la pagina de rastreo
 
@@ -64,6 +62,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]Imprimir doble ticket
+-[FEATURE]habilitar en configuracion opcion para activar o desactivar envio de mensajes por wapp
+-[FIX]loading animation cuando carga la pagina de rastreo
 -[FEATURE]al agregar producto al inventario, agregar boton generar código de barras aleatorio para ofrecer la opcion al usuario
 -[FIX]Al ver un preview de la foto se corta la x para cerrar el preview
 -[FEATURE]corte de caja>conteo de efectivo>tarjetas:se agrega tipo debito/credito

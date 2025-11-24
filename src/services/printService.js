@@ -17,7 +17,7 @@ import {
 } from '../utils/ticketFormatters';
 import { generateTicketPDFBlob } from '../utils/ticketPDFGenerator';
 import { bluetoothPrinter } from './bluetoothPrinterService';
-import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
+import { getPrinterMethodPreference, PRINTER_METHODS, getNumberOfCopies } from '../utils/printerConfig';
 
 /**
  * Detectar plataforma y capacidades del navegador
@@ -77,14 +77,14 @@ function _getRecommendedMethod(capabilities) {
 /**
  * MÉTODO 1: Impresión Desktop con window.print()
  */
-export const printTicketDesktop = async (order, businessInfo, ticketType) => {
+export const printTicketDesktop = async (order, businessInfo, ticketType, copyInfo = null) => {
   try {
     // Generar HTML según tipo de ticket
     let html;
     if (ticketType === 'receipt') {
-      html = formatReceiptTicketHTML(order, businessInfo);
+      html = formatReceiptTicketHTML(order, businessInfo, copyInfo);
     } else if (ticketType === 'delivery') {
-      html = formatDeliveryTicketHTML(order, businessInfo);
+      html = formatDeliveryTicketHTML(order, businessInfo, copyInfo);
     } else {
       throw new Error('Tipo de ticket inválido');
     }
@@ -136,7 +136,7 @@ export const printTicketDesktop = async (order, businessInfo, ticketType) => {
 /**
  * MÉTODO 2: Impresión Bluetooth con ESC/POS (Android/Desktop)
  */
-export const printTicketBluetooth = async (order, businessInfo, ticketType) => {
+export const printTicketBluetooth = async (order, businessInfo, ticketType, copyInfo = null) => {
   try {
     // Verificar soporte Bluetooth
     if (!bluetoothPrinter.isSupported()) {
@@ -188,9 +188,9 @@ export const printTicketBluetooth = async (order, businessInfo, ticketType) => {
     // Generar comandos ESC/POS según tipo de ticket
     let escposData;
     if (ticketType === 'receipt') {
-      escposData = formatReceiptTicketESCPOS(order, businessInfo);
+      escposData = formatReceiptTicketESCPOS(order, businessInfo, copyInfo);
     } else if (ticketType === 'delivery') {
-      escposData = formatDeliveryTicketESCPOS(order, businessInfo);
+      escposData = formatDeliveryTicketESCPOS(order, businessInfo, copyInfo);
     } else {
       throw new Error('Tipo de ticket inválido');
     }
@@ -248,6 +248,10 @@ export const printTicket = async (order, ticketType, options = {}) => {
       throw new Error('No se pudo obtener la información del negocio');
     }
 
+    // Obtener número de copias configurado
+    const numberOfCopies = getNumberOfCopies();
+    console.log(`📋 Número de copias configurado: ${numberOfCopies}`);
+
     // Detectar plataforma
     const platform = detectPlatform();
     console.log('🖥️  Plataforma detectada:', platform);
@@ -269,18 +273,50 @@ export const printTicket = async (order, ticketType, options = {}) => {
 
     console.log('📄 Método de impresión:', method);
 
-    // Ejecutar según método seleccionado
+    // Ejecutar impresión según número de copias
     let result;
 
-    switch (method) {
-      case 'bluetooth':
-        result = await printTicketBluetooth(order, businessInfo, ticketType);
-        break;
+    if (numberOfCopies === 1) {
+      // Imprimir una sola copia sin identificador
+      switch (method) {
+        case 'bluetooth':
+          result = await printTicketBluetooth(order, businessInfo, ticketType, null);
+          break;
 
-      case 'html':
-      default:
-        result = await printTicketDesktop(order, businessInfo, ticketType);
-        break;
+        case 'html':
+        default:
+          result = await printTicketDesktop(order, businessInfo, ticketType, null);
+          break;
+      }
+    } else {
+      // Imprimir múltiples copias con identificadores
+      const copyLabels = ['COPIA CLIENTE', 'COPIA NEGOCIO'];
+
+      for (let i = 0; i < numberOfCopies; i++) {
+        const copyInfo = copyLabels[i];
+        console.log(`🖨️  Imprimiendo ${copyInfo}...`);
+
+        switch (method) {
+          case 'bluetooth':
+            result = await printTicketBluetooth(order, businessInfo, ticketType, copyInfo);
+            break;
+
+          case 'html':
+          default:
+            result = await printTicketDesktop(order, businessInfo, ticketType, copyInfo);
+            break;
+        }
+
+        // Si hubo error en alguna copia, detener
+        if (!result.success) {
+          break;
+        }
+
+        // Delay entre impresiones (excepto después de la última)
+        if (i < numberOfCopies - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
     }
 
     return result;

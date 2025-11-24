@@ -102,7 +102,7 @@ const wrapText = (text, maxChars) => {
 /**
  * Generar PDF de ticket de recepción
  */
-export const generateReceiptTicketPDF = (order, businessInfo) => {
+export const generateReceiptTicketPDF = (order, businessInfo, copyInfo = null) => {
   // Crear PDF en formato de ticket (58mm de ancho)
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -114,6 +114,14 @@ export const generateReceiptTicketPDF = (order, businessInfo) => {
 
   // Fuente monoespaciada para mejor alineación
   pdf.setFont('courier');
+
+  // === IDENTIFICADOR DE COPIA (si aplica) ===
+  if (copyInfo) {
+    pdf.setFontSize(FONT_SIZE_NORMAL);
+    pdf.setFont('courier', 'bold');
+    pdf.text(`===== ${copyInfo} =====`, TICKET_WIDTH_MM / 2, yPos, { align: 'center' });
+    yPos += LINE_HEIGHT + 1;
+  }
 
   // === ENCABEZADO ===
   pdf.setFontSize(FONT_SIZE_TITLE);
@@ -334,7 +342,7 @@ export const generateReceiptTicketPDF = (order, businessInfo) => {
 /**
  * Generar PDF de comprobante de entrega
  */
-export const generateDeliveryTicketPDF = (order, businessInfo) => {
+export const generateDeliveryTicketPDF = (order, businessInfo, copyInfo = null) => {
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -343,6 +351,14 @@ export const generateDeliveryTicketPDF = (order, businessInfo) => {
 
   let yPos = MARGIN_MM;
   pdf.setFont('courier');
+
+  // === IDENTIFICADOR DE COPIA (si aplica) ===
+  if (copyInfo) {
+    pdf.setFontSize(FONT_SIZE_NORMAL);
+    pdf.setFont('courier', 'bold');
+    pdf.text(`===== ${copyInfo} =====`, TICKET_WIDTH_MM / 2, yPos, { align: 'center' });
+    yPos += LINE_HEIGHT + 1;
+  }
 
   // === ENCABEZADO ===
   pdf.setFontSize(FONT_SIZE_TITLE);
@@ -451,13 +467,13 @@ export const generateDeliveryTicketPDF = (order, businessInfo) => {
 /**
  * Generar PDF y retornar como Blob
  */
-export const generateTicketPDFBlob = async (order, businessInfo, ticketType) => {
+export const generateTicketPDFBlob = async (order, businessInfo, ticketType, copyInfo = null) => {
   let pdf;
 
   if (ticketType === 'receipt') {
-    pdf = generateReceiptTicketPDF(order, businessInfo);
+    pdf = generateReceiptTicketPDF(order, businessInfo, copyInfo);
   } else if (ticketType === 'delivery') {
-    pdf = generateDeliveryTicketPDF(order, businessInfo);
+    pdf = generateDeliveryTicketPDF(order, businessInfo, copyInfo);
   } else {
     throw new Error('Tipo de ticket inválido');
   }

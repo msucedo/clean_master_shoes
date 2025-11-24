@@ -59,8 +59,9 @@ export const formatCurrency = (number) => {
 
 /**
  * Genera HTML para ticket de recepción (orden recibida)
+ * @param {object} copyInfo - Información de la copia (ej: "COPIA CLIENTE", "COPIA NEGOCIO")
  */
-export const formatReceiptTicketHTML = (order, businessInfo) => {
+export const formatReceiptTicketHTML = (order, businessInfo, copyInfo = null) => {
   // Calcular saldo pendiente
   const saldo = (order.totalPrice || 0) - (order.advancePayment || 0);
 
@@ -178,6 +179,7 @@ export const formatReceiptTicketHTML = (order, businessInfo) => {
 </head>
 <body>
   <div class="center separator">==============================</div>
+  ${copyInfo ? `<div class="center bold" style="margin: 5px 0;">========= ${copyInfo} =========</div>` : ''}
   <div class="center bold large">${businessInfo.businessName || 'CLEAN MASTER SHOES'}</div>
   <div class="center">Tel: ${businessInfo.phone || ''}</div>
   <div class="center">${businessInfo.address || ''}</div>
@@ -222,8 +224,9 @@ ${itemsHTML}
 
 /**
  * Genera HTML para comprobante de entrega (orden completada)
+ * @param {string} copyInfo - Información de la copia (ej: "COPIA CLIENTE", "COPIA NEGOCIO")
  */
-export const formatDeliveryTicketHTML = (order, businessInfo) => {
+export const formatDeliveryTicketHTML = (order, businessInfo, copyInfo = null) => {
   // Calcular pago en entrega
   const pagoEntrega = (order.totalPrice || 0) - (order.advancePayment || 0);
 
@@ -288,6 +291,7 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
 </head>
 <body>
   <div class="center separator">==============================</div>
+  ${copyInfo ? `<div class="center bold" style="margin: 5px 0;">========= ${copyInfo} =========</div>` : ''}
   <div class="center bold large">${businessInfo.businessName || 'CLEAN MASTER SHOES'}</div>
   <div class="center">Tel: ${businessInfo.phone || ''}</div>
   <div class="center separator">==============================</div>
@@ -330,13 +334,24 @@ export const formatDeliveryTicketHTML = (order, businessInfo) => {
 /**
  * Genera comandos ESC/POS para ticket de recepción
  * Compatible con impresora térmica 58mm
+ * @param {string} copyInfo - Información de la copia (ej: "COPIA CLIENTE", "COPIA NEGOCIO")
  */
-export const formatReceiptTicketESCPOS = (order, businessInfo) => {
+export const formatReceiptTicketESCPOS = (order, businessInfo, copyInfo = null) => {
   const cmd = createESCPOS();
   const saldo = (order.totalPrice || 0) - (order.advancePayment || 0);
 
   // Inicializar impresora
   cmd.init();
+
+  // Identificador de copia (si aplica)
+  if (copyInfo) {
+    cmd
+      .align('center')
+      .bold(true)
+      .text(`===== ${copyInfo} =====`)
+      .feed()
+      .bold(false);
+  }
 
   // Header - Nombre del negocio
   cmd
@@ -502,8 +517,9 @@ export const formatReceiptTicketESCPOS = (order, businessInfo) => {
 /**
  * Genera comandos ESC/POS para comprobante de entrega
  * Compatible con impresora térmica 58mm
+ * @param {string} copyInfo - Información de la copia (ej: "COPIA CLIENTE", "COPIA NEGOCIO")
  */
-export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
+export const formatDeliveryTicketESCPOS = (order, businessInfo, copyInfo = null) => {
   const cmd = createESCPOS();
   const pagoEntrega = (order.totalPrice || 0) - (order.advancePayment || 0);
 
@@ -517,6 +533,16 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo) => {
 
   // Inicializar impresora
   cmd.init();
+
+  // Identificador de copia (si aplica)
+  if (copyInfo) {
+    cmd
+      .align('center')
+      .bold(true)
+      .text(`===== ${copyInfo} =====`)
+      .feed()
+      .bold(false);
+  }
 
   // Header - Nombre del negocio
   cmd

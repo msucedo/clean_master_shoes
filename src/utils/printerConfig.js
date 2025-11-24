@@ -86,3 +86,59 @@ export const resetPrinterMethodPreference = () => {
     return false;
   }
 };
+
+// ============= CONFIGURACIÓN DE NÚMERO DE COPIAS =============
+
+const COPIES_STORAGE_KEY = 'printer_number_of_copies';
+
+// Número de copias por defecto
+export const DEFAULT_NUMBER_OF_COPIES = 2;
+
+/**
+ * Obtener el número de copias configurado
+ * @returns {number} Número de copias (1 o 2)
+ */
+export const getNumberOfCopies = () => {
+  try {
+    const copies = localStorage.getItem(COPIES_STORAGE_KEY);
+    const parsedCopies = parseInt(copies, 10);
+
+    // Validar que sea 1 o 2
+    if (parsedCopies === 1 || parsedCopies === 2) {
+      return parsedCopies;
+    }
+
+    // Default: 2 copias
+    return DEFAULT_NUMBER_OF_COPIES;
+  } catch (error) {
+    console.error('Error al leer número de copias:', error);
+    return DEFAULT_NUMBER_OF_COPIES;
+  }
+};
+
+/**
+ * Guardar el número de copias en localStorage
+ * @param {number} numberOfCopies - Número de copias (1 o 2)
+ * @returns {boolean} true si se guardó correctamente, false si hubo error
+ */
+export const setNumberOfCopies = (numberOfCopies) => {
+  try {
+    // Validar que sea 1 o 2
+    if (numberOfCopies !== 1 && numberOfCopies !== 2) {
+      console.error('Número de copias inválido:', numberOfCopies);
+      return false;
+    }
+
+    localStorage.setItem(COPIES_STORAGE_KEY, numberOfCopies.toString());
+
+    // Disparar custom event para notificar el cambio
+    window.dispatchEvent(new CustomEvent('numberOfCopiesChanged', {
+      detail: { numberOfCopies }
+    }));
+
+    return true;
+  } catch (error) {
+    console.error('Error al guardar número de copias:', error);
+    return false;
+  }
+};

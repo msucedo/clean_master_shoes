@@ -13,6 +13,10 @@ import {
   detectPlatform,
   reconnectPrinter
 } from '../services/printService';
+import {
+  getNumberOfCopies,
+  setNumberOfCopies
+} from '../utils/printerConfig';
 import './PrinterSettings.css';
 
 const PrinterSettings = () => {
@@ -23,16 +27,27 @@ const PrinterSettings = () => {
   const [platform, setPlatform] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [numberOfCopies, setNumberOfCopiesState] = useState(2);
 
   // Cargar estado inicial
   useEffect(() => {
     loadStatus();
     setPlatform(detectPlatform());
+    setNumberOfCopiesState(getNumberOfCopies());
   }, []);
 
   const loadStatus = () => {
     const printerStatus = getPrinterStatus();
     setStatus(printerStatus);
+  };
+
+  const handleCopiesChange = (copies) => {
+    setNumberOfCopies(copies);
+    setNumberOfCopiesState(copies);
+    setMessage({
+      type: 'success',
+      text: `Configurado para imprimir ${copies} ${copies === 1 ? 'copia' : 'copias'}`
+    });
   };
 
   const handleConnect = async () => {
@@ -210,6 +225,34 @@ const PrinterSettings = () => {
         {status.isConnected && status.deviceName && (
           <div className="device-info">
             <strong>Impresora:</strong> {status.deviceName}
+          </div>
+        )}
+      </div>
+
+      {/* Configuración de número de copias */}
+      <div className="copies-setting">
+        <label className="copies-label">
+          <strong>Número de copias:</strong>
+        </label>
+        <div className="copies-toggle">
+          <button
+            className={`copy-option ${numberOfCopies === 1 ? 'active' : ''}`}
+            onClick={() => handleCopiesChange(1)}
+            disabled={loading}
+          >
+            1 copia
+          </button>
+          <button
+            className={`copy-option ${numberOfCopies === 2 ? 'active' : ''}`}
+            onClick={() => handleCopiesChange(2)}
+            disabled={loading}
+          >
+            2 copias
+          </button>
+        </div>
+        {numberOfCopies === 2 && (
+          <div className="copies-info">
+            <small>Se imprimirá "COPIA CLIENTE" y "COPIA NEGOCIO"</small>
           </div>
         )}
       </div>
