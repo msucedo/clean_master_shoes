@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import InventoryCard from '../components/InventoryCard';
+import InventoryCardSkeleton from '../components/InventoryCardSkeleton';
+import InventoryStatsSkeleton from '../components/InventoryStatsSkeleton';
 import Modal from '../components/Modal';
 import InventoryForm from '../components/InventoryForm';
 import PageHeader from '../components/PageHeader';
@@ -170,29 +172,33 @@ const Inventory = () => {
       />
 
       {/* Inventory Stats */}
-      <div className="inventory-stats">
-        <div className="stat-item">
-          <div className="stat-icon">📦</div>
-          <div className="stat-content">
-            <div className="stat-value">{totalProducts}</div>
-            <div className="stat-label">Total Productos</div>
+      {loading ? (
+        <InventoryStatsSkeleton />
+      ) : (
+        <div className="inventory-stats">
+          <div className="stat-item">
+            <div className="stat-icon">📦</div>
+            <div className="stat-content">
+              <div className="stat-value">{totalProducts}</div>
+              <div className="stat-label">Total Productos</div>
+            </div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-icon">⚠️</div>
+            <div className="stat-content">
+              <div className="stat-value">{lowStockCount}</div>
+              <div className="stat-label">Stock Bajo</div>
+            </div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-icon">💰</div>
+            <div className="stat-content">
+              <div className="stat-value">${totalValue.toFixed(2)}</div>
+              <div className="stat-label">Valor Total</div>
+            </div>
           </div>
         </div>
-        <div className="stat-item">
-          <div className="stat-icon">⚠️</div>
-          <div className="stat-content">
-            <div className="stat-value">{lowStockCount}</div>
-            <div className="stat-label">Stock Bajo</div>
-          </div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-icon">💰</div>
-          <div className="stat-content">
-            <div className="stat-value">${totalValue.toFixed(2)}</div>
-            <div className="stat-label">Valor Total</div>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Stock Filter */}
       <div className="stock-filters">
@@ -219,10 +225,15 @@ const Inventory = () => {
       {/* Products Grid */}
       <div className="inventory-grid">
         {loading ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏳</div>
-            <div className="empty-text">Cargando inventario...</div>
-          </div>
+          // Show 6 skeleton cards while loading
+          <>
+            <InventoryCardSkeleton />
+            <InventoryCardSkeleton />
+            <InventoryCardSkeleton />
+            <InventoryCardSkeleton />
+            <InventoryCardSkeleton />
+            <InventoryCardSkeleton />
+          </>
         ) : filteredProducts.length > 0 ? (
           filteredProducts.map((product) => (
             <InventoryCard

@@ -1,0 +1,142 @@
+/* Inventory Card Skeleton */
+.inventory-card-skeleton {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1a1a1a 0%,
+    #2a2a2a 50%,
+    #1a1a1a 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Product Image Section */
+.product-image-skeleton-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap-lg);
+}
+
+.skeleton-product-image {
+  width: 80%;
+  height: 80%;
+  border-radius: 16px;
+}
+
+.skeleton-category-badge {
+  position: absolute;
+  top: clamp(0.625rem, 2vw, 0.75rem);
+  right: clamp(0.625rem, 2vw, 0.75rem);
+  width: clamp(80px, 25%, 120px);
+  height: clamp(1.75rem, 4vw, 2rem);
+  border-radius: 12px;
+}
+
+/* Product Info Section */
+.product-info-skeleton {
+  padding: clamp(1rem, 3vw, 1.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
+.product-header-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.skeleton-product-name {
+  width: 75%;
+  height: clamp(1.125rem, 3vw, 1.25rem);
+  border-radius: 6px;
+}
+
+.skeleton-barcode {
+  width: 50%;
+  height: clamp(0.875rem, 2vw, 1rem);
+  border-radius: 4px;
+}
+
+.skeleton-stock-badge {
+  width: clamp(120px, 50%, 160px);
+  height: clamp(1.875rem, 4vw, 2rem);
+  border-radius: 12px;
+}
+
+/* Pricing Section */
+.product-pricing-skeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+}
+
+.price-item-skeleton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.skeleton-price-label {
+  width: 60%;
+  height: clamp(0.625rem, 2vw, 0.75rem);
+  border-radius: 4px;
+}
+
+.skeleton-price-value {
+  width: 80%;
+  height: clamp(1rem, 3vw, 1.25rem);
+  border-radius: 4px;
+}
+
+.skeleton-price-divider {
+  color: #2a2a2a;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 700;
+}
+
+/* Profit */
+.product-profit-skeleton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skeleton-profit {
+  width: 70%;
+  height: clamp(1rem, 3vw, 1.125rem);
+  border-radius: 4px;
+}
+
+/* Description */
+.skeleton-description {
+  width: 90%;
+  height: clamp(2rem, 5vw, 2.5rem);
+  border-radius: 6px;
+}
