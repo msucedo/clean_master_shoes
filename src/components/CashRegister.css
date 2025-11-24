@@ -579,7 +579,7 @@
 
 .nocash .cr-subsection {
   flex: 1;
-  min-width: 300px;
+  min-width: 235px;
   max-width: 450px;
 }
 
@@ -1174,6 +1174,34 @@
     padding: 8px 12px;
     font-size: 14px;
     max-width: 60px;
+  }
+
+  /* Reorganizar cobros de tarjeta en móviles */
+  .cr-payment-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .cr-payment-row .cr-payment-label {
+    flex: 0 0 auto;
+    min-width: fit-content;
+  }
+
+  .cr-payment-row .cr-payment-input {
+    flex: 1;
+    min-width: 100px;
+    max-width: none; /* Sobreescribir max-width: 60px de arriba */
+  }
+
+  .cr-tipo-tarjeta-select {
+    flex: 1 1 100%;
+    order: 3;
+    width: 100%;
+  }
+
+  .cr-payment-delete {
+    order: 4;
+    flex: 0 0 auto;
   }
 
   .cr-comparison-row {
