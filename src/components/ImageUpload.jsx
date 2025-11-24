@@ -178,7 +178,7 @@ const ImageUpload = ({ images = [], onChange, readOnly = false }) => {
         <span className="info-text">
           {previewUrls.length > 0
             ? `${previewUrls.length}/3 ${previewUrls.length === 1 ? 'foto cargada' : 'fotos cargadas'}`
-            : 'Máximo 3 fotos (comprimidas automáticamente)'
+            : 'Máximo 3 fotos (únicamente la primer foto es enviada al cliente)'
           }
         </span>
       </div>

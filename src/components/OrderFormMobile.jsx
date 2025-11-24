@@ -3,6 +3,7 @@ import ClientAutocomplete from './ClientAutocomplete';
 import PaymentScreen from './PaymentScreen';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
 import PromotionBadge from './PromotionBadge';
+import ImageUpload from './ImageUpload';
 import { useAuth } from '../contexts/AuthContext';
 import './OrderFormMobile.css';
 
@@ -18,6 +19,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null); // Empleado seleccionado para asignación automática
   const [showCalendarModal, setShowCalendarModal] = useState(false); // Controla modal de calendario de entregas
+  const [orderImages, setOrderImages] = useState([]); // Imágenes de la orden
   const [activePromotions, setActivePromotions] = useState([]);
   const [appliedPromotions, setAppliedPromotions] = useState([]);
   // Validaciones de todas las promociones (incluye razón de no aplicación)
@@ -475,6 +477,11 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       if (initialData.services && initialData.services.length > 0) {
         setCart(initialData.services);
       }
+
+      // Cargar imágenes si existen
+      if (initialData.orderImages && initialData.orderImages.length > 0) {
+        setOrderImages(initialData.orderImages);
+      }
     }
   }, [initialData]);
 
@@ -594,7 +601,7 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
       clientName: formData.client, // Snapshot del nombre del cliente
       services,
       products,
-      orderImages: [],
+      orderImages: orderImages,
       subtotal: calculateSubtotal(),
       totalDiscount: calculateTotalDiscount(),
       appliedPromotions: appliedPromotions.map(promo => ({
@@ -850,6 +857,15 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
                 </div>
               </div>
             )}
+
+            {/* Fotos de la Orden */}
+            <div className="form-section-mobile">
+              <h3 className="section-title-mobile">📸 Fotos de la Orden</h3>
+              <ImageUpload
+                images={orderImages}
+                onChange={setOrderImages}
+              />
+            </div>
 
             {/* Carrito */}
             <div className="form-section-mobile cart-section-mobile">
