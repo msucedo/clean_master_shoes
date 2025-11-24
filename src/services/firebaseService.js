@@ -1492,6 +1492,55 @@ export const getBusinessProfile = async () => {
 };
 
 /**
+ * Save WhatsApp configuration to Firestore
+ * @param {Object} configData - WhatsApp configuration data
+ * @returns {Promise<Object>} Saved configuration
+ */
+export const saveWhatsAppConfig = async (configData) => {
+  try {
+    // Prepare config data
+    const config = {
+      enableOrderReceived: configData.enableOrderReceived ?? true,
+      enableDeliveryReady: configData.enableDeliveryReady ?? true,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Save to Firestore (document with fixed ID)
+    const configRef = doc(db, 'settings', 'whatsapp-config');
+    await setDoc(configRef, config, { merge: true });
+
+    return config;
+  } catch (error) {
+    console.error('Error saving WhatsApp config:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get WhatsApp configuration from Firestore
+ * @returns {Promise<Object>} WhatsApp configuration data
+ */
+export const getWhatsAppConfig = async () => {
+  try {
+    const configRef = doc(db, 'settings', 'whatsapp-config');
+    const configSnap = await getDoc(configRef);
+
+    if (configSnap.exists()) {
+      return configSnap.data();
+    } else {
+      // Return default config if doesn't exist
+      return {
+        enableOrderReceived: true,
+        enableDeliveryReady: true
+      };
+    }
+  } catch (error) {
+    console.error('Error getting WhatsApp config:', error);
+    throw error;
+  }
+};
+
+/**
  * Get all settings documents from Firestore
  * @returns {Promise<Array>} All settings documents
  */

@@ -635,4 +635,54 @@ input:checked + .toggle-slider:before {
   margin-bottom: var(--space-md);
 }
 
+/* WhatsApp Configuration Section */
+.section-icon.whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+}
+
+.whatsapp-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+}
+
+.config-description {
+  color: #ccc;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.whatsapp-config .toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+  padding: 0;
+  border: none;
+}
+
+.toggle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: clamp(1rem, 3vw, 1.25rem);
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.toggle-item:hover {
+  border-color: #25d366;
+  background: rgba(37, 211, 102, 0.05);
+}
+
+.toggle-title {
+  font-size: clamp(0.875rem, 2vw, 0.938rem);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--gap-xs);
+}
+
 /* Responsive - No media queries needed with intrinsic CSS */

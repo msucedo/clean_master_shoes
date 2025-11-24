@@ -3,10 +3,13 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[FEATURE]habilitar en configuracion opcion para activar o desactivar envio de mensajes por wapp
+-[FIX]loading animation cuando carga la pagina de rastreo
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
 -[]Imprimir doble ticket
 -[]Clientes enumerados
+-[]agregar la foto de la orden a la pagina de rastreo
 
 // PRIORIDAD ALTA
 

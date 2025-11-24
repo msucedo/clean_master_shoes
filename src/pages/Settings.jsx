@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PageHeader from '../components/PageHeader';
 import PrinterSettings from '../components/PrinterSettings';
 import { downloadBackup, getBackupInfo } from '../utils/backup';
-import { saveBusinessProfile, getBusinessProfile } from '../services/firebaseService';
+import { saveBusinessProfile, getBusinessProfile, saveWhatsAppConfig, getWhatsAppConfig } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
 import {
@@ -34,6 +34,12 @@ const Settings = () => {
   const [printerMethod, setPrinterMethod] = useState(PRINTER_METHODS.AUTO);
   const [detectedPlatform, setDetectedPlatform] = useState(null);
 
+  // WhatsApp Config State
+  const [enableOrderReceived, setEnableOrderReceived] = useState(true);
+  const [enableDeliveryReady, setEnableDeliveryReady] = useState(true);
+  const [whatsappSaving, setWhatsappSaving] = useState(false);
+  const [whatsappLoading, setWhatsappLoading] = useState(true);
+
   // Load business profile on component mount
   useEffect(() => {
     const loadProfile = async () => {
@@ -53,6 +59,26 @@ const Settings = () => {
     };
 
     loadProfile();
+  }, [showError]);
+
+  // Load WhatsApp config on component mount
+  useEffect(() => {
+    const loadWhatsAppConfig = async () => {
+      try {
+        setWhatsappLoading(true);
+        const config = await getWhatsAppConfig();
+
+        setEnableOrderReceived(config.enableOrderReceived ?? true);
+        setEnableDeliveryReady(config.enableDeliveryReady ?? true);
+      } catch (error) {
+        console.error('Error loading WhatsApp config:', error);
+        showError('Error al cargar configuración de WhatsApp');
+      } finally {
+        setWhatsappLoading(false);
+      }
+    };
+
+    loadWhatsAppConfig();
   }, [showError]);
 
   // Load printer method preference and detect platform
@@ -142,6 +168,48 @@ const Settings = () => {
       showSuccess('Método de impresión guardado');
     } else {
       showError('Error al guardar el método de impresión');
+    }
+  };
+
+  const handleSaveWhatsAppConfig = async () => {
+    // Verificar permisos de admin
+    if (!isAdmin) {
+      showError('Solo los administradores pueden guardar cambios de configuración');
+      return;
+    }
+
+    setWhatsappSaving(true);
+    try {
+      const configData = {
+        enableOrderReceived,
+        enableDeliveryReady
+      };
+
+      await saveWhatsAppConfig(configData);
+
+      showSuccess('Configuración de WhatsApp guardada exitosamente');
+    } catch (error) {
+      console.error('Error saving WhatsApp config:', error);
+      showError(error.message || 'Error al guardar configuración de WhatsApp');
+    } finally {
+      setWhatsappSaving(false);
+    }
+  };
+
+  const handleCancelWhatsAppConfig = async () => {
+    try {
+      setWhatsappLoading(true);
+      const config = await getWhatsAppConfig();
+
+      setEnableOrderReceived(config.enableOrderReceived ?? true);
+      setEnableDeliveryReady(config.enableDeliveryReady ?? true);
+
+      showSuccess('Cambios descartados');
+    } catch (error) {
+      console.error('Error reloading WhatsApp config:', error);
+      showError('Error al recargar configuración');
+    } finally {
+      setWhatsappLoading(false);
     }
   };
 
@@ -290,6 +358,78 @@ const Settings = () => {
             <div className="backup-note">
               <strong>Nota:</strong> Tus datos también están respaldados automáticamente en Firebase.
               Este backup manual es una copia adicional de seguridad.
+            </div>
+          </div>
+        </div>
+
+        {/* Configuración de WhatsApp */}
+        <div className="settings-section">
+          <div className="section-header">
+            <div className="section-icon whatsapp">💬</div>
+            <div>
+              <div className="section-title">Configuración de WhatsApp</div>
+              <div className="section-subtitle">Controla el envío de notificaciones</div>
+            </div>
+          </div>
+
+          <div className="whatsapp-config">
+            <p className="config-description">
+              Activa o desactiva el envío de notificaciones automáticas de WhatsApp a tus clientes.
+            </p>
+
+            <div className="toggle-group">
+              <div className="toggle-item">
+                <div className="toggle-info">
+                  <div className="toggle-title">Notificación de Orden Recibida</div>
+                  <div className="toggle-description">
+                    Envía mensaje automático cuando se crea una orden (plantilla: orden_enproceso)
+                  </div>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={enableOrderReceived}
+                    onChange={(e) => setEnableOrderReceived(e.target.checked)}
+                    disabled={whatsappLoading}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div className="toggle-item">
+                <div className="toggle-info">
+                  <div className="toggle-title">Notificación de Orden Lista</div>
+                  <div className="toggle-description">
+                    Envía mensaje automático cuando la orden está lista para entrega (plantilla: orden_lista_entrega)
+                  </div>
+                </div>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={enableDeliveryReady}
+                    onChange={(e) => setEnableDeliveryReady(e.target.checked)}
+                    disabled={whatsappLoading}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div className="btn-group">
+              <button
+                className="btn-primary"
+                onClick={handleSaveWhatsAppConfig}
+                disabled={whatsappSaving || whatsappLoading}
+              >
+                {whatsappSaving ? '⏳ Guardando...' : 'Guardar Cambios'}
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={handleCancelWhatsAppConfig}
+                disabled={whatsappLoading}
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </div>

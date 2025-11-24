@@ -10,6 +10,7 @@
  */
 
 import axios from 'axios';
+import { getWhatsAppConfig } from './firebaseService';
 
 // WhatsApp API Configuration from environment variables
 const WHATSAPP_CONFIG = {
@@ -467,6 +468,22 @@ export const sendDeliveryNotification = async (order) => {
     phone: order.phone
   });
 
+  // Check if notification is enabled in settings
+  try {
+    const whatsappConfig = await getWhatsAppConfig();
+    if (!whatsappConfig.enableDeliveryReady) {
+      console.log('⚠️ [WhatsApp] Notificación de orden lista deshabilitada en configuración. Saltando envío.');
+      return {
+        success: false,
+        error: 'Delivery ready notification disabled in settings',
+        skipped: true
+      };
+    }
+  } catch (error) {
+    console.error('❌ [WhatsApp] Error al obtener configuración:', error);
+    // Continue with notification if config check fails (fail-safe)
+  }
+
   // Check if WhatsApp is configured
   if (!isWhatsAppConfigured()) {
     console.warn('⚠️ [WhatsApp] WhatsApp no está configurado. Saltando notificación.');
@@ -631,6 +648,22 @@ export const sendOrderReceivedNotification = async (order) => {
     phone: order.phone,
     hasImages: order.orderImages?.length > 0
   });
+
+  // Check if notification is enabled in settings
+  try {
+    const whatsappConfig = await getWhatsAppConfig();
+    if (!whatsappConfig.enableOrderReceived) {
+      console.log('⚠️ [WhatsApp] Notificación de orden recibida deshabilitada en configuración. Saltando envío.');
+      return {
+        success: false,
+        error: 'Order received notification disabled in settings',
+        skipped: true
+      };
+    }
+  } catch (error) {
+    console.error('❌ [WhatsApp] Error al obtener configuración:', error);
+    // Continue with notification if config check fails (fail-safe)
+  }
 
   // Check if WhatsApp is configured
   if (!isWhatsAppConfigured()) {
