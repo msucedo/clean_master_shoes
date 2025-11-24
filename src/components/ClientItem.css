@@ -21,6 +21,16 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.client-number {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    font-weight: 700;
+    color: #666;
+    min-width: clamp(2rem, 5vw, 2.5rem);
+    text-align: right;
+    flex-shrink: 0;
+    letter-spacing: -0.5px;
+}
+
 .client-avatar {
     width: clamp(3rem, 7vw, 3.75rem);
     height: clamp(3rem, 7vw, 3.75rem);

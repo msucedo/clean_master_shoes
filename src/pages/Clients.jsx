@@ -6,6 +6,7 @@ import ClientForm from '../components/ClientForm';
 import OrderDetailView from '../components/OrderDetailView';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
+import StatCard from '../components/StatCard';
 import {
   subscribeToOrders,
   subscribeToClients,
@@ -23,7 +24,6 @@ const Clients = () => {
   const { showSuccess, showError, showInfo } = useNotification();
   const isAdmin = useAdminCheck();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [clients, setClients] = useState([]);
@@ -146,6 +146,69 @@ const Clients = () => {
     return metrics;
   }, [clients, orders]);
 
+  // Crear mapa de números de clientes basado en orden de creación
+  const clientNumbers = useMemo(() => {
+    const numbersMap = new Map();
+    const sortedByCreation = [...clients].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0);
+      const dateB = new Date(b.createdAt || 0);
+      return dateA - dateB; // Ascendente (más antiguo primero)
+    });
+
+    sortedByCreation.forEach((client, index) => {
+      numbersMap.set(client.id, index + 1);
+    });
+
+    return numbersMap;
+  }, [clients]);
+
+  // Calcular estadísticas globales para los StatCards
+  const clientStats = useMemo(() => {
+    const totalClients = clients.length;
+    let activeClients = 0;
+    let vipClients = 0;
+    let clientsWithDebt = 0;
+    let totalDebt = 0;
+    let inactiveClients = 0;
+    let totalOrders = 0;
+
+    clients.forEach(client => {
+      const metrics = clientMetrics.get(client.id);
+      if (metrics) {
+        if (metrics.isActive) activeClients++;
+        if (metrics.isVip) vipClients++;
+        if (metrics.debt > 0) {
+          clientsWithDebt++;
+          totalDebt += metrics.debt;
+        }
+        if (!metrics.isActive) inactiveClients++;
+        totalOrders += metrics.orders;
+      }
+    });
+
+    // Nuevos este mes (últimos 30 días)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const newThisMonth = clients.filter(client =>
+      new Date(client.createdAt) >= thirtyDaysAgo
+    ).length;
+
+    // Promedio de órdenes por cliente
+    const avgOrdersPerClient = totalClients > 0
+      ? (totalOrders / totalClients).toFixed(1)
+      : '0';
+
+    return {
+      totalClients,
+      activeClients,
+      vipClients,
+      clientsWithDebt,
+      totalDebt: Math.round(totalDebt),
+      inactiveClients,
+      newThisMonth,
+      avgOrdersPerClient
+    };
+  }, [clients, clientMetrics]);
 
   const filterClients = (clientsList) => {
     let filtered = clientsList;
@@ -156,19 +219,6 @@ const Clients = () => {
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.phone.includes(searchTerm)
       );
-    }
-
-    // Apply type filter usando métricas calculadas
-    if (activeFilter === 'debt') {
-      filtered = filtered.filter(client => {
-        const metrics = clientMetrics.get(client.id);
-        return metrics && metrics.debt > 0;
-      });
-    } else if (activeFilter === 'vip') {
-      filtered = filtered.filter(client => {
-        const metrics = clientMetrics.get(client.id);
-        return metrics && metrics.isVip;
-      });
     }
 
     return filtered;
@@ -400,24 +450,61 @@ const Clients = () => {
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Buscar cliente por nombre o teléfono..."
-        filters={[
-          {
-            label: 'Todos',
-            onClick: () => setActiveFilter('all'),
-            active: activeFilter === 'all'
-          },
-          {
-            label: 'Con Deuda',
-            onClick: () => setActiveFilter('debt'),
-            active: activeFilter === 'debt'
-          },
-          {
-            label: 'Clientes VIP',
-            onClick: () => setActiveFilter('vip'),
-            active: activeFilter === 'vip'
-          }
-        ]}
       />
+
+      {/* Quick Stats */}
+      {!loading && (
+        <div className="clients-stats">
+          <StatCard
+            icon="👥"
+            label="Total Clientes"
+            value={clientStats.totalClients}
+            type="total"
+          />
+          <StatCard
+            icon="✅"
+            label="Activos"
+            value={clientStats.activeClients}
+            type="activos"
+          />
+          <StatCard
+            icon="⭐"
+            label="VIP"
+            value={clientStats.vipClients}
+            type="vip"
+          />
+          <StatCard
+            icon="💳"
+            label="Con Deuda"
+            value={clientStats.clientsWithDebt}
+            type="deuda"
+          />
+          <StatCard
+            icon="💰"
+            label="Total Adeudado"
+            value={`$${clientStats.totalDebt}`}
+            type="ingresos"
+          />
+          <StatCard
+            icon="😴"
+            label="Inactivos"
+            value={clientStats.inactiveClients}
+            type="inactivos"
+          />
+          <StatCard
+            icon="🆕"
+            label="Nuevos (30 días)"
+            value={clientStats.newThisMonth}
+            type="nuevos"
+          />
+          <StatCard
+            icon="📊"
+            label="Promedio Órdenes"
+            value={clientStats.avgOrdersPerClient}
+            type="promedio"
+          />
+        </div>
+      )}
 
       {/* Clients List */}
       <div className="clients-list">
@@ -453,6 +540,7 @@ const Clients = () => {
               <ClientItem
                 key={client.id}
                 client={enrichedClient}
+                clientNumber={clientNumbers.get(client.id)}
                 onClick={(client) => {
                   // Verificar permisos de admin
                   if (!isAdmin) {
@@ -472,9 +560,9 @@ const Clients = () => {
             <div className="empty-icon">😕</div>
             <div className="empty-text">No se encontraron clientes</div>
             <div className="empty-subtext">
-              {clients.length === 0 && searchTerm === '' && activeFilter === 'all'
+              {clients.length === 0 && searchTerm === ''
                 ? 'Agrega tu primer cliente'
-                : 'Intenta ajustar tus filtros o búsqueda'}
+                : 'Intenta ajustar tu búsqueda'}
             </div>
           </div>
         )}

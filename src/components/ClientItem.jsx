@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { subscribeToOrders } from '../services/firebaseService';
 import './ClientItem.css';
 
-const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
+const ClientItem = ({ client, onClick, onOrderClick, employees = [], clientNumber }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeOrders, setActiveOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
@@ -187,6 +187,9 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [] }) => {
   return (
     <div className="client-item-wrapper">
       <div className="client-item" onClick={() => onClick && onClick(client)}>
+        {clientNumber && (
+          <div className="client-number">#{clientNumber}</div>
+        )}
         <div className={`client-avatar ${client.isVip ? 'vip' : ''}`}>
           {getInitials(client.name)}
         </div>
