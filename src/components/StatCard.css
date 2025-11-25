@@ -1,29 +1,83 @@
 .stat-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    background: #0a0a0a;
     padding: 25px;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 1px solid #2a2a2a;
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 15px;
     transition: all 0.3s;
-    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.stat-card.ingresos::before {
+    background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+}
+
+.stat-card.gastos::before {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.stat-card.ganancia::before {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+}
+
+.stat-card.ticket-promedio::before {
+    background: linear-gradient(90deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.stat-card.entregas::before {
+    background: linear-gradient(90deg, #00ff88 0%, #00d9a3 100%);
+}
+
+.stat-card.proceso::before {
+    background: linear-gradient(90deg, #00d9ff 0%, #0099cc 100%);
+}
+
+.stat-card.pagos::before {
+    background: linear-gradient(90deg, #FF006E 0%, #E91E63 100%);
+}
+
+.stat-card.recibidas::before {
+    background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 100%);
+}
+
+.stat-card.listos::before {
+    background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
+}
+
+.stat-card.activas::before {
+    background: linear-gradient(90deg, #fb923c 0%, #f97316 100%);
+}
+
+.stat-card.completadas::before {
+    background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     border-color: #3a3a3a;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
 }
 
 .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 32px;
     flex-shrink: 0;
 }
 
@@ -96,7 +150,7 @@
 }
 
 .stat-value {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 900;
     color: #fff;
     letter-spacing: -1px;

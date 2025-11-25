@@ -4,21 +4,19 @@ import CashRegister from '../components/CashRegister';
 import CashClosureHistory from '../components/CashClosureHistory';
 import CashClosureDetail from '../components/CashClosureDetail';
 import Modal from '../components/Modal';
-import StatCard from '../components/StatCard';
-import DataSourceToggle from '../components/DataSourceToggle';
 import RevenueChart from '../components/RevenueChart';
 import ServicesChart from '../components/ServicesChart';
 import PaymentMethodsChart from '../components/PaymentMethodsChart';
 import ExpensesByCategoryChart from '../components/ExpensesByCategoryChart';
 import ProfitTrendChart from '../components/ProfitTrendChart';
 import PeriodComparisonChart from '../components/PeriodComparisonChart';
-import { subscribeToOrders, subscribeToExpenses, subscribeToCashRegisterClosures } from '../services/firebaseService';
+import { subscribeToOrders, subscribeToCashRegisterClosures, subscribeToCashRegisterDraft } from '../services/firebaseService';
 import './Reports.css';
+import '../components/CashRegister.css';
 
 const Reports = () => {
   const [activeFilter, setActiveFilter] = useState('Hoy');
   const [activeTab, setActiveTab] = useState('corte');
-  const [dataSource, setDataSource] = useState('cortes'); // 'cortes' or 'ordenes'
   const [selectedClosure, setSelectedClosure] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [orders, setOrders] = useState({
@@ -29,7 +27,7 @@ const Reports = () => {
     completados: [],
     cancelado: []
   });
-  const [expenses, setExpenses] = useState([]);
+  const [todayDraft, setTodayDraft] = useState(null);
   const [closures, setClosures] = useState([]);
 
   // Subscribe to orders for cash register
@@ -41,10 +39,10 @@ const Reports = () => {
     return () => unsubscribe();
   }, []);
 
-  // Subscribe to expenses
+  // Subscribe to today's draft
   useEffect(() => {
-    const unsubscribe = subscribeToExpenses((expensesData) => {
-      setExpenses(expensesData);
+    const unsubscribe = subscribeToCashRegisterDraft((draftData) => {
+      setTodayDraft(draftData);
     });
 
     return () => unsubscribe();
@@ -122,38 +120,14 @@ const Reports = () => {
 
   // Get filtered expenses based on date filter
   const getFilteredExpenses = () => {
-    const now = new Date();
-    let startDate, endDate;
-
-    switch (activeFilter) {
-      case 'Hoy':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-        break;
-      case 'Semana': {
-        const dayOfWeek = now.getDay();
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-        break;
-      }
-      case 'Mes':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        break;
-      case 'Año':
-        startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
-        endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
-        break;
-      default:
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    // For "Hoy", get expenses from today's draft
+    if (activeFilter === 'Hoy') {
+      return todayDraft?.gastos || [];
     }
 
-    return expenses.filter(expense => {
-      if (!expense.date) return false;
-      const expenseDate = new Date(expense.date);
-      return expenseDate >= startDate && expenseDate <= endDate;
-    });
+    // For historical periods, expenses come from closures
+    // This function is no longer used for historical data
+    return [];
   };
 
   const filteredExpenses = getFilteredExpenses();
@@ -501,12 +475,36 @@ const Reports = () => {
         }
       });
 
-      // Filter expenses by date
-      const periodExpenses = expenses.filter(expense => {
-        if (!expense.date) return false;
-        const expenseDate = new Date(expense.date);
-        return expenseDate >= startDate && expenseDate <= endDate;
-      });
+      // Get expenses for this period
+      let periodExpenses = [];
+
+      // Check if this period is today
+      const today = new Date();
+      const isTodayPeriod =
+        startDate.getFullYear() === today.getFullYear() &&
+        startDate.getMonth() === today.getMonth() &&
+        startDate.getDate() === today.getDate() &&
+        endDate.getFullYear() === today.getFullYear() &&
+        endDate.getMonth() === today.getMonth() &&
+        endDate.getDate() === today.getDate();
+
+      if (isTodayPeriod) {
+        // Use draft for today's expenses
+        periodExpenses = todayDraft?.gastos || [];
+      } else {
+        // Use closures for historical expenses
+        const periodClosures = closures.filter(closure => {
+          if (!closure.fechaCorte) return false;
+          const closureDate = new Date(closure.fechaCorte);
+          return closureDate >= startDate && closureDate <= endDate;
+        });
+
+        periodClosures.forEach(closure => {
+          if (closure.gastos?.items) {
+            periodExpenses.push(...closure.gastos.items);
+          }
+        });
+      }
 
       // Calculate total expenses
       const totalExpenses = periodExpenses.reduce((sum, expense) => {
@@ -580,7 +578,8 @@ const Reports = () => {
             >
               <option value="reportes">📊 Reportes</option>
               <option value="corte">💰 Corte de Caja</option>
-              <option value="historial">📋 Historial de Cortes</option>
+              <option value="historial-cortes">📋 Historial de Cortes</option>
+              <option value="historial-ordenes">📦 Historial de Órdenes</option>
             </select>
 
             {/* Botones para desktop/tablet (ocultos en móvil por CSS) */}
@@ -597,10 +596,16 @@ const Reports = () => {
               💰 Corte de Caja
             </button>
             <button
-              className={`reports-tab ${activeTab === 'historial' ? 'active' : ''}`}
-              onClick={() => setActiveTab('historial')}
+              className={`reports-tab ${activeTab === 'historial-cortes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('historial-cortes')}
             >
               📋 Historial de Cortes
+            </button>
+            <button
+              className={`reports-tab ${activeTab === 'historial-ordenes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('historial-ordenes')}
+            >
+              📦 Historial de Órdenes
             </button>
           </div>
         }
@@ -609,56 +614,72 @@ const Reports = () => {
       {/* Tab Content */}
       {activeTab === 'reportes' && (
         <div className="reports-content">
-          {/* Data Source Toggle */}
-          <div className="reports-data-source-wrapper">
-            <DataSourceToggle
-              value={dataSource}
-              onChange={setDataSource}
-            />
-          </div>
+          {/* Financial Summary Section */}
+          <div className="cr-section">
+            <div className="cr-section-header">
+              <h3>💰 Resumen Financiero</h3>
+              <div className="cr-period-badge">
+                {activeFilter === 'Hoy' ? '⚡ Tiempo Real' : `📚 ${activeFilter} - Histórico`}
+              </div>
+            </div>
 
-          {/* KPI Stats Cards */}
-          <div className="reports-stats-grid">
-            <StatCard
-              icon="💰"
-              label="Total Ingresos"
-              value={formatCurrency(
-                dataSource === 'cortes'
-                  ? calculateStatsFromClosures().totalRevenue
-                  : stats.totalRevenue
-              )}
-              type="ingresos"
-            />
-            <StatCard
-              icon="💸"
-              label="Total Gastos"
-              value={formatCurrency(
-                dataSource === 'cortes'
-                  ? calculateStatsFromClosures().totalExpenses
-                  : totalExpenses
-              )}
-              type="gastos"
-            />
-            <StatCard
-              icon="💵"
-              label="Ganancia Neta"
-              value={formatCurrency(
-                dataSource === 'cortes'
-                  ? calculateStatsFromClosures().totalProfit
-                  : totalProfit
-              )}
-              type="ganancia"
-            />
-            <StatCard
-              icon="💳"
-              label="Ticket Promedio"
-              value={formatCurrency(
-                dataSource === 'cortes'
-                  ? calculateStatsFromClosures().averageTicket
-                  : stats.averageTicket
-              )}
-              type="ticket-promedio"
-            />
+            <div className="cr-stats-grid">
+              <div className="cr-stat-card total">
+                <div className="cr-stat-icon">💵</div>
+                <div className="cr-stat-info">
+                  <div className="cr-stat-label">Total Ingresos</div>
+                  <div className="cr-stat-value">
+                    {formatCurrency(
+                      activeFilter !== 'Hoy'
+                        ? calculateStatsFromClosures().totalRevenue
+                        : stats.totalRevenue
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="cr-stat-card cash">
+                <div className="cr-stat-icon">💸</div>
+                <div className="cr-stat-info">
+                  <div className="cr-stat-label">Total Gastos</div>
+                  <div className="cr-stat-value">
+                    {formatCurrency(
+                      activeFilter !== 'Hoy'
+                        ? calculateStatsFromClosures().totalExpenses
+                        : totalExpenses
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="cr-stat-card card">
+                <div className="cr-stat-icon">💵</div>
+                <div className="cr-stat-info">
+                  <div className="cr-stat-label">Ganancia Neta</div>
+                  <div className="cr-stat-value">
+                    {formatCurrency(
+                      activeFilter !== 'Hoy'
+                        ? calculateStatsFromClosures().totalProfit
+                        : totalProfit
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="cr-stat-card transfer">
+                <div className="cr-stat-icon">💳</div>
+                <div className="cr-stat-info">
+                  <div className="cr-stat-label">Ticket Promedio</div>
+                  <div className="cr-stat-value">
+                    {formatCurrency(
+                      activeFilter !== 'Hoy'
+                        ? calculateStatsFromClosures().averageTicket
+                        : stats.averageTicket
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Analysis Section Title */}
@@ -707,7 +728,7 @@ const Reports = () => {
                 <div>
                   <div className="chart-title">Gastos por Categoría</div>
                   <div className="chart-subtitle">
-                    {dataSource === 'cortes'
+                    {activeFilter !== 'Hoy'
                       ? `${getExpensesFromClosures().length} ${getExpensesFromClosures().length === 1 ? 'gasto' : 'gastos'} registrados`
                       : `${filteredExpenses.length} ${filteredExpenses.length === 1 ? 'gasto' : 'gastos'} registrados`
                     }
@@ -716,7 +737,7 @@ const Reports = () => {
               </div>
               <div style={{ height: '300px', padding: '20px' }}>
                 <ExpensesByCategoryChart
-                  expenses={dataSource === 'cortes' ? getExpensesFromClosures() : filteredExpenses}
+                  expenses={activeFilter !== 'Hoy' ? getExpensesFromClosures() : filteredExpenses}
                 />
               </div>
             </div>
@@ -740,7 +761,7 @@ const Reports = () => {
               <div style={{ height: '300px', padding: '20px' }}>
                 <ProfitTrendChart
                   orders={filteredOrders}
-                  expenses={dataSource === 'cortes' ? getExpensesFromClosures() : filteredExpenses}
+                  expenses={activeFilter !== 'Hoy' ? getExpensesFromClosures() : filteredExpenses}
                   dateFilter={activeFilter}
                 />
               </div>
@@ -756,12 +777,12 @@ const Reports = () => {
               <div style={{ height: '300px', padding: '20px' }}>
                 <PeriodComparisonChart
                   currentData={
-                    dataSource === 'cortes'
+                    activeFilter !== 'Hoy'
                       ? calculatePeriodComparisonFromClosures().current
                       : periodComparison.current
                   }
                   previousData={
-                    dataSource === 'cortes'
+                    activeFilter !== 'Hoy'
                       ? calculatePeriodComparisonFromClosures().previous
                       : periodComparison.previous
                   }
@@ -845,11 +866,22 @@ const Reports = () => {
         />
       )}
 
-      {/* History Tab */}
-      {activeTab === 'historial' && (
+      {/* History Tab - Cortes */}
+      {activeTab === 'historial-cortes' && (
         <CashClosureHistory
           onViewDetails={handleViewClosureDetails}
         />
+      )}
+
+      {/* History Tab - Órdenes */}
+      {activeTab === 'historial-ordenes' && (
+        <div className="reports-content">
+          <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📦</div>
+            <h3 style={{ color: '#fff', marginBottom: '10px' }}>Historial de Órdenes</h3>
+            <p>Esta funcionalidad estará disponible próximamente.</p>
+          </div>
+        </div>
       )}
 
       {/* Detail Modal */}

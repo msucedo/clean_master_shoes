@@ -1563,112 +1563,69 @@ export const getAllSettings = async () => {
 
 // ==================== EXPENSES ====================
 
+// ==================== CASH REGISTER ====================
+
 /**
- * Subscribe to expenses real-time updates
- * @param {Function} callback - Callback function that receives expenses array
+ * Save or update cash register draft for today
+ * @param {Object} draftData - Draft data
+ * @returns {Promise<void>}
+ */
+export const saveCashRegisterDraft = async (draftData) => {
+  try {
+    const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const draftRef = doc(db, 'cashRegisterDrafts', today);
+
+    await setDoc(draftRef, {
+      ...draftData,
+      fecha: today,
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error saving cash register draft:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to today's cash register draft
+ * @param {Function} callback - Callback function that receives draft data
  * @returns {Function} Unsubscribe function
  */
-export const subscribeToExpenses = (callback) => {
+export const subscribeToCashRegisterDraft = (callback) => {
   try {
-    const expensesRef = collection(db, 'expenses');
-    return onSnapshot(expensesRef, (snapshot) => {
-      const expenses = [];
-      snapshot.forEach((doc) => {
-        expenses.push({ id: doc.id, ...doc.data() });
-      });
-      callback(expenses);
+    const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const draftRef = doc(db, 'cashRegisterDrafts', today);
+
+    return onSnapshot(draftRef, (docSnap) => {
+      if (docSnap.exists()) {
+        callback(docSnap.data());
+      } else {
+        callback(null);
+      }
     }, (error) => {
-      console.error('Error in expenses subscription:', error);
+      console.error('Error in draft subscription:', error);
+      callback(null);
     });
   } catch (error) {
-    console.error('Error subscribing to expenses:', error);
-    throw error;
+    console.error('Error subscribing to cash register draft:', error);
+    return () => {};
   }
 };
 
 /**
- * Add a new expense
- * @param {Object} expenseData - Expense data
- * @returns {Promise<string>} Document ID of the created expense
+ * Delete today's cash register draft
+ * @returns {Promise<void>}
  */
-export const addExpense = async (expenseData) => {
+export const deleteCashRegisterDraft = async () => {
   try {
-    const expensesRef = collection(db, 'expenses');
-    const docRef = await addDoc(expensesRef, {
-      ...expenseData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-
-    return docRef.id;
+    const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const draftRef = doc(db, 'cashRegisterDrafts', today);
+    await deleteDoc(draftRef);
   } catch (error) {
-    console.error('Error adding expense:', error);
+    console.error('Error deleting cash register draft:', error);
     throw error;
   }
 };
-
-/**
- * Get expenses by date range
- * @param {string} startDate - Start date in ISO format
- * @param {string} endDate - End date in ISO format
- * @returns {Promise<Array>} Array of expenses
- */
-export const getExpensesByDateRange = async (startDate, endDate) => {
-  try {
-    const expensesRef = collection(db, 'expenses');
-    const q = query(
-      expensesRef,
-      where('date', '>=', startDate),
-      where('date', '<=', endDate),
-      orderBy('date', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    const expenses = [];
-    querySnapshot.forEach((doc) => {
-      expenses.push({ id: doc.id, ...doc.data() });
-    });
-
-    return expenses;
-  } catch (error) {
-    console.error('Error getting expenses:', error);
-    throw error;
-  }
-};
-
-/**
- * Delete an expense
- * @param {string} expenseId - Expense document ID
- */
-export const deleteExpense = async (expenseId) => {
-  try {
-    const expenseRef = doc(db, 'expenses', expenseId);
-    await deleteDoc(expenseRef);
-  } catch (error) {
-    console.error('Error deleting expense:', error);
-    throw error;
-  }
-};
-
-/**
- * Delete multiple expenses by their IDs
- * @param {Array<string>} expenseIds - Array of expense document IDs
- */
-export const deleteMultipleExpenses = async (expenseIds) => {
-  try {
-    const deletePromises = expenseIds.map(expenseId => {
-      const expenseRef = doc(db, 'expenses', expenseId);
-      return deleteDoc(expenseRef);
-    });
-    await Promise.all(deletePromises);
-  } catch (error) {
-    console.error('Error deleting multiple expenses:', error);
-    throw error;
-  }
-};
-
-// ==================== CASH REGISTER ====================
 
 /**
  * Save a cash register closure (corte de caja)

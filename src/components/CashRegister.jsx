@@ -4,10 +4,9 @@ import Modal from './Modal';
 import ExpenseForm from './ExpenseForm';
 import ConfirmDialog from './ConfirmDialog';
 import {
-  addExpense,
-  getExpensesByDateRange,
-  deleteExpense,
-  deleteMultipleExpenses,
+  saveCashRegisterDraft,
+  subscribeToCashRegisterDraft,
+  deleteCashRegisterDraft,
   saveCashRegisterClosure,
   subscribeToEmployees
 } from '../services/firebaseService';
@@ -69,36 +68,47 @@ const CashRegister = ({ orders, dateFilter }) => {
     return () => unsubscribe();
   }, []);
 
-  // Load expenses on mount (always for today)
+  // Subscribe to draft on mount
   useEffect(() => {
-    loadExpenses();
+    const unsubscribe = subscribeToCashRegisterDraft((draftData) => {
+      if (draftData) {
+        // Load all state from draft
+        setDineroInicial(draftData.dineroInicial || '');
+        setBilletes(draftData.billetes || { 1000: 0, 500: 0, 200: 0, 100: 0, 50: 0, 20: 0 });
+        setMonedas(draftData.monedas || { 10: 0, 5: 0, 2: 0, 1: 0, 0.5: 0 });
+        setCobrosTarjeta(draftData.cobrosTarjeta || [{ monto: '', tipo: 'debito' }]);
+        setTransferencias(draftData.transferencias || [{ monto: '' }]);
+        setExpenses(draftData.gastos || []);
+        setNotes(draftData.notes || '');
+        setSelectedEmployee(draftData.selectedEmployee || '');
+      }
+    });
+
+    return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadExpenses = async () => {
-    try {
-      const { startDate, endDate } = getDateRange();
-      const expensesData = await getExpensesByDateRange(startDate, endDate);
-      setExpenses(expensesData);
-    } catch (error) {
-      console.error('Error loading expenses:', error);
-      showError('Error al cargar los gastos');
-    }
-  };
+  // Auto-save draft with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const draftData = {
+        dineroInicial: dineroInicial,
+        billetes: billetes,
+        monedas: monedas,
+        cobrosTarjeta: cobrosTarjeta,
+        transferencias: transferencias,
+        gastos: expenses,
+        notes: notes,
+        selectedEmployee: selectedEmployee
+      };
 
-  const getDateRange = () => {
-    // Helper para convertir Date a formato YYYY-MM-DD local (sin UTC)
-    const formatLocalDate = (date) => {
-      return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-    };
+      saveCashRegisterDraft(draftData).catch(error => {
+        console.error('Error auto-saving draft:', error);
+      });
+    }, 1000); // 1 second debounce
 
-    // Siempre retornar el rango del día actual (Corte de Caja es diario)
-    const now = new Date();
-    const startDate = formatLocalDate(new Date(now.setHours(0, 0, 0, 0)));
-    const endDate = formatLocalDate(new Date(now.setHours(23, 59, 59, 999)));
-
-    return { startDate, endDate };
-  };
+    return () => clearTimeout(timeoutId);
+  }, [dineroInicial, billetes, monedas, cobrosTarjeta, transferencias, expenses, notes, selectedEmployee]);
 
   // Calculate financial summary
   const calculateSummary = () => {
@@ -295,10 +305,13 @@ const CashRegister = ({ orders, dateFilter }) => {
     }
   };
 
-  const handleAddExpense = async (expenseData) => {
+  const handleAddExpense = (expenseData) => {
     try {
-      await addExpense(expenseData);
-      await loadExpenses();
+      const newExpense = {
+        ...expenseData,
+        id: `exp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` // Generate unique ID
+      };
+      setExpenses(prev => [...prev, newExpense]);
       showSuccess('Gasto agregado exitosamente');
       setIsExpenseModalOpen(false);
     } catch (error) {
@@ -312,10 +325,9 @@ const CashRegister = ({ orders, dateFilter }) => {
       isOpen: true,
       title: 'Eliminar Gasto',
       message: '¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.',
-      onConfirm: async () => {
+      onConfirm: () => {
         try {
-          await deleteExpense(expenseId);
-          await loadExpenses();
+          setExpenses(prev => prev.filter(exp => exp.id !== expenseId));
           showSuccess('Gasto eliminado');
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
@@ -407,11 +419,8 @@ const CashRegister = ({ orders, dateFilter }) => {
 
           await saveCashRegisterClosure(closureData);
 
-          // Delete expenses from Firestore after successful save
-          const expenseIds = expenses.map(e => e.id);
-          if (expenseIds.length > 0) {
-            await deleteMultipleExpenses(expenseIds);
-          }
+          // Delete draft after successful save
+          await deleteCashRegisterDraft();
 
           showSuccess('Corte de caja cerrado exitosamente');
 
@@ -419,7 +428,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           setDineroInicial('');
           setBilletes({ 1000: 0, 500: 0, 200: 0, 100: 0, 50: 0, 20: 0 });
           setMonedas({ 10: 0, 5: 0, 2: 0, 1: 0, 0.5: 0 });
-          setCobrosTarjeta([{ monto: '' }]);
+          setCobrosTarjeta([{ monto: '', tipo: 'debito' }]);
           setTransferencias([{ monto: '' }]);
           setNotes('');
           setSelectedEmployee('');
