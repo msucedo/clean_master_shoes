@@ -182,6 +182,43 @@ const Reports = () => {
 
   const filteredClosures = getFilteredClosures();
 
+  // Helper: Check if today is within a date range
+  const isTodayInRange = (startDate, endDate) => {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+    return todayStart >= startDate && todayEnd <= endDate;
+  };
+
+  // Helper: Check if today's draft has data (expenses or completed orders)
+  const hasDraftData = () => {
+    // Check if draft has expenses
+    if (todayDraft?.gastos && todayDraft.gastos.length > 0) {
+      return true;
+    }
+
+    // Check if there are orders completed today
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    const allOrders = [
+      ...orders.recibidos,
+      ...orders.proceso,
+      ...orders.listos,
+      ...orders.enEntrega,
+      ...orders.completados
+    ];
+
+    const ordersToday = allOrders.filter(order => {
+      if (!order.completedDate) return false;
+      const orderDate = new Date(order.completedDate);
+      return orderDate >= todayStart && orderDate <= todayEnd;
+    });
+
+    return ordersToday.length > 0;
+  };
+
   // Calculate statistics from closures
   const calculateStatsFromClosures = () => {
     let totalRevenue = 0;
@@ -193,6 +230,66 @@ const Reports = () => {
       totalExpenses += parseFloat(closure.resultados?.gastosTotal || 0);
       totalOrders += parseInt(closure.totalOrdenes || 0);
     });
+
+    // Include today's draft data if applicable (for Semana, Mes, Año filters)
+    if (activeFilter !== 'Hoy') {
+      const now = new Date();
+      let startDate, endDate;
+
+      // Calculate date range for current filter
+      switch (activeFilter) {
+        case 'Semana': {
+          const dayOfWeek = now.getDay();
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
+          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+          break;
+        }
+        case 'Mes':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+          break;
+        case 'Año':
+          startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+          endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+          break;
+        default:
+          startDate = null;
+          endDate = null;
+      }
+
+      // If today is in range and draft has data, include it
+      if (startDate && endDate && isTodayInRange(startDate, endDate) && hasDraftData()) {
+        // Add revenue from today's completed orders
+        const todayOrders = getFilteredOrders().filter(order => {
+          if (!order.completedDate) return false;
+          const orderDate = new Date(order.completedDate);
+          const today = new Date();
+          const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+          const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+          return orderDate >= todayStart && orderDate <= todayEnd;
+        });
+
+        todayOrders.forEach(order => {
+          const total = parseFloat(order.totalPrice) || 0;
+          const advance = parseFloat(order.advancePayment) || 0;
+
+          if (order.paymentStatus === 'paid') {
+            totalRevenue += total;
+            totalOrders++;
+          } else if (order.paymentStatus === 'partial') {
+            totalRevenue += advance;
+            totalOrders++;
+          }
+        });
+
+        // Add expenses from today's draft
+        if (todayDraft?.gastos) {
+          todayDraft.gastos.forEach(expense => {
+            totalExpenses += parseFloat(expense.amount) || 0;
+          });
+        }
+      }
+    }
 
     const totalProfit = totalRevenue - totalExpenses;
     const averageTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
@@ -214,6 +311,41 @@ const Reports = () => {
         allExpenses.push(...closure.gastos.items);
       }
     });
+
+    // Include today's draft expenses if applicable (for Semana, Mes, Año filters)
+    if (activeFilter !== 'Hoy') {
+      const now = new Date();
+      let startDate, endDate;
+
+      // Calculate date range for current filter
+      switch (activeFilter) {
+        case 'Semana': {
+          const dayOfWeek = now.getDay();
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
+          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+          break;
+        }
+        case 'Mes':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+          break;
+        case 'Año':
+          startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+          endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+          break;
+        default:
+          startDate = null;
+          endDate = null;
+      }
+
+      // If today is in range and draft has data, include its expenses
+      if (startDate && endDate && isTodayInRange(startDate, endDate) && hasDraftData()) {
+        if (todayDraft?.gastos) {
+          allExpenses.push(...todayDraft.gastos);
+        }
+      }
+    }
+
     return allExpenses;
   };
 
@@ -270,6 +402,46 @@ const Reports = () => {
         revenue += parseFloat(closure.resultados?.ingresosTotal || 0);
         expenses += parseFloat(closure.resultados?.gastosTotal || 0);
       });
+
+      // Include today's draft data if today is in this period and has data
+      if (isTodayInRange(startDate, endDate) && hasDraftData()) {
+        // Add revenue from today's completed orders
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+        const allOrders = [
+          ...orders.recibidos,
+          ...orders.proceso,
+          ...orders.listos,
+          ...orders.enEntrega,
+          ...orders.completados
+        ];
+
+        const todayOrders = allOrders.filter(order => {
+          if (!order.completedDate) return false;
+          const orderDate = new Date(order.completedDate);
+          return orderDate >= todayStart && orderDate <= todayEnd;
+        });
+
+        todayOrders.forEach(order => {
+          const total = parseFloat(order.totalPrice) || 0;
+          const advance = parseFloat(order.advancePayment) || 0;
+
+          if (order.paymentStatus === 'paid') {
+            revenue += total;
+          } else if (order.paymentStatus === 'partial') {
+            revenue += advance;
+          }
+        });
+
+        // Add expenses from today's draft
+        if (todayDraft?.gastos) {
+          todayDraft.gastos.forEach(expense => {
+            expenses += parseFloat(expense.amount) || 0;
+          });
+        }
+      }
 
       return {
         revenue,
@@ -619,7 +791,39 @@ const Reports = () => {
             <div className="cr-section-header">
               <h3>💰 Resumen Financiero</h3>
               <div className="cr-period-badge">
-                {activeFilter === 'Hoy' ? '⚡ Tiempo Real' : `📚 ${activeFilter} - Histórico`}
+                {activeFilter === 'Hoy'
+                  ? '⚡ Tiempo Real'
+                  : (() => {
+                      // Determine if draft is included
+                      const now = new Date();
+                      let startDate, endDate;
+
+                      switch (activeFilter) {
+                        case 'Semana': {
+                          const dayOfWeek = now.getDay();
+                          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek, 0, 0, 0, 0);
+                          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+                          break;
+                        }
+                        case 'Mes':
+                          startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+                          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+                          break;
+                        case 'Año':
+                          startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+                          endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+                          break;
+                        default:
+                          startDate = null;
+                          endDate = null;
+                      }
+
+                      const includingToday = startDate && endDate && isTodayInRange(startDate, endDate) && hasDraftData();
+                      return includingToday
+                        ? `📚 ${activeFilter} (incluyendo hoy)`
+                        : `📚 ${activeFilter} - Histórico`;
+                    })()
+                }
               </div>
             </div>
 
