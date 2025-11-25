@@ -3,6 +3,8 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[FIX]labels de stat cards del historial del corte
+-[]actualizar reportes para que analicen info del historial de cortes de caja
 -[FIX]fix animacion de carga de pantalla de rastreo de ordenes
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
@@ -20,7 +22,6 @@ Clean master shoes
 
 // BACKLOG
 -[]validar integridad de datos en formularios y campos de entrada de datos del usuario
--[]placeholders cuando data esta cargando
 -[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados., quien puede crear o editar inventario o eliminar clientes?
 -[]agregar campo cumpleaños para el cliente
 -[]remover opcion de agregar cliente directamente desde tabs clientes, solo se agregan al crear una nueva orden en caso de no existir.
@@ -61,11 +62,12 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]agregar add photo en orderformmobile
 -[FEATURE]Si la fecha de entrega ya pasó y la orden aun tiene uno de los cuatro estados, pintar rojo el borde
 -[FEATURE]Clientes enumerados and clients stats cards
 -[FEATURE]Imprimir doble ticket
+-[FEATURE]placeholders cuando data esta cargando, skeleton loading
 -[FEATURE]habilitar en configuracion opcion para activar o desactivar envio de mensajes por wapp
--[FIX]loading animation cuando carga la pagina de rastreo
 -[FEATURE]al agregar producto al inventario, agregar boton generar código de barras aleatorio para ofrecer la opcion al usuario
 -[FIX]Al ver un preview de la foto se corta la x para cerrar el preview
 -[FEATURE]corte de caja>conteo de efectivo>tarjetas:se agrega tipo debito/credito

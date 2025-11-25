@@ -420,3 +420,77 @@
 .reports-content::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-700);
 }
+
+/* New Stats Grid for StatCard Components */
+.reports-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: clamp(1rem, 3vw, 1.25rem);
+  margin-bottom: clamp(2rem, 5vw, 2.5rem);
+}
+
+/* Section Titles */
+.reports-section-title {
+  font-size: clamp(1.125rem, 3vw, 1.375rem);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: clamp(1.25rem, 3vw, 1.5rem);
+  margin-top: clamp(1.5rem, 4vw, 2rem);
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
+  padding-bottom: clamp(0.75rem, 2vw, 1rem);
+  border-bottom: 2px solid #2a2a2a;
+}
+
+.reports-section-icon {
+  font-size: clamp(1.25rem, 3.5vw, 1.5rem);
+}
+
+/* Charts Grids */
+.reports-charts-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
+  gap: clamp(1.25rem, 3.5vw, 1.563rem);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+}
+
+.reports-charts-grid-1col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.25rem, 3.5vw, 1.563rem);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+}
+
+/* Responsive adjustments for new layouts */
+@media (max-width: 768px) {
+  .reports-stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+    gap: clamp(0.75rem, 2.5vw, 1rem);
+  }
+
+  .reports-charts-grid-2col {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-section-title {
+    margin-top: clamp(1rem, 3vw, 1.5rem);
+  }
+}
+
+/* Data Source Toggle Wrapper */
+.reports-data-source-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
+  padding-bottom: clamp(1.25rem, 3vw, 1.5rem);
+  border-bottom: 1px solid #2a2a2a;
+}
+
+@media (max-width: 768px) {
+  .reports-data-source-wrapper {
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    padding-bottom: clamp(1rem, 2.5vw, 1.25rem);
+  }
+}

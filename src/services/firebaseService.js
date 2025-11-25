@@ -1564,6 +1564,29 @@ export const getAllSettings = async () => {
 // ==================== EXPENSES ====================
 
 /**
+ * Subscribe to expenses real-time updates
+ * @param {Function} callback - Callback function that receives expenses array
+ * @returns {Function} Unsubscribe function
+ */
+export const subscribeToExpenses = (callback) => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    return onSnapshot(expensesRef, (snapshot) => {
+      const expenses = [];
+      snapshot.forEach((doc) => {
+        expenses.push({ id: doc.id, ...doc.data() });
+      });
+      callback(expenses);
+    }, (error) => {
+      console.error('Error in expenses subscription:', error);
+    });
+  } catch (error) {
+    console.error('Error subscribing to expenses:', error);
+    throw error;
+  }
+};
+
+/**
  * Add a new expense
  * @param {Object} expenseData - Expense data
  * @returns {Promise<string>} Document ID of the created expense
@@ -1687,6 +1710,30 @@ export const getAllCashRegisterClosures = async () => {
     return closures;
   } catch (error) {
     console.error('Error getting cash register closures:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to cash register closures real-time updates
+ * @param {Function} callback - Callback function that receives closures array
+ * @returns {Function} Unsubscribe function
+ */
+export const subscribeToCashRegisterClosures = (callback) => {
+  try {
+    const closuresRef = collection(db, 'cash-register-closures');
+    const q = query(closuresRef, orderBy('fechaCorte', 'desc'));
+    return onSnapshot(q, (snapshot) => {
+      const closures = [];
+      snapshot.forEach((doc) => {
+        closures.push({ id: doc.id, ...doc.data() });
+      });
+      callback(closures);
+    }, (error) => {
+      console.error('Error in cash register closures subscription:', error);
+    });
+  } catch (error) {
+    console.error('Error subscribing to cash register closures:', error);
     throw error;
   }
 };
