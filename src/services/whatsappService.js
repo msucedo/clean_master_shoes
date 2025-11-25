@@ -67,8 +67,9 @@ const formatServicesList = (services) => {
 
   // Use comma separation instead of newlines for WhatsApp template compatibility
   return services
-    .map((service) => service.serviceName)
-    .join(', ');
+    .map((service) => service?.serviceName || 'Servicio')
+    .filter((name) => name !== 'Servicio') // Remove placeholder if serviceName was null/undefined
+    .join(', ') || 'Tu pedido'; // Fallback if all services were invalid
 };
 
 /**
@@ -82,12 +83,102 @@ const buildOrderTrackingUrl = (trackingToken) => {
     return 'Solicita el enlace de rastreo a tu vendedor';
   }
 
+  if (!trackingToken) {
+    console.warn('⚠️ [WhatsApp] trackingToken no proporcionado');
+    return 'Solicita el enlace de rastreo a tu vendedor';
+  }
+
   // Ensure URL ends with / before appending trackingToken
   const baseUrl = WHATSAPP_CONFIG.trackingUrl.endsWith('/')
     ? WHATSAPP_CONFIG.trackingUrl
     : `${WHATSAPP_CONFIG.trackingUrl}/`;
 
   return `${baseUrl}${trackingToken}`;
+};
+
+/**
+ * Validate order data for WhatsApp notification and format phone number
+ * Extracted common validation logic used by both notification functions
+ *
+ * @param {Object} order - Order object to validate
+ * @param {string} notificationType - Type of notification ('delivery' or 'orderReceived')
+ * @returns {Promise<Object>} Validation result: { valid: boolean, formattedPhone?: string, error?: object }
+ */
+const validateOrderForWhatsApp = async (order, notificationType) => {
+  // Check if notification is enabled in settings
+  try {
+    const whatsappConfig = await getWhatsAppConfig();
+    const isEnabled = notificationType === 'delivery'
+      ? whatsappConfig.enableDeliveryReady
+      : whatsappConfig.enableOrderReceived;
+
+    if (!isEnabled) {
+      const notificationName = notificationType === 'delivery'
+        ? 'orden lista'
+        : 'orden recibida';
+      console.log(`⚠️ [WhatsApp] Notificación de ${notificationName} deshabilitada en configuración. Saltando envío.`);
+      return {
+        valid: false,
+        error: {
+          success: false,
+          error: `${notificationType === 'delivery' ? 'Delivery ready' : 'Order received'} notification disabled in settings`,
+          skipped: true
+        }
+      };
+    }
+  } catch (error) {
+    console.error('❌ [WhatsApp] Error al obtener configuración:', error);
+    // Continue with notification if config check fails (fail-safe)
+  }
+
+  // Check if WhatsApp is configured
+  if (!isWhatsAppConfigured()) {
+    console.warn('⚠️ [WhatsApp] WhatsApp no está configurado. Saltando notificación.');
+    return {
+      valid: false,
+      error: {
+        success: false,
+        error: 'WhatsApp not configured',
+        skipped: true
+      }
+    };
+  }
+
+  // Validate order has required fields
+  if (!order.client || !order.phone) {
+    console.error('❌ [WhatsApp] Orden sin campos requeridos:', {
+      orderId: order.id,
+      hasClient: !!order.client,
+      hasPhone: !!order.phone
+    });
+    return {
+      valid: false,
+      error: {
+        success: false,
+        error: 'Missing client name or phone number'
+      }
+    };
+  }
+
+  // Format phone number
+  console.log('📞 [WhatsApp] Formateando número:', { original: order.phone });
+  const formattedPhone = formatPhoneNumber(order.phone);
+  console.log('📞 [WhatsApp] Número formateado:', { formatted: formattedPhone });
+
+  if (!formattedPhone) {
+    return {
+      valid: false,
+      error: {
+        success: false,
+        error: 'Invalid phone number format'
+      }
+    };
+  }
+
+  return {
+    valid: true,
+    formattedPhone
+  };
 };
 
 /**
@@ -150,6 +241,11 @@ const sendWhatsAppMessage = async (to, message) => {
     });
 
     const response = await axios.post(url, payload, config);
+
+    // Validate response structure
+    if (!response.data?.messages?.[0]?.id) {
+      throw new Error('Invalid API response: missing message ID');
+    }
 
     // ✅ LOG: Success con detalles completos
     console.log('✅ [WhatsApp] Mensaje enviado exitosamente:', {
@@ -244,6 +340,11 @@ const sendTemplateMessage = async (to, templateName, components) => {
 
     const response = await axios.post(url, payload, config);
 
+    // Validate response structure
+    if (!response.data?.messages?.[0]?.id) {
+      throw new Error('Invalid API response: missing message ID');
+    }
+
     // ✅ LOG: Success con detalles completos
     console.log('✅ [WhatsApp Template] Mensaje enviado exitosamente:', {
       messageId: response.data.messages[0].id,
@@ -305,22 +406,37 @@ const sendTemplateMessage = async (to, templateName, components) => {
  */
 const uploadMediaToWhatsApp = async (base64Image) => {
   try {
-    // Convertir base64 a Blob
-    const base64Data = base64Image.split(',')[1]; // Quitar "data:image/jpeg;base64,"
-    const byteCharacters = atob(base64Data);
-    const byteNumbers = new Array(byteCharacters.length);
-
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    // Validate base64 format
+    if (!base64Image || typeof base64Image !== 'string') {
+      throw new Error('Invalid base64Image: must be a non-empty string');
     }
 
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'image/jpeg' });
+    if (!base64Image.includes(',')) {
+      throw new Error('Invalid base64Image format: missing comma separator');
+    }
+
+    // Extract image type from base64 prefix (e.g., "data:image/jpeg;base64,")
+    const matches = base64Image.match(/^data:image\/(jpeg|jpg|png|gif|webp);base64,/);
+    if (!matches) {
+      throw new Error('Invalid base64Image format: must start with data:image/{type};base64,');
+    }
+
+    const imageType = matches[1] === 'jpg' ? 'jpeg' : matches[1]; // Normalize jpg to jpeg
+    const mimeType = `image/${imageType}`;
+    const fileExtension = imageType;
+
+    // Convertir base64 a Blob
+    const base64Data = base64Image.split(',')[1];
+    const byteCharacters = atob(base64Data);
+
+    // More efficient conversion using Uint8Array.from
+    const byteArray = Uint8Array.from(byteCharacters, char => char.charCodeAt(0));
+    const blob = new Blob([byteArray], { type: mimeType });
 
     // Crear FormData
     const formData = new FormData();
-    formData.append('file', blob, 'order-image.jpg');
-    formData.append('type', 'image/jpeg');
+    formData.append('file', blob, `order-image.${fileExtension}`);
+    formData.append('type', mimeType);
     formData.append('messaging_product', 'whatsapp');
 
     const url = `https://graph.facebook.com/${WHATSAPP_CONFIG.apiVersion}/${WHATSAPP_CONFIG.phoneNumberId}/media`;
@@ -373,86 +489,6 @@ const uploadMediaToWhatsApp = async (base64Image) => {
 };
 
 /**
- * Send image message using media_id from upload
- *
- * @param {string} to - Recipient phone number (with country code)
- * @param {string} mediaId - Media ID from uploadMediaToWhatsApp()
- * @param {string} caption - Optional caption for the image
- * @returns {Promise<Object>} API response with message ID and status
- */
-const sendImageMessage = async (to, mediaId, caption = '') => {
-  const url = `https://graph.facebook.com/${WHATSAPP_CONFIG.apiVersion}/${WHATSAPP_CONFIG.phoneNumberId}/messages`;
-
-  const payload = {
-    messaging_product: 'whatsapp',
-    recipient_type: 'individual',
-    to: to,
-    type: 'image',
-    image: {
-      id: mediaId,
-      caption: caption
-    }
-  };
-
-  const config = {
-    headers: {
-      'Authorization': `Bearer ${WHATSAPP_CONFIG.accessToken}`,
-      'Content-Type': 'application/json'
-    }
-  };
-
-  try {
-    // 📤 LOG: Enviando imagen
-    console.log('📤 [WhatsApp Image] Enviando imagen:', {
-      timestamp: new Date().toISOString(),
-      to: to,
-      mediaId: mediaId,
-      caption: caption,
-      payload: JSON.stringify(payload, null, 2)
-    });
-
-    const response = await axios.post(url, payload, config);
-
-    // ✅ LOG: Imagen enviada
-    console.log('✅ [WhatsApp Image] Imagen enviada exitosamente:', {
-      messageId: response.data.messages[0].id,
-      to: to,
-      timestamp: new Date().toISOString(),
-      statusCode: response.status
-    });
-
-    return {
-      success: true,
-      messageId: response.data.messages[0].id,
-      timestamp: new Date().toISOString(),
-      status: 'sent'
-    };
-
-  } catch (error) {
-    // ❌ LOG: Error enviando imagen
-    const errorDetails = {
-      timestamp: new Date().toISOString(),
-      to: to,
-      mediaId: mediaId,
-      httpStatus: error.response?.status,
-      whatsappErrorCode: error.response?.data?.error?.code,
-      whatsappErrorMessage: error.response?.data?.error?.message,
-      fullError: error.response?.data || error.message
-    };
-
-    console.error('❌ [WhatsApp Image] Error enviando imagen:', errorDetails);
-
-    return {
-      success: false,
-      error: error.response?.data?.error?.message || error.message,
-      errorCode: error.response?.data?.error?.code,
-      timestamp: new Date().toISOString(),
-      status: 'failed'
-    };
-  }
-};
-
-/**
  * Send delivery notification to customer when order status changes to "En Entrega"
  * This is the main function called by firebaseService when updating order status
  *
@@ -468,54 +504,14 @@ export const sendDeliveryNotification = async (order) => {
     phone: order.phone
   });
 
-  // Check if notification is enabled in settings
-  try {
-    const whatsappConfig = await getWhatsAppConfig();
-    if (!whatsappConfig.enableDeliveryReady) {
-      console.log('⚠️ [WhatsApp] Notificación de orden lista deshabilitada en configuración. Saltando envío.');
-      return {
-        success: false,
-        error: 'Delivery ready notification disabled in settings',
-        skipped: true
-      };
-    }
-  } catch (error) {
-    console.error('❌ [WhatsApp] Error al obtener configuración:', error);
-    // Continue with notification if config check fails (fail-safe)
+  // Validate order and get formatted phone (extracted common logic)
+  const validation = await validateOrderForWhatsApp(order, 'delivery');
+  if (!validation.valid) {
+    return validation.error;
   }
-
-  // Check if WhatsApp is configured
-  if (!isWhatsAppConfigured()) {
-    console.warn('⚠️ [WhatsApp] WhatsApp no está configurado. Saltando notificación.');
-    return {
-      success: false,
-      error: 'WhatsApp not configured',
-      skipped: true
-    };
-  }
-
-  // Validate order has required fields
-  if (!order.client || !order.phone) {
-    console.error('❌ [WhatsApp] Orden sin campos requeridos:', {
-      orderId: order.id,
-      hasClient: !!order.client,
-      hasPhone: !!order.phone
-    });
-    return {
-      success: false,
-      error: 'Missing client name or phone number'
-    };
-  }
+  const formattedPhone = validation.formattedPhone;
 
   try {
-    // Format phone number
-    console.log('📞 [WhatsApp] Formateando número:', { original: order.phone });
-    const formattedPhone = formatPhoneNumber(order.phone);
-    console.log('📞 [WhatsApp] Número formateado:', { formatted: formattedPhone });
-
-    if (!formattedPhone) {
-      throw new Error('Invalid phone number format');
-    }
 
     // Use hardcoded template 'orden_lista_entrega'
     console.log('✨ [WhatsApp] Usando plantilla de Meta:', 'orden_lista_entrega');
@@ -626,58 +622,23 @@ export const sendOrderReceivedNotification = async (order) => {
     hasImages: order.orderImages?.length > 0
   });
 
-  // Check if notification is enabled in settings
-  try {
-    const whatsappConfig = await getWhatsAppConfig();
-    if (!whatsappConfig.enableOrderReceived) {
-      console.log('⚠️ [WhatsApp] Notificación de orden recibida deshabilitada en configuración. Saltando envío.');
-      return {
-        success: false,
-        error: 'Order received notification disabled in settings',
-        skipped: true
-      };
-    }
-  } catch (error) {
-    console.error('❌ [WhatsApp] Error al obtener configuración:', error);
-    // Continue with notification if config check fails (fail-safe)
+  // Validate order and get formatted phone (extracted common logic)
+  const validation = await validateOrderForWhatsApp(order, 'orderReceived');
+  if (!validation.valid) {
+    return validation.error;
   }
-
-  // Check if WhatsApp is configured
-  if (!isWhatsAppConfigured()) {
-    console.warn('⚠️ [WhatsApp] WhatsApp no está configurado. Saltando notificación.');
-    return {
-      success: false,
-      error: 'WhatsApp not configured',
-      skipped: true
-    };
-  }
-
-  // Validate order has required fields
-  if (!order.client || !order.phone) {
-    console.error('❌ [WhatsApp] Orden sin campos requeridos:', {
-      orderId: order.id,
-      hasClient: !!order.client,
-      hasPhone: !!order.phone
-    });
-    return {
-      success: false,
-      error: 'Missing client name or phone number'
-    };
-  }
+  const formattedPhone = validation.formattedPhone;
 
   try {
-    // Format phone number
-    console.log('📞 [WhatsApp] Formateando número:', { original: order.phone });
-    const formattedPhone = formatPhoneNumber(order.phone);
-    console.log('📞 [WhatsApp] Número formateado:', { formatted: formattedPhone });
-
-    if (!formattedPhone) {
-      throw new Error('Invalid phone number format');
-    }
 
     // Build template parameters
     const servicesList = formatServicesList(order.services);
     const orderNumber = order.orderNumber || order.id;
+
+    // Validate trackingToken
+    if (!order.trackingToken) {
+      throw new Error('trackingToken is required for order received notification');
+    }
 
     console.log('✨ [WhatsApp] Usando plantilla de Meta:', 'orden_recibida_foto');
 
