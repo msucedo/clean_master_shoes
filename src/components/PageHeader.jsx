@@ -10,7 +10,8 @@ const PageHeader = ({
   searchValue = '',
   onSearchChange,
   searchPlaceholder = 'Buscar...',
-  filters = []
+  filters = [],
+  tabs
 }) => {
   return (
     <div className="page-header">
@@ -39,6 +40,8 @@ const PageHeader = ({
           </div>
         </div>
       )}
+
+      {tabs}
 
       {filters.length > 0 && (
         <div className="filters-row">
@@ -90,7 +93,8 @@ PageHeader.propTypes = {
       onClick: PropTypes.func.isRequired,
       active: PropTypes.bool
     })
-  )
+  ),
+  tabs: PropTypes.node
 };
 
 export default PageHeader;

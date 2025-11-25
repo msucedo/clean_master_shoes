@@ -570,41 +570,41 @@ const Reports = () => {
               }))
             : [] // Ocultar filtros en tabs "corte" e "historial"
         }
+        tabs={
+          <div className="reports-tabs">
+            {/* Select para móvil (oculto en desktop por CSS) */}
+            <select
+              className="reports-tab-select-mobile"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+            >
+              <option value="reportes">📊 Reportes</option>
+              <option value="corte">💰 Corte de Caja</option>
+              <option value="historial">📋 Historial de Cortes</option>
+            </select>
+
+            {/* Botones para desktop/tablet (ocultos en móvil por CSS) */}
+            <button
+              className={`reports-tab ${activeTab === 'reportes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reportes')}
+            >
+              📊 Reportes
+            </button>
+            <button
+              className={`reports-tab ${activeTab === 'corte' ? 'active' : ''}`}
+              onClick={() => setActiveTab('corte')}
+            >
+              💰 Corte de Caja
+            </button>
+            <button
+              className={`reports-tab ${activeTab === 'historial' ? 'active' : ''}`}
+              onClick={() => setActiveTab('historial')}
+            >
+              📋 Historial de Cortes
+            </button>
+          </div>
+        }
       />
-
-      {/* Tabs */}
-      <div className="reports-tabs">
-        {/* Select para móvil (oculto en desktop por CSS) */}
-        <select
-          className="reports-tab-select-mobile"
-          value={activeTab}
-          onChange={(e) => setActiveTab(e.target.value)}
-        >
-          <option value="reportes">📊 Reportes</option>
-          <option value="corte">💰 Corte de Caja</option>
-          <option value="historial">📋 Historial de Cortes</option>
-        </select>
-
-        {/* Botones para desktop/tablet (ocultos en móvil por CSS) */}
-        <button
-          className={`reports-tab ${activeTab === 'reportes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('reportes')}
-        >
-          📊 Reportes
-        </button>
-        <button
-          className={`reports-tab ${activeTab === 'corte' ? 'active' : ''}`}
-          onClick={() => setActiveTab('corte')}
-        >
-          💰 Corte de Caja
-        </button>
-        <button
-          className={`reports-tab ${activeTab === 'historial' ? 'active' : ''}`}
-          onClick={() => setActiveTab('historial')}
-        >
-          📋 Historial de Cortes
-        </button>
-      </div>
 
       {/* Tab Content */}
       {activeTab === 'reportes' && (
