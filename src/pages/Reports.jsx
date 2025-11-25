@@ -263,10 +263,10 @@ const Reports = () => {
     let totalOrders = 0;
 
     filteredClosures.forEach(closure => {
-      // Calcular ingresos sin incluir dinero inicial
-      const ingresosDelSistema = parseFloat(closure.dineroEnSistema?.total || 0);
+      // Calcular ingresos sin incluir dinero inicial (usar conteo real)
+      const ingresosContados = parseFloat(closure.conteoIngresos?.totalGeneral || 0);
       const dineroInicial = parseFloat(closure.dineroInicial || 0);
-      totalRevenue += ingresosDelSistema - dineroInicial;
+      totalRevenue += ingresosContados - dineroInicial;
 
       totalExpenses += parseFloat(closure.resultados?.gastosTotal || 0);
       totalOrders += parseInt(closure.totalOrdenes || 0);
@@ -440,10 +440,10 @@ const Reports = () => {
       let expenses = 0;
 
       periodClosures.forEach(closure => {
-        // Calcular ingresos sin incluir dinero inicial
-        const ingresosDelSistema = parseFloat(closure.dineroEnSistema?.total || 0);
+        // Calcular ingresos sin incluir dinero inicial (usar conteo real)
+        const ingresosContados = parseFloat(closure.conteoIngresos?.totalGeneral || 0);
         const dineroInicial = parseFloat(closure.dineroInicial || 0);
-        revenue += ingresosDelSistema - dineroInicial;
+        revenue += ingresosContados - dineroInicial;
 
         expenses += parseFloat(closure.resultados?.gastosTotal || 0);
       });

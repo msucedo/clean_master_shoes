@@ -144,7 +144,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
               <div className="ccd-stat-label">Ingresos de Efectivo</div>
-              <div className="ccd-stat-value">{formatCurrency((closure.dineroEnSistema?.efectivo || 0) - (closure.dineroInicial || 0))}</div>
+              <div className="ccd-stat-value">{formatCurrency((closure.conteoIngresos?.efectivo?.total || 0) - (closure.dineroInicial || 0))}</div>
             </div>
           </div>
 
