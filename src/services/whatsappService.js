@@ -218,7 +218,7 @@ const sendTemplateMessage = async (to, templateName, components) => {
     template: {
       name: templateName,
       language: {
-        code: templateName === 'orden_enproceso' ? 'en' : 'es_MX' // en for orden_enproceso, es_MX for others
+        code: 'es_MX' // es_MX para todas las plantillas
       },
       components: components
     }
@@ -702,41 +702,83 @@ export const sendOrderReceivedNotification = async (order) => {
     const servicesList = formatServicesList(order.services);
     const orderNumber = order.orderNumber || order.id;
 
-    console.log('✨ [WhatsApp] Usando plantilla de Meta:', 'orden_enproceso');
+    console.log('✨ [WhatsApp] Usando plantilla de Meta:', 'orden_recibida_foto');
 
-    // Construir componentes del template
+    // PASO 1: Subir imagen a WhatsApp (si existe)
+    let mediaId = null;
+    if (order.orderImages && order.orderImages.length > 0) {
+      try {
+        console.log('📸 [WhatsApp] Subiendo imagen para header del template...');
+        const firstImage = order.orderImages[0];
+
+        // Upload image to WhatsApp
+        const uploadResult = await uploadMediaToWhatsApp(firstImage);
+
+        if (uploadResult.success) {
+          mediaId = uploadResult.mediaId;
+          console.log('✅ [WhatsApp] Imagen subida exitosamente, media_id:', mediaId);
+        } else {
+          console.error('❌ [WhatsApp] Error subiendo imagen:', uploadResult.error);
+        }
+      } catch (imageError) {
+        console.error('❌ [WhatsApp] Error en proceso de imagen:', imageError);
+        // Continuar sin imagen en el header
+      }
+    }
+
+    // PASO 2: Construir componentes del template
+    // Header: 1 parámetro (imagen con media_id)
     // Body: 3 parámetros ({{1}} nombre, {{2}} orden, {{3}} servicios)
     // Button: 1 parámetro ({{1}} trackingToken para URL)
-    const components = [
-      {
-        type: 'body',
+    const components = [];
+
+    // Agregar header con imagen (si tenemos media_id)
+    if (mediaId) {
+      components.push({
+        type: 'header',
         parameters: [
-          { type: 'text', text: order.client },           // {{1}} Nombre
-          { type: 'text', text: orderNumber },            // {{2}} Número orden
-          { type: 'text', text: servicesList }            // {{3}} Servicios
+          {
+            type: 'image',
+            image: {
+              id: mediaId
+            }
+          }
         ]
-      },
-      {
-        type: 'button',
-        sub_type: 'url',
-        index: '0',
-        parameters: [
-          { type: 'text', text: order.trackingToken }     // {{1}} en botón URL
-        ]
-      }
-    ];
+      });
+    }
+
+    // Agregar body
+    components.push({
+      type: 'body',
+      parameters: [
+        { type: 'text', text: order.client },           // {{1}} Nombre
+        { type: 'text', text: orderNumber },            // {{2}} Número orden
+        { type: 'text', text: servicesList }            // {{3}} Servicios
+      ]
+    });
+
+    // Agregar button
+    components.push({
+      type: 'button',
+      sub_type: 'url',
+      index: '0',
+      parameters: [
+        { type: 'text', text: order.trackingToken }     // {{1}} en botón URL
+      ]
+    });
 
     console.log('📋 [WhatsApp] Parámetros de plantilla:', {
       cliente: order.client,
       orden: orderNumber,
       servicios: servicesList,
-      trackingToken: order.trackingToken
+      trackingToken: order.trackingToken,
+      hasImage: !!mediaId
     });
 
-    // MENSAJE 1: Send template message
+    // PASO 3: Enviar template message con imagen en header
     const templateResult = await sendTemplateMessage(
       formattedPhone,
-      'orden_enproceso',
+      'orden_recibida_foto',
       components
     );
 
@@ -752,38 +794,9 @@ Tu orden #${orderNumber} está en proceso🎉
 ¡Gracias por tu confianza!
 - Clean Master Shoes`;
 
-    // MENSAJE 2: Send image (SOLO si template fue exitoso)
-    let imageResult = null;
-    if (templateResult.success && order.orderImages && order.orderImages.length > 0) {
-      try {
-        console.log('📸 [WhatsApp] Preparando envío de imagen...');
-        const firstImage = order.orderImages[0];
-
-        // Upload image to WhatsApp
-        const uploadResult = await uploadMediaToWhatsApp(firstImage);
-
-        if (uploadResult.success) {
-          // Send image message
-          imageResult = await sendImageMessage(
-            formattedPhone,
-            uploadResult.mediaId,
-            '📸 Foto de su orden'
-          );
-        } else {
-          console.error('❌ [WhatsApp] Error subiendo imagen:', uploadResult.error);
-        }
-      } catch (imageError) {
-        console.error('❌ [WhatsApp] Error en proceso de imagen:', imageError);
-        // No bloquear si falla la imagen
-      }
-    } else if (!templateResult.success && order.orderImages && order.orderImages.length > 0) {
-      console.warn('⚠️ [WhatsApp] Template falló, saltando envío de imagen');
-    }
-
     // Return result with additional order context
     return {
       ...templateResult,
-      imageResult: imageResult,
       orderId: order.id,
       orderNumber: orderNumber,
       clientName: order.client,

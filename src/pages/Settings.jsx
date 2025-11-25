@@ -393,7 +393,7 @@ const Settings = () => {
                   <div className="toggle-info">
                     <div className="toggle-title">Notificación de Orden Recibida</div>
                     <div className="toggle-description">
-                      Envía mensaje automático cuando se crea una orden (plantilla: orden_enproceso)
+                      Envía mensaje automático cuando se crea una orden (plantilla: orden_recibida_foto)
                     </div>
                   </div>
                   <label className="toggle-switch">
