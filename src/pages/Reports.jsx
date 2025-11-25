@@ -120,9 +120,33 @@ const Reports = () => {
 
   // Get filtered expenses based on date filter
   const getFilteredExpenses = () => {
-    // For "Hoy", get expenses from today's draft
+    // For "Hoy", get expenses from today's draft AND closures of today
     if (activeFilter === 'Hoy') {
-      return todayDraft?.gastos || [];
+      const allExpenses = [];
+
+      // Add expenses from today's draft
+      if (todayDraft?.gastos) {
+        allExpenses.push(...todayDraft.gastos);
+      }
+
+      // Add expenses from all closures of today
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+      const closuresToday = closures.filter(closure => {
+        if (!closure.fechaCorte) return false;
+        const closureDate = new Date(closure.fechaCorte);
+        return closureDate >= todayStart && closureDate <= todayEnd;
+      });
+
+      closuresToday.forEach(closure => {
+        if (closure.gastos?.items) {
+          allExpenses.push(...closure.gastos.items);
+        }
+      });
+
+      return allExpenses;
     }
 
     // For historical periods, expenses come from closures
@@ -192,16 +216,29 @@ const Reports = () => {
 
   // Helper: Check if today's draft has data (expenses or completed orders)
   const hasDraftData = () => {
-    // Check if draft has expenses
-    if (todayDraft?.gastos && todayDraft.gastos.length > 0) {
-      return true;
-    }
-
-    // Check if there are orders completed today
+    // Verificar si ya existe un closure de hoy
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
 
+    const closureToday = filteredClosures.find(closure => {
+      if (!closure.fechaCorte) return false;
+      const closureDate = new Date(closure.fechaCorte);
+      return closureDate >= todayStart && closureDate <= todayEnd;
+    });
+
+    // Si ya hay un closure de hoy, no usar draft (evitar duplicación)
+    if (closureToday) return false;
+
+    // Si NO hay closure de hoy, verificar si draft tiene datos
+    if (!todayDraft) return false;
+
+    // Check if draft has expenses
+    if (todayDraft.gastos && todayDraft.gastos.length > 0) {
+      return true;
+    }
+
+    // Check if there are orders completed today
     const allOrders = [
       ...orders.recibidos,
       ...orders.proceso,
@@ -226,7 +263,11 @@ const Reports = () => {
     let totalOrders = 0;
 
     filteredClosures.forEach(closure => {
-      totalRevenue += parseFloat(closure.resultados?.ingresosTotal || 0);
+      // Calcular ingresos sin incluir dinero inicial
+      const ingresosDelSistema = parseFloat(closure.dineroEnSistema?.total || 0);
+      const dineroInicial = parseFloat(closure.dineroInicial || 0);
+      totalRevenue += ingresosDelSistema - dineroInicial;
+
       totalExpenses += parseFloat(closure.resultados?.gastosTotal || 0);
       totalOrders += parseInt(closure.totalOrdenes || 0);
     });
@@ -257,7 +298,7 @@ const Reports = () => {
           endDate = null;
       }
 
-      // If today is in range and draft has data, include it
+      // Add revenue from today only if there's no closure (avoid duplication)
       if (startDate && endDate && isTodayInRange(startDate, endDate) && hasDraftData()) {
         // Add revenue from today's completed orders
         const todayOrders = getFilteredOrders().filter(order => {
@@ -281,13 +322,13 @@ const Reports = () => {
             totalOrders++;
           }
         });
+      }
 
-        // Add expenses from today's draft
-        if (todayDraft?.gastos) {
-          todayDraft.gastos.forEach(expense => {
-            totalExpenses += parseFloat(expense.amount) || 0;
-          });
-        }
+      // ALWAYS add expenses from draft when today is in range (independent of closures)
+      if (startDate && endDate && isTodayInRange(startDate, endDate) && todayDraft?.gastos) {
+        todayDraft.gastos.forEach(expense => {
+          totalExpenses += parseFloat(expense.amount) || 0;
+        });
       }
     }
 
@@ -338,8 +379,8 @@ const Reports = () => {
           endDate = null;
       }
 
-      // If today is in range and draft has data, include its expenses
-      if (startDate && endDate && isTodayInRange(startDate, endDate) && hasDraftData()) {
+      // If today is in range, ALWAYS include draft expenses (independent of closures)
+      if (startDate && endDate && isTodayInRange(startDate, endDate)) {
         if (todayDraft?.gastos) {
           allExpenses.push(...todayDraft.gastos);
         }
@@ -399,11 +440,15 @@ const Reports = () => {
       let expenses = 0;
 
       periodClosures.forEach(closure => {
-        revenue += parseFloat(closure.resultados?.ingresosTotal || 0);
+        // Calcular ingresos sin incluir dinero inicial
+        const ingresosDelSistema = parseFloat(closure.dineroEnSistema?.total || 0);
+        const dineroInicial = parseFloat(closure.dineroInicial || 0);
+        revenue += ingresosDelSistema - dineroInicial;
+
         expenses += parseFloat(closure.resultados?.gastosTotal || 0);
       });
 
-      // Include today's draft data if today is in this period and has data
+      // Add revenue from today only if there's no closure (avoid duplication)
       if (isTodayInRange(startDate, endDate) && hasDraftData()) {
         // Add revenue from today's completed orders
         const today = new Date();
@@ -434,13 +479,13 @@ const Reports = () => {
             revenue += advance;
           }
         });
+      }
 
-        // Add expenses from today's draft
-        if (todayDraft?.gastos) {
-          todayDraft.gastos.forEach(expense => {
-            expenses += parseFloat(expense.amount) || 0;
-          });
-        }
+      // ALWAYS add expenses from draft when today is in range (independent of closures)
+      if (isTodayInRange(startDate, endDate) && todayDraft?.gastos) {
+        todayDraft.gastos.forEach(expense => {
+          expenses += parseFloat(expense.amount) || 0;
+        });
       }
 
       return {

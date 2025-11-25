@@ -338,6 +338,17 @@ const CashRegister = ({ orders, dateFilter }) => {
     });
   };
 
+  const getDateRange = () => {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    };
+  };
+
   const handleCloseCashRegister = () => {
     // Validate employee is selected
     if (!selectedEmployee) {
