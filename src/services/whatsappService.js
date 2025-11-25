@@ -21,7 +21,7 @@ const WHATSAPP_CONFIG = {
   businessName: import.meta.env.VITE_BUSINESS_NAME || 'Clean Master Shoes',
   businessAddress: import.meta.env.VITE_BUSINESS_ADDRESS || '',
   // Meta Template Configuration (for professional template messages)
-  templateName: import.meta.env.VITE_WHATSAPP_TEMPLATE_NAME || '',
+  // templateName: import.meta.env.VITE_WHATSAPP_TEMPLATE_NAME || '', // No longer needed - templates are hardcoded
   trackingUrl: import.meta.env.VITE_ORDER_TRACKING_URL || '',
 };
 
@@ -517,53 +517,52 @@ export const sendDeliveryNotification = async (order) => {
       throw new Error('Invalid phone number format');
     }
 
-    // Check if template is configured (professional template mode)
-    if (WHATSAPP_CONFIG.templateName) {
-      console.log('✨ [WhatsApp] Usando plantilla de Meta:', WHATSAPP_CONFIG.templateName);
+    // Use hardcoded template 'orden_lista_entrega'
+    console.log('✨ [WhatsApp] Usando plantilla de Meta:', 'orden_lista_entrega');
 
-      // Build template parameters
-      // Template variables (según WHATSAPP_TEMPLATE_IMPLEMENTATION.md):
-      // {{1}} = Nombre del cliente
-      // {{2}} = Número de orden
-      // {{3}} = Lista de servicios completados
-      // {{4}} = Dirección del negocio
-      // {{5}} = URL para rastrear la orden
+    // Build template parameters
+    // Template variables (según WHATSAPP_TEMPLATE_IMPLEMENTATION.md):
+    // {{1}} = Nombre del cliente
+    // {{2}} = Número de orden
+    // {{3}} = Lista de servicios completados
+    // {{4}} = Dirección del negocio
+    // {{5}} = URL para rastrear la orden
 
-      const servicesList = formatServicesList(order.services);
-      const orderNumber = order.orderNumber || order.id;
-      const businessAddress = WHATSAPP_CONFIG.businessAddress || 'Ubicación no configurada';
-      const trackingUrl = buildOrderTrackingUrl(order.trackingToken);
+    const servicesList = formatServicesList(order.services);
+    const orderNumber = order.orderNumber || order.id;
+    const businessAddress = WHATSAPP_CONFIG.businessAddress || 'Ubicación no configurada';
+    const trackingUrl = buildOrderTrackingUrl(order.trackingToken);
 
-      const components = [
-        {
-          type: 'body',
-          parameters: [
-            { type: 'text', text: order.client },           // {{1}} Nombre
-            { type: 'text', text: orderNumber },            // {{2}} Número orden
-            { type: 'text', text: servicesList },           // {{3}} Servicios
-            { type: 'text', text: businessAddress },        // {{4}} Dirección
-            { type: 'text', text: trackingUrl }             // {{5}} URL rastreo
-          ]
-        }
-      ];
+    const components = [
+      {
+        type: 'body',
+        parameters: [
+          { type: 'text', text: order.client },           // {{1}} Nombre
+          { type: 'text', text: orderNumber },            // {{2}} Número orden
+          { type: 'text', text: servicesList },           // {{3}} Servicios
+          { type: 'text', text: businessAddress },        // {{4}} Dirección
+          { type: 'text', text: trackingUrl }             // {{5}} URL rastreo
+        ]
+      }
+    ];
 
-      console.log('📋 [WhatsApp] Parámetros de plantilla:', {
-        cliente: order.client,
-        orden: orderNumber,
-        servicios: servicesList,
-        direccion: businessAddress,
-        trackingUrl: trackingUrl
-      });
+    console.log('📋 [WhatsApp] Parámetros de plantilla:', {
+      cliente: order.client,
+      orden: orderNumber,
+      servicios: servicesList,
+      direccion: businessAddress,
+      trackingUrl: trackingUrl
+    });
 
-      // Send template message
-      const result = await sendTemplateMessage(
-        formattedPhone,
-        WHATSAPP_CONFIG.templateName,
-        components
-      );
+    // Send template message
+    const result = await sendTemplateMessage(
+      formattedPhone,
+      'orden_lista_entrega',
+      components
+    );
 
-      // Build the complete template message for display in conversation
-      const templateMessage = `¡Hola ${order.client}! 👋
+    // Build the complete template message for display in conversation
+    const templateMessage = `¡Hola ${order.client}! 👋
 
 Tu orden #${orderNumber} está lista para recoger 🎉
 
@@ -580,38 +579,16 @@ Sabados 10:00 am - 4:00 pm
 ¡Gracias por tu confianza!
 - Clean Master Shoes`;
 
-      // Return result with additional order context
-      return {
-        ...result,
-        orderId: order.id,
-        orderNumber: orderNumber,
-        clientName: order.client,
-        phone: formattedPhone,
-        message: templateMessage,
-        usingTemplate: true
-      };
-
-    } else {
-      // Fallback: usar texto libre (requiere ventana de 24 horas)
-      console.log('📝 [WhatsApp] Plantilla no configurada, usando texto libre (fallback)');
-
-      const message = buildDeliveryMessage(order);
-      console.log('📝 [WhatsApp] Mensaje construido, longitud:', message.length);
-
-      // Send message via WhatsApp API
-      const result = await sendWhatsAppMessage(formattedPhone, message);
-
-      // Return result with additional order context
-      return {
-        ...result,
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        clientName: order.client,
-        phone: formattedPhone,
-        message: message,
-        usingTemplate: false
-      };
-    }
+    // Return result with additional order context
+    return {
+      ...result,
+      orderId: order.id,
+      orderNumber: orderNumber,
+      clientName: order.client,
+      phone: formattedPhone,
+      message: templateMessage,
+      usingTemplate: true
+    };
 
   } catch (error) {
     console.error('❌ [WhatsApp] Error inesperado en sendDeliveryNotification:', {
