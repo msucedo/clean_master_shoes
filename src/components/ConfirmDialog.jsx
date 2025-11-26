@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './ConfirmDialog.css';
 
 const ConfirmDialog = ({
@@ -11,9 +11,12 @@ const ConfirmDialog = ({
   onCancel,
   type = 'default'
 }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+      // Prevent closing while processing
+      if (e.key === 'Escape' && isOpen && !isProcessing) {
         onCancel();
       }
     };
@@ -23,13 +26,39 @@ const ConfirmDialog = ({
     return () => {
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onCancel]);
+  }, [isOpen, isProcessing, onCancel]);
+
+  // Reset processing state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsProcessing(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
+    // Prevent closing while processing
+    if (e.target === e.currentTarget && !isProcessing) {
       onCancel();
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (isProcessing) return; // Prevent multiple clicks
+
+    setIsProcessing(true);
+    try {
+      // Execute onConfirm and wait if it's a promise
+      await Promise.resolve(onConfirm());
+    } catch (error) {
+      console.error('Error in confirm action:', error);
+      // Even if there's an error, we reset the processing state
+      // The error should be handled by the calling component
+    } finally {
+      // Note: We don't reset isProcessing here because the dialog
+      // should close after onConfirm completes. The useEffect will
+      // reset it when isOpen becomes false.
     }
   };
 
@@ -46,14 +75,23 @@ const ConfirmDialog = ({
           <button
             className="confirm-btn confirm-btn-cancel"
             onClick={onCancel}
+            disabled={isProcessing}
           >
             {cancelText}
           </button>
           <button
             className={`confirm-btn confirm-btn-confirm confirm-btn-${type}`}
-            onClick={onConfirm}
+            onClick={handleConfirm}
+            disabled={isProcessing}
           >
-            {confirmText}
+            {isProcessing ? (
+              <>
+                <span className="confirm-spinner"></span>
+                Guardando...
+              </>
+            ) : (
+              confirmText
+            )}
           </button>
         </div>
       </div>
