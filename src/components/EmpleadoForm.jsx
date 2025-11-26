@@ -18,6 +18,7 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -81,10 +82,26 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
+
+    // Prevenir múltiples clics
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Error submitting employee:', error);
+      // El error ya se maneja en el componente padre
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -234,17 +251,34 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
               type="button"
               className="btn-delete"
               onClick={handleDelete}
+              disabled={isSubmitting}
             >
               Eliminar
             </button>
           )}
         </div>
         <div className="form-actions-right">
-          <button type="button" className="btn-cancel" onClick={onCancel}>
+          <button
+            type="button"
+            className="btn-cancel"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </button>
-          <button type="submit" className="btn-submit">
-            {initialData ? 'Guardar Cambios' : 'Agregar Empleado'}
+          <button
+            type="submit"
+            className="btn-submit"
+            disabled={isSubmitting}
+            style={{
+              opacity: isSubmitting ? 0.6 : 1,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isSubmitting
+              ? '⏳ Guardando...'
+              : (initialData ? 'Guardar Cambios' : 'Agregar Empleado')
+            }
           </button>
         </div>
       </div>

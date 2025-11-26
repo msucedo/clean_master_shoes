@@ -14,6 +14,7 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -64,27 +65,57 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      const serviceData = {
-        ...formData,
-        price: formData.price === '' ? 0 : parseFloat(formData.price)
-      };
-      onSubmit(serviceData);
+
+    // Prevenir múltiples clics
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const serviceData = {
+      ...formData,
+      price: formData.price === '' ? 0 : parseFloat(formData.price)
+    };
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(serviceData);
+    } catch (error) {
+      console.error('Error submitting service:', error);
+      // El error ya se maneja en el componente padre
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleMenuAction = (action) => {
+  const handleMenuAction = async (action) => {
     setShowMenu(false);
+
+    // Prevenir acciones si ya está procesando
+    if (isSubmitting) {
+      return;
+    }
 
     switch(action) {
       case 'duplicate':
         const duplicateData = {
           ...formData,
-          name: formData.name + ' (Copia)'
+          name: formData.name + ' (Copia)',
+          price: formData.price === '' ? 0 : parseFloat(formData.price)
         };
-        onSubmit(duplicateData);
+        setIsSubmitting(true);
+        try {
+          await onSubmit(duplicateData);
+        } catch (error) {
+          console.error('Error duplicating service:', error);
+        } finally {
+          setIsSubmitting(false);
+        }
         break;
       case 'delete':
         if (confirm(`¿Estás seguro de eliminar el servicio "${formData.name}"?`)) {
@@ -117,14 +148,18 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
                 className="menu-item menu-duplicate"
                 onClick={() => handleMenuAction('duplicate')}
                 type="button"
+                disabled={isSubmitting}
               >
-                <span className="menu-icon">📋</span>
-                <span className="menu-text">Duplicar Servicio</span>
+                <span className="menu-icon">{isSubmitting ? '⏳' : '📋'}</span>
+                <span className="menu-text">
+                  {isSubmitting ? 'Duplicando...' : 'Duplicar Servicio'}
+                </span>
               </button>
               <button
                 className="menu-item menu-delete"
                 onClick={() => handleMenuAction('delete')}
                 type="button"
+                disabled={isSubmitting}
               >
                 <span className="menu-icon">🗑️</span>
                 <span className="menu-text">Eliminar Servicio</span>
@@ -225,11 +260,27 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </button>
-          <button type="submit" className="btn-primary">
-            {initialData ? '💾 Guardar Cambios' : '✨ Crear Servicio'}
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isSubmitting}
+            style={{
+              opacity: isSubmitting ? 0.6 : 1,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isSubmitting
+              ? '⏳ Guardando...'
+              : (initialData ? '💾 Guardar Cambios' : '✨ Crear Servicio')
+            }
           </button>
         </div>
       </form>

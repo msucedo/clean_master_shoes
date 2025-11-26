@@ -19,6 +19,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = ['Accesorios', 'Gorras', 'Bolsas', 'Pines', 'Agujetas'];
 
@@ -96,18 +97,35 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Convert numeric fields to numbers
-      const submitData = {
-        ...formData,
-        purchasePrice: parseFloat(formData.purchasePrice),
-        salePrice: parseFloat(formData.salePrice),
-        stock: parseInt(formData.stock),
-        minStock: parseInt(formData.minStock)
-      };
-      onSubmit(submitData);
+
+    // Prevenir múltiples clics
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    // Convert numeric fields to numbers
+    const submitData = {
+      ...formData,
+      purchasePrice: parseFloat(formData.purchasePrice),
+      salePrice: parseFloat(formData.salePrice),
+      stock: parseInt(formData.stock),
+      minStock: parseInt(formData.minStock)
+    };
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(submitData);
+    } catch (error) {
+      console.error('Error submitting product:', error);
+      // El error ya se maneja en el componente padre
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -338,17 +356,34 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
               type="button"
               className="btn-delete"
               onClick={handleDelete}
+              disabled={isSubmitting}
             >
               Eliminar Producto
             </button>
           )}
         </div>
         <div className="form-actions-right">
-          <button type="button" className="btn-cancel" onClick={onCancel}>
+          <button
+            type="button"
+            className="btn-cancel"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </button>
-          <button type="submit" className="btn-submit">
-            {initialData ? 'Guardar Cambios' : 'Agregar Producto'}
+          <button
+            type="submit"
+            className="btn-submit"
+            disabled={isSubmitting}
+            style={{
+              opacity: isSubmitting ? 0.6 : 1,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isSubmitting
+              ? '⏳ Guardando...'
+              : (initialData ? 'Guardar Cambios' : 'Agregar Producto')
+            }
           </button>
         </div>
       </div>

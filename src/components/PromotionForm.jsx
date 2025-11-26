@@ -1007,7 +1007,12 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       </div>
 
       <div className="form-actions">
-        <button type="button" className="btn-secondary" onClick={onCancel}>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           Cancelar
         </button>
         {initialData && isAdmin && (
@@ -1019,12 +1024,24 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                 onDelete(initialData.id);
               }
             }}
+            disabled={isSubmitting}
           >
             Eliminar
           </button>
         )}
-        <button type="submit" className="btn-primary">
-          {initialData ? 'Actualizar' : 'Crear'} Promoción
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={isSubmitting}
+          style={{
+            opacity: isSubmitting ? 0.6 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isSubmitting
+            ? '⏳ Guardando...'
+            : `${initialData ? 'Actualizar' : 'Crear'} Promoción`
+          }
         </button>
       </div>
 
