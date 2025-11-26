@@ -9,7 +9,8 @@ import {
   subscribeToCashRegisterDraft,
   deleteCashRegisterDraft,
   saveCashRegisterClosure,
-  subscribeToEmployees
+  subscribeToEmployees,
+  subscribeToCashRegisterClosures
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import './CashRegister.css';
@@ -23,6 +24,7 @@ const CashRegister = ({ orders, dateFilter }) => {
   const [notes, setNotes] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [employees, setEmployees] = useState([]);
+  const [closures, setClosures] = useState([]);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
@@ -66,6 +68,15 @@ const CashRegister = ({ orders, dateFilter }) => {
       // Filter only active employees
       const activeEmployees = employeesData.filter(emp => emp.status === 'active');
       setEmployees(activeEmployees);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Subscribe to cash register closures
+  useEffect(() => {
+    const unsubscribe = subscribeToCashRegisterClosures((closuresData) => {
+      setClosures(closuresData);
     });
 
     return () => unsubscribe();
@@ -167,6 +178,28 @@ const CashRegister = ({ orders, dateFilter }) => {
 
   const summary = calculateSummary();
 
+  // Get last closure of today (if exists)
+  const getLastClosureToday = () => {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const todayClosures = closures.filter(closure => {
+      if (!closure.fechaCorte) return false;
+      const closureDate = new Date(closure.fechaCorte);
+      return closureDate >= startDate && closureDate <= endDate;
+    });
+
+    // Sort by fechaCorte descending and return the most recent
+    if (todayClosures.length > 0) {
+      return todayClosures.sort((a, b) => new Date(b.fechaCorte) - new Date(a.fechaCorte))[0];
+    }
+
+    return null;
+  };
+
+  const lastClosureToday = getLastClosureToday();
+
   // Calculate expenses total
   const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
@@ -211,6 +244,33 @@ const CashRegister = ({ orders, dateFilter }) => {
   const totalConteoIngresos = efectivoContado + tarjetaContada + transferenciaContada;
   const dineroInicialNum = parseFloat(dineroInicial) || 0;
 
+  // Calcular ingresos NUEVOS de este corte
+  // El conteo físico de efectivo, tarjeta y transferencia son directamente los ingresos nuevos
+  const ingresosNuevosEfectivo = efectivoContado;
+  const ingresosNuevosTotales = ingresosNuevosEfectivo + tarjetaContada + transferenciaContada;
+
+  // Calcular ingresos acumulados del día (último corte + nuevos ingresos)
+  const ingresosAcumuladosDia = (lastClosureToday?.resultados?.ingresosTotal || 0) + ingresosNuevosTotales;
+
+  // Acumular retiros de todos los cortes de hoy
+  const getTotalRetirosAcumulados = () => {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const todayClosures = closures.filter(closure => {
+      if (!closure.fechaCorte) return false;
+      const closureDate = new Date(closure.fechaCorte);
+      return closureDate >= startDate && closureDate <= endDate;
+    });
+
+    return todayClosures.reduce((sum, closure) => {
+      return sum + (parseFloat(closure.resultados?.retirosTotal) || 0);
+    }, 0) + totalWithdrawals; // Sumar retiros actuales no guardados
+  };
+
+  const retirosAcumuladosDia = getTotalRetirosAcumulados();
+
   // Totales del sistema (ventas registradas + dinero inicial)
   const efectivoSistema = summary.cashIncome + dineroInicialNum;
   const tarjetaSistema = summary.cardIncome;
@@ -225,8 +285,8 @@ const CashRegister = ({ orders, dateFilter }) => {
 
   // Resultados finales
 
-  const ingresosTotal = totalConteoIngresos;
-  const gananciaDia = totalConteoIngresos - dineroInicialNum - totalExpenses; // Retiros NO afectan ganancia
+  const ingresosTotal = ingresosAcumuladosDia;
+  const gananciaDia = ingresosAcumuladosDia - totalExpenses; // Total Ingresos del Día - Gastos
 
   // Handlers para billetes y monedas
   const handleBilleteChange = (denominacion, valor) => {
@@ -407,8 +467,8 @@ const CashRegister = ({ orders, dateFilter }) => {
         try {
           const { startDate, endDate } = getDateRange();
 
-          // Calcular efectivo final (este será el dinero inicial del siguiente corte)
-          const efectivoFinal = efectivoContado - totalExpenses - totalWithdrawals;
+          // Calcular efectivo final (los retiros ya están reflejados en el conteo de efectivo)
+          const efectivoFinal = efectivoContado - totalExpenses;
 
           const closureData = {
             autor: {
@@ -468,7 +528,7 @@ const CashRegister = ({ orders, dateFilter }) => {
             },
             // Resultados finales
             resultados: {
-              ingresosTotal: ingresosTotal,
+              ingresosTotal: ingresosAcumuladosDia,
               gastosTotal: totalExpenses,
               retirosTotal: totalWithdrawals,
               gananciaDia: gananciaDia
@@ -561,9 +621,11 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Total Ingresos</div>
-              <div className="cr-stat-value">{formatCurrency(totalConteoIngresos)}</div>
+              <div className="cr-stat-value">
+                {formatCurrency(ingresosAcumuladosDia)}
+              </div>
               <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
-                Efectivo + Tarjeta + Transferencia
+                {lastClosureToday ? 'Acumulado de todos los cortes de hoy' : 'Efectivo + Tarjeta + Transferencia'}
               </div>
             </div>
           </div>
@@ -572,9 +634,11 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Efectivo Disponible Actual</div>
-              <div className="cr-stat-value">{formatCurrency(efectivoContado - totalExpenses - totalWithdrawals)}</div>
+              <div className="cr-stat-value">
+                {formatCurrency(ingresosAcumuladosDia - retirosAcumuladosDia - totalExpenses)}
+              </div>
               <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
-                Efectivo Contado - Gastos - Retiros
+                Total Ingresos - Retiros - Gastos
               </div>
             </div>
           </div>
@@ -863,9 +927,11 @@ const CashRegister = ({ orders, dateFilter }) => {
           <div className="cr-result-card">
             <div className="cr-result-icon">💰</div>
             <div className="cr-result-info">
-              <div className="cr-result-label">Total</div>
-              <div className="cr-result-sublabel">Efectivo + Tarjeta + Transferencia</div>
-              <div className="cr-result-value">{formatCurrency(ingresosTotal)}</div>
+              <div className="cr-result-label">Total Ingresos del Día</div>
+              <div className="cr-result-sublabel">
+                {lastClosureToday ? 'Acumulado de todos los cortes' : 'Efectivo + Tarjeta + Transferencia'}
+              </div>
+              <div className="cr-result-value">{formatCurrency(ingresosAcumuladosDia)}</div>
             </div>
           </div>
 
@@ -882,7 +948,7 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-result-icon">🎯</div>
             <div className="cr-result-info">
               <div className="cr-result-label">Ganancia del Día</div>
-              <div className="cr-result-sublabel">Ingresos - Dinero Inicial - Gastos</div>
+              <div className="cr-result-sublabel">Total Ingresos - Gastos</div>
               <div className={`cr-result-value ${gananciaDia >= 0 ? 'positive' : 'negative'}`}>
                 {formatCurrency(gananciaDia)}
               </div>
