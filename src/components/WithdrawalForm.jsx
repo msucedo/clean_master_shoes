@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './ExpenseForm.css'; // Reutilizamos los estilos de ExpenseForm
 
-const WithdrawalForm = ({ withdrawal, onSave, onCancel }) => {
+const WithdrawalForm = ({ withdrawal, efectivoDisponible, onSave, onCancel }) => {
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(amount);
+  };
+
   const [formData, setFormData] = useState({
     concept: '',
     amount: '',
@@ -50,6 +57,10 @@ const WithdrawalForm = ({ withdrawal, onSave, onCancel }) => {
       newErrors.amount = 'El monto debe ser mayor a 0';
     }
 
+    if (efectivoDisponible !== undefined && parseFloat(formData.amount) > efectivoDisponible) {
+      newErrors.amount = 'El monto no puede exceder el efectivo disponible';
+    }
+
     if (!formData.date) {
       newErrors.date = 'La fecha es requerida';
     }
@@ -75,11 +86,13 @@ const WithdrawalForm = ({ withdrawal, onSave, onCancel }) => {
 
   return (
     <div className="expense-form">
-      <div className="form-header">
-        <h3>{withdrawal ? 'Editar Retiro' : 'Nuevo Retiro'}</h3>
-      </div>
-
       <form onSubmit={handleSubmit}>
+        {efectivoDisponible !== undefined && (
+          <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#e3f2fd', borderLeft: '4px solid #2196f3', borderRadius: '4px' }}>
+            <strong>💰 Efectivo Disponible: {formatCurrency(efectivoDisponible)}</strong>
+          </div>
+        )}
+
         <div className="form-group">
           <label className="form-label">Concepto *</label>
           <input
@@ -152,6 +165,7 @@ const WithdrawalForm = ({ withdrawal, onSave, onCancel }) => {
 
 WithdrawalForm.propTypes = {
   withdrawal: PropTypes.object,
+  efectivoDisponible: PropTypes.number,
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
 };

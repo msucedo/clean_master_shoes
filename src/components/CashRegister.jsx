@@ -271,6 +271,9 @@ const CashRegister = ({ orders, dateFilter }) => {
 
   const retirosAcumuladosDia = getTotalRetirosAcumulados();
 
+  // Efectivo disponible actual
+  const efectivoDisponible = ingresosAcumuladosDia - retirosAcumuladosDia - totalExpenses;
+
   // Totales del sistema (ventas registradas + dinero inicial)
   const efectivoSistema = summary.cashIncome + dineroInicialNum;
   const tarjetaSistema = summary.cardIncome;
@@ -467,8 +470,9 @@ const CashRegister = ({ orders, dateFilter }) => {
         try {
           const { startDate, endDate } = getDateRange();
 
-          // Calcular efectivo final (los retiros ya están reflejados en el conteo de efectivo)
-          const efectivoFinal = efectivoContado - totalExpenses;
+          // Calcular efectivo final (efectivo anterior + nuevo contado - gastos - retiros)
+          const efectivoFinalAnterior = lastClosureToday?.efectivoFinal || 0;
+          const efectivoFinal = efectivoFinalAnterior + efectivoContado - totalExpenses - totalWithdrawals;
 
           const closureData = {
             autor: {
@@ -547,12 +551,17 @@ const CashRegister = ({ orders, dateFilter }) => {
 
           showSuccess('Corte de caja cerrado exitosamente');
 
-          // Mantener billetes, monedas, tarjetas, transferencias y dinero inicial (continúan en el siguiente corte)
+          // Limpiar todo para el siguiente corte
+          setDineroInicial('');
+          setBilletes({ 1000: 0, 500: 0, 200: 0, 100: 0, 50: 0, 20: 0 });
+          setMonedas({ 10: 0, 5: 0, 2: 0, 1: 0, 0.5: 0 });
+          setCobrosTarjeta([{ monto: '', tipo: 'debito' }]);
+          setTransferencias([{ monto: '' }]);
           setNotes('');
           setSelectedEmployee('');
-          setExpenses([]); // Limpiar gastos
-          setWithdrawals([]); // Limpiar retiros
-          setHabilitarCorteSinValidacion(false); // Resetear checkbox
+          setExpenses([]);
+          setWithdrawals([]);
+          setHabilitarCorteSinValidacion(false);
 
           setConfirmDialog({ ...confirmDialog, isOpen: false });
         } catch (error) {
@@ -635,7 +644,7 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-info">
               <div className="cr-stat-label">Efectivo Disponible Actual</div>
               <div className="cr-stat-value">
-                {formatCurrency(ingresosAcumuladosDia - retirosAcumuladosDia - totalExpenses)}
+                {formatCurrency(efectivoDisponible)}
               </div>
               <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
                 Total Ingresos - Retiros - Gastos
@@ -1149,8 +1158,10 @@ const CashRegister = ({ orders, dateFilter }) => {
         <Modal
           isOpen={isWithdrawalModalOpen}
           onClose={() => setIsWithdrawalModalOpen(false)}
+          title="Nuevo Retiro"
         >
           <WithdrawalForm
+            efectivoDisponible={efectivoDisponible}
             onSave={handleAddWithdrawal}
             onCancel={() => setIsWithdrawalModalOpen(false)}
           />
