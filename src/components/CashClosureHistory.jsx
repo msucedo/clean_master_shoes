@@ -123,8 +123,19 @@ const CashClosureHistory = ({ onViewDetails }) => {
                 <td className="ch-author">{closure.autor?.nombre || 'N/A'}</td>
                 <td className="ch-income">{formatCurrency(closure.resultados?.ingresosTotal || 0)}</td>
                 <td className="ch-expenses">{formatCurrency(closure.gastos.total)}</td>
-                <td className={`ch-final ${((closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0)) >= 0 ? 'positive' : 'negative'}`}>
-                  {formatCurrency((closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0))}
+                <td className={`ch-final ${(() => {
+                  // Usar efectivoFinal si existe, sino calcular (para compatibilidad con cortes antiguos)
+                  const efectivoFinal = closure.efectivoFinal !== undefined
+                    ? closure.efectivoFinal
+                    : (closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0);
+                  return efectivoFinal >= 0 ? 'positive' : 'negative';
+                })()}`}>
+                  {formatCurrency((() => {
+                    // Usar efectivoFinal si existe, sino calcular (para compatibilidad con cortes antiguos)
+                    return closure.efectivoFinal !== undefined
+                      ? closure.efectivoFinal
+                      : (closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0);
+                  })())}
                 </td>
                 <td className="ch-orders">
                   {closure.totalOrdenes}

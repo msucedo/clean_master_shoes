@@ -366,6 +366,9 @@ const CashRegister = ({ orders, dateFilter }) => {
         try {
           const { startDate, endDate } = getDateRange();
 
+          // Calcular efectivo final (este será el dinero inicial del siguiente corte)
+          const efectivoFinal = efectivoContado - totalExpenses;
+
           const closureData = {
             autor: {
               id: employee.id,
@@ -379,6 +382,8 @@ const CashRegister = ({ orders, dateFilter }) => {
             },
             // Dinero inicial
             dineroInicial: dineroInicialNum,
+            // Efectivo final (para continuidad entre cortes)
+            efectivoFinal: efectivoFinal,
             // Conteo de ingresos (lo que el usuario contó físicamente)
             conteoIngresos: {
               efectivo: {
@@ -435,12 +440,7 @@ const CashRegister = ({ orders, dateFilter }) => {
 
           showSuccess('Corte de caja cerrado exitosamente');
 
-          // Reset form
-          setDineroInicial('');
-          setBilletes({ 1000: 0, 500: 0, 200: 0, 100: 0, 50: 0, 20: 0 });
-          setMonedas({ 10: 0, 5: 0, 2: 0, 1: 0, 0.5: 0 });
-          setCobrosTarjeta([{ monto: '', tipo: 'debito' }]);
-          setTransferencias([{ monto: '' }]);
+          // Mantener billetes, monedas, tarjetas, transferencias y dinero inicial (continúan en el siguiente corte)
           setNotes('');
           setSelectedEmployee('');
           setExpenses([]); // Limpiar gastos
@@ -513,15 +513,21 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Total Ingresos</div>
-              <div className="cr-stat-value">{formatCurrency(summary.totalIncome)}</div>
+              <div className="cr-stat-value">{formatCurrency(totalConteoIngresos)}</div>
+              <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
+                Efectivo + Tarjeta + Transferencia
+              </div>
             </div>
           </div>
 
           <div className="cr-stat-card cash">
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
-              <div className="cr-stat-label">Ingresos de Efectivo</div>
-              <div className="cr-stat-value">{formatCurrency(summary.cashIncome)}</div>
+              <div className="cr-stat-label">Efectivo Disponible Actual</div>
+              <div className="cr-stat-value">{formatCurrency(efectivoContado - totalExpenses)}</div>
+              <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
+                Efectivo Contado - Gastos
+              </div>
             </div>
           </div>
 
@@ -529,15 +535,15 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-icon">💳</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Ingresos de Tarjeta</div>
-              <div className="cr-stat-value">{formatCurrency(summary.cardIncome)}</div>
+              <div className="cr-stat-value">{formatCurrency(tarjetaContada)}</div>
             </div>
           </div>
 
           <div className="cr-stat-card transfer">
             <div className="cr-stat-icon">🏦</div>
             <div className="cr-stat-info">
-              <div className="cr-stat-label"> Ingresos de Transferencia</div>
-              <div className="cr-stat-value">{formatCurrency(summary.transferIncome)}</div>
+              <div className="cr-stat-label">Ingresos de Transferencia</div>
+              <div className="cr-stat-value">{formatCurrency(transferenciaContada)}</div>
             </div>
           </div>
 

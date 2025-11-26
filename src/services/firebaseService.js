@@ -13,7 +13,8 @@ import {
   where,
   runTransaction,
   setDoc,
-  arrayUnion
+  arrayUnion,
+  limit
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
@@ -1667,6 +1668,28 @@ export const getAllCashRegisterClosures = async () => {
     return closures;
   } catch (error) {
     console.error('Error getting cash register closures:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get the last cash register closure
+ * @returns {Promise<Object|null>} Last closure or null if none exists
+ */
+export const getLastCashRegisterClosure = async () => {
+  try {
+    const closuresRef = collection(db, 'cash-register-closures');
+    const q = query(closuresRef, orderBy('fechaCorte', 'desc'), limit(1));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  } catch (error) {
+    console.error('Error getting last cash register closure:', error);
     throw error;
   }
 };

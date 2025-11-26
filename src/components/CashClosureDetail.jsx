@@ -184,12 +184,26 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 8. Total Efectivo */}
-          <div className="ccd-stat-card">
-            <div className="ccd-stat-icon">💵</div>
+          {/* 8. Efectivo Final */}
+          <div className="ccd-stat-card highlight">
+            <div className="ccd-stat-icon">🏦</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Total Efectivo</div>
-              <div className="ccd-stat-value">{formatCurrency((closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0))}</div>
+              <div className="ccd-stat-label">Efectivo Final en Caja</div>
+              <div className="ccd-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '4px' }}>
+                Efectivo Contado - Gastos
+              </div>
+              <div className={`ccd-stat-value ${(() => {
+                const efectivoFinal = closure.efectivoFinal !== undefined
+                  ? closure.efectivoFinal
+                  : (closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0);
+                return efectivoFinal >= 0 ? 'positive' : 'negative';
+              })()}`}>
+                {formatCurrency((() => {
+                  return closure.efectivoFinal !== undefined
+                    ? closure.efectivoFinal
+                    : (closure.conteoIngresos?.efectivo?.total || 0) - (closure.gastos?.total || 0);
+                })())}
+              </div>
             </div>
           </div>
 
