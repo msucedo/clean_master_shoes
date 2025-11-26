@@ -89,6 +89,7 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
   const [isPdfPreviewOpen, setIsPdfPreviewOpen] = useState(false);
   const [localInvoice, setLocalInvoice] = useState(order.invoice || null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
 
   // Referencia al input de fecha
   const dateInputRef = useRef(null);
@@ -500,6 +501,14 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
 
   // Handler para generar factura - genera PDF y lo guarda en Firebase
   const handleGenerateInvoice = async () => {
+    // Prevenir múltiples clics
+    if (isGeneratingInvoice) {
+      showInfo('Ya se está generando la factura, por favor espera...');
+      return;
+    }
+
+    setIsGeneratingInvoice(true);
+
     try {
       const businessProfile = await getBusinessProfile();
       const pdf = await generateInvoicePDF(order, businessProfile);
@@ -537,6 +546,8 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
     } catch (error) {
       console.error('Error generating invoice:', error);
       showInfo('Error al generar la factura');
+    } finally {
+      setIsGeneratingInvoice(false);
     }
   };
 
@@ -1201,10 +1212,18 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
             <button
               className="action-btn btn-invoice"
               onClick={handleGenerateInvoice}
+              disabled={isGeneratingInvoice}
+              style={{
+                opacity: isGeneratingInvoice ? 0.6 : 1,
+                cursor: isGeneratingInvoice ? 'not-allowed' : 'pointer'
+              }}
             >
-              <span className="action-icon">🧾</span>
+              <span className="action-icon">{isGeneratingInvoice ? '⏳' : '🧾'}</span>
               <span className="action-text">
-                {localInvoice && localInvoice.pdfData ? 'Regenerar Factura' : 'Generar Factura'}
+                {isGeneratingInvoice
+                  ? 'Generando factura...'
+                  : (localInvoice && localInvoice.pdfData ? 'Regenerar Factura' : 'Generar Factura')
+                }
               </span>
             </button>
 
