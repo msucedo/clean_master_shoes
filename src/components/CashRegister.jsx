@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Modal from './Modal';
 import ExpenseForm from './ExpenseForm';
+import WithdrawalForm from './WithdrawalForm';
 import ConfirmDialog from './ConfirmDialog';
 import {
   saveCashRegisterDraft,
@@ -18,10 +19,12 @@ const CashRegister = ({ orders, dateFilter }) => {
   const { showSuccess, showError } = useNotification();
 
   const [expenses, setExpenses] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [notes, setNotes] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [employees, setEmployees] = useState([]);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -79,6 +82,7 @@ const CashRegister = ({ orders, dateFilter }) => {
         setCobrosTarjeta(draftData.cobrosTarjeta || [{ monto: '', tipo: 'debito' }]);
         setTransferencias(draftData.transferencias || [{ monto: '' }]);
         setExpenses(draftData.gastos || []);
+        setWithdrawals(draftData.retiros || []);
         setNotes(draftData.notes || '');
         setSelectedEmployee(draftData.selectedEmployee || '');
       }
@@ -98,6 +102,7 @@ const CashRegister = ({ orders, dateFilter }) => {
         cobrosTarjeta: cobrosTarjeta,
         transferencias: transferencias,
         gastos: expenses,
+        retiros: withdrawals,
         notes: notes,
         selectedEmployee: selectedEmployee
       };
@@ -108,7 +113,7 @@ const CashRegister = ({ orders, dateFilter }) => {
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [dineroInicial, billetes, monedas, cobrosTarjeta, transferencias, expenses, notes, selectedEmployee]);
+  }, [dineroInicial, billetes, monedas, cobrosTarjeta, transferencias, expenses, withdrawals, notes, selectedEmployee]);
 
   // Calculate financial summary
   const calculateSummary = () => {
@@ -165,6 +170,9 @@ const CashRegister = ({ orders, dateFilter }) => {
   // Calculate expenses total
   const totalExpenses = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
 
+  // Calculate withdrawals total
+  const totalWithdrawals = withdrawals.reduce((sum, withdrawal) => sum + (parseFloat(withdrawal.amount) || 0), 0);
+
   // ==== NUEVOS CÁLCULOS: Conteo de Ingresos ====
 
   // Calcular total de efectivo contado
@@ -218,7 +226,7 @@ const CashRegister = ({ orders, dateFilter }) => {
   // Resultados finales
 
   const ingresosTotal = totalConteoIngresos;
-  const gananciaDia = totalConteoIngresos - dineroInicialNum - totalExpenses;
+  const gananciaDia = totalConteoIngresos - dineroInicialNum - totalExpenses; // Retiros NO afectan ganancia
 
   // Handlers para billetes y monedas
   const handleBilleteChange = (denominacion, valor) => {
@@ -338,6 +346,39 @@ const CashRegister = ({ orders, dateFilter }) => {
     });
   };
 
+  const handleAddWithdrawal = (withdrawalData) => {
+    try {
+      const newWithdrawal = {
+        ...withdrawalData,
+        id: `wit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` // Generate unique ID
+      };
+      setWithdrawals(prev => [...prev, newWithdrawal]);
+      showSuccess('Retiro agregado exitosamente');
+      setIsWithdrawalModalOpen(false);
+    } catch (error) {
+      console.error('Error adding withdrawal:', error);
+      showError('Error al agregar el retiro');
+    }
+  };
+
+  const handleDeleteWithdrawal = (withdrawalId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Eliminar Retiro',
+      message: '¿Estás seguro de que deseas eliminar este retiro? Esta acción no se puede deshacer.',
+      onConfirm: () => {
+        try {
+          setWithdrawals(prev => prev.filter(wit => wit.id !== withdrawalId));
+          showSuccess('Retiro eliminado');
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        } catch (error) {
+          console.error('Error deleting withdrawal:', error);
+          showError('Error al eliminar el retiro');
+        }
+      }
+    });
+  };
+
   const getDateRange = () => {
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
@@ -367,7 +408,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           const { startDate, endDate } = getDateRange();
 
           // Calcular efectivo final (este será el dinero inicial del siguiente corte)
-          const efectivoFinal = efectivoContado - totalExpenses;
+          const efectivoFinal = efectivoContado - totalExpenses - totalWithdrawals;
 
           const closureData = {
             autor: {
@@ -420,10 +461,16 @@ const CashRegister = ({ orders, dateFilter }) => {
               items: expenses.map(e => ({ ...e })),
               total: totalExpenses
             },
+            // Retiros
+            retiros: {
+              items: withdrawals.map(w => ({ ...w })),
+              total: totalWithdrawals
+            },
             // Resultados finales
             resultados: {
               ingresosTotal: ingresosTotal,
               gastosTotal: totalExpenses,
+              retirosTotal: totalWithdrawals,
               gananciaDia: gananciaDia
             },
             // Info adicional
@@ -444,6 +491,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           setNotes('');
           setSelectedEmployee('');
           setExpenses([]); // Limpiar gastos
+          setWithdrawals([]); // Limpiar retiros
           setHabilitarCorteSinValidacion(false); // Resetear checkbox
 
           setConfirmDialog({ ...confirmDialog, isOpen: false });
@@ -524,9 +572,9 @@ const CashRegister = ({ orders, dateFilter }) => {
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Efectivo Disponible Actual</div>
-              <div className="cr-stat-value">{formatCurrency(efectivoContado - totalExpenses)}</div>
+              <div className="cr-stat-value">{formatCurrency(efectivoContado - totalExpenses - totalWithdrawals)}</div>
               <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
-                Efectivo Contado - Gastos
+                Efectivo Contado - Gastos - Retiros
               </div>
             </div>
           </div>
@@ -843,6 +891,63 @@ const CashRegister = ({ orders, dateFilter }) => {
         </div>
       </div>
 
+      {/* Withdrawals Section */}
+      <div className="cr-section">
+        <div className="cr-section-header">
+          <h3>💸 Retiros del Periodo</h3>
+          <button
+            className="cr-btn-add"
+            onClick={() => setIsWithdrawalModalOpen(true)}
+          >
+            + Agregar Retiro
+          </button>
+        </div>
+
+        <div className="cr-expenses-summary">
+          <div className="cr-expense-total">
+            Total Retiros: <span>{formatCurrency(totalWithdrawals)}</span>
+          </div>
+        </div>
+
+        {withdrawals.length > 0 ? (
+          <div className="cr-expenses-list">
+            {withdrawals.map(withdrawal => (
+              <div key={withdrawal.id} className="cr-expense-item">
+                <div className="cr-expense-icon">💸</div>
+                <div className="cr-expense-info">
+                  <div className="cr-expense-concept">{withdrawal.concept}</div>
+                  <div className="cr-expense-details">
+                    {formatDate(withdrawal.date)}
+                  </div>
+                  {withdrawal.notes && (
+                    <div className="cr-expense-notes">{withdrawal.notes}</div>
+                  )}
+                </div>
+                <div className="cr-expense-amount">{formatCurrency(withdrawal.amount)}</div>
+                <button
+                  className="cr-expense-delete"
+                  onClick={() => handleDeleteWithdrawal(withdrawal.id)}
+                  title="Eliminar retiro"
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="cr-empty-state">
+            <div className="cr-empty-icon">💸</div>
+            <div className="cr-empty-text">No hay retiros registrados en este periodo</div>
+            <button
+              className="cr-btn-add-empty"
+              onClick={() => setIsWithdrawalModalOpen(true)}
+            >
+              + Agregar Primer Retiro
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Expenses Section */}
       <div className="cr-section">
         <div className="cr-section-header">
@@ -969,6 +1074,19 @@ const CashRegister = ({ orders, dateFilter }) => {
           <ExpenseForm
             onSave={handleAddExpense}
             onCancel={() => setIsExpenseModalOpen(false)}
+          />
+        </Modal>
+      )}
+
+      {/* Withdrawal Modal */}
+      {isWithdrawalModalOpen && (
+        <Modal
+          isOpen={isWithdrawalModalOpen}
+          onClose={() => setIsWithdrawalModalOpen(false)}
+        >
+          <WithdrawalForm
+            onSave={handleAddWithdrawal}
+            onCancel={() => setIsWithdrawalModalOpen(false)}
           />
         </Modal>
       )}

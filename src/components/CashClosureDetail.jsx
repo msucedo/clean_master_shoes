@@ -175,7 +175,16 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 7. Dinero Inicial en Caja */}
+          {/* 7. Retiros Totales */}
+          <div className="ccd-stat-card">
+            <div className="ccd-stat-icon">💸</div>
+            <div className="ccd-stat-info">
+              <div className="ccd-stat-label">Retiros Totales</div>
+              <div className="ccd-stat-value expense">{formatCurrency(closure.resultados?.retirosTotal || closure.retiros?.total || 0)}</div>
+            </div>
+          </div>
+
+          {/* 8. Dinero Inicial en Caja */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💰</div>
             <div className="ccd-stat-info">
@@ -440,6 +449,40 @@ const CashClosureDetail = ({ closure, onClose }) => {
           </div>
         </div>
       )}
+
+      {/* Withdrawals */}
+      <div className="ccd-section">
+        <h3 className="ccd-section-title">💸 Retiros del Periodo</h3>
+        <div className="ccd-expenses-summary">
+          <div className="ccd-expense-total">
+            Total Retiros: <span>{formatCurrency(closure.retiros?.total || 0)}</span>
+          </div>
+        </div>
+
+        {closure.retiros?.items && closure.retiros.items.length > 0 ? (
+          <div className="ccd-expenses-list">
+            {closure.retiros.items.map((withdrawal, index) => (
+              <div key={index} className="ccd-expense-item">
+                <div className="ccd-expense-icon">💸</div>
+                <div className="ccd-expense-info">
+                  <div className="ccd-expense-concept">{withdrawal.concept}</div>
+                  <div className="ccd-expense-details">
+                    {formatDate(withdrawal.date)}
+                  </div>
+                  {withdrawal.notes && (
+                    <div className="ccd-expense-notes">{withdrawal.notes}</div>
+                  )}
+                </div>
+                <div className="ccd-expense-amount">{formatCurrency(withdrawal.amount)}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="ccd-empty-state">
+            No hubo retiros en este periodo
+          </div>
+        )}
+      </div>
 
       {/* Expenses */}
       <div className="ccd-section">

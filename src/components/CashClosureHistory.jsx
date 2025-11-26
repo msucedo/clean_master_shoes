@@ -106,6 +106,7 @@ const CashClosureHistory = ({ onViewDetails }) => {
               <th>Realizado por</th>
               <th>Total Ingresos</th>
               <th>Total Gastos</th>
+              <th>Total Retiros</th>
               <th>Efectivo Final</th>
               <th>Órdenes</th>
               <th>Acciones</th>
@@ -123,6 +124,7 @@ const CashClosureHistory = ({ onViewDetails }) => {
                 <td className="ch-author">{closure.autor?.nombre || 'N/A'}</td>
                 <td className="ch-income">{formatCurrency(closure.resultados?.ingresosTotal || 0)}</td>
                 <td className="ch-expenses">{formatCurrency(closure.gastos.total)}</td>
+                <td className="ch-expenses">{formatCurrency(closure.retiros?.total || 0)}</td>
                 <td className={`ch-final ${(() => {
                   // Usar efectivoFinal si existe, sino calcular (para compatibilidad con cortes antiguos)
                   const efectivoFinal = closure.efectivoFinal !== undefined
