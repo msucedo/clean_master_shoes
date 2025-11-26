@@ -11,6 +11,7 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -53,10 +54,26 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
+
+    // Prevenir múltiples clics
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Error submitting client:', error);
+      // El error ya se maneja en el componente padre
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -188,11 +205,27 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </button>
-          <button type="submit" className="btn-primary">
-            {initialData ? '💾 Guardar Cambios' : '✨ Crear Cliente'}
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isSubmitting}
+            style={{
+              opacity: isSubmitting ? 0.6 : 1,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isSubmitting
+              ? '⏳ Guardando...'
+              : (initialData ? '💾 Guardar Cambios' : '✨ Crear Cliente')
+            }
           </button>
         </div>
       </form>
