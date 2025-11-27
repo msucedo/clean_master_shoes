@@ -1,0 +1,159 @@
+.order-history-skeleton {
+  padding: 20px 0;
+}
+
+/* Search Bar Skeleton */
+.oh-search-bar-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-radius: 18px;
+  padding: 20px 25px;
+  border: 1px solid #2a2a2a;
+}
+
+/* Table Skeleton */
+.oh-table-wrapper-skeleton {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-radius: 18px;
+  border: 1px solid #2a2a2a;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.oh-table-skeleton {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.oh-table-skeleton thead {
+  background: rgba(255, 0, 110, 0.1);
+  border-bottom: 2px solid #2a2a2a;
+}
+
+.oh-table-skeleton th {
+  padding: 18px 20px;
+}
+
+.oh-table-skeleton tbody tr {
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.oh-table-skeleton tbody tr:last-child {
+  border-bottom: none;
+}
+
+.oh-table-skeleton td {
+  padding: 18px 20px;
+}
+
+/* Skeleton Base */
+.skeleton {
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Search Skeletons */
+.skeleton-search-input {
+  height: 46px;
+  flex: 1;
+}
+
+.skeleton-results-count {
+  height: 20px;
+  width: 100px;
+}
+
+/* Table Header Skeletons */
+.skeleton-th {
+  height: 16px;
+  width: 80%;
+}
+
+/* Table Cell Skeletons */
+.skeleton-td-order {
+  height: 20px;
+  width: 60px;
+}
+
+.skeleton-td-photo {
+  height: 40px;
+  width: 40px;
+  border-radius: 8px;
+}
+
+.skeleton-td-client {
+  height: 18px;
+  width: 120px;
+}
+
+.skeleton-td-date {
+  height: 16px;
+  width: 90px;
+}
+
+.skeleton-td-badge {
+  height: 28px;
+  width: 90px;
+  border-radius: 20px;
+}
+
+.skeleton-td-services {
+  height: 30px;
+  width: 100px;
+}
+
+.skeleton-td-currency {
+  height: 18px;
+  width: 85px;
+}
+
+.skeleton-td-author {
+  height: 18px;
+  width: 110px;
+}
+
+/* Responsive */
+@media (max-width: 1600px) {
+  .oh-table-wrapper-skeleton {
+    overflow-x: auto;
+  }
+
+  .oh-table-skeleton {
+    min-width: 1400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .oh-search-bar-skeleton {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .oh-table-skeleton {
+    min-width: 1200px;
+  }
+
+  .oh-table-skeleton th,
+  .oh-table-skeleton td {
+    padding: 12px 15px;
+  }
+
+  .skeleton-td-photo {
+    width: 35px;
+    height: 35px;
+  }
+}

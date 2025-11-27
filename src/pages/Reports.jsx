@@ -3,6 +3,7 @@ import PageHeader from '../components/PageHeader';
 import CashRegister from '../components/CashRegister';
 import CashClosureHistory from '../components/CashClosureHistory';
 import CashClosureDetail from '../components/CashClosureDetail';
+import OrderHistory from '../components/OrderHistory';
 import Modal from '../components/Modal';
 import RevenueChart from '../components/RevenueChart';
 import ServicesChart from '../components/ServicesChart';
@@ -1124,13 +1125,7 @@ const Reports = () => {
 
       {/* History Tab - Órdenes */}
       {activeTab === 'historial-ordenes' && (
-        <div className="reports-content">
-          <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>📦</div>
-            <h3 style={{ color: '#fff', marginBottom: '10px' }}>Historial de Órdenes</h3>
-            <p>Esta funcionalidad estará disponible próximamente.</p>
-          </div>
-        </div>
+        <OrderHistory />
       )}
 
       {/* Detail Modal */}
