@@ -498,3 +498,40 @@
     padding-bottom: clamp(1rem, 2.5vw, 1.25rem);
   }
 }
+
+/* New Badge - Badge para indicar funcionalidad nueva */
+.new-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  animation: pulse-badge 2s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* Responsive para el badge */
+@media (max-width: 768px) {
+  .new-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+    margin-left: 6px;
+  }
+}
