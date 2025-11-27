@@ -647,6 +647,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           </div>
 
           <div className="cr-stat-card withdrawals">
+            <span className="new-badge">Nuevo</span>
             <div className="cr-stat-icon">💸</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Total de Retiros del Día</div>
@@ -971,7 +972,10 @@ const CashRegister = ({ orders, dateFilter }) => {
       {/* Withdrawals Section */}
       <div className="cr-section">
         <div className="cr-section-header">
-          <h3>💸 Retiros del Periodo</h3>
+          <h3>
+            💸 Retiros del Periodo
+            <span className="new-badge">Nuevo</span>
+          </h3>
           <button
             className="cr-btn-add"
             onClick={() => setIsWithdrawalModalOpen(true)}

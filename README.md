@@ -3,8 +3,7 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]fixes corte de caja
--[]implementar subtab historial de ordenes
+-[]actualizar css de las tabs dentro de reportes para que hagan match con el css de los filtros de tab inventario
 -[]no mostrar promos en orderdetailview que no apliquen con el dia en curso
 -[FIX]fix animacion de carga de pantalla de rastreo de ordenes
 -[]agregar la foto de la orden a la pagina de rastreo
@@ -60,6 +59,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]fixes corte de caja
+-[]implementar subtab historial de ordenes
 -[FEATURE]handle async calls
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url
