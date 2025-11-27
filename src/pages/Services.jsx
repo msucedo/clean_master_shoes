@@ -6,12 +6,12 @@ import ServiceCardSkeleton from '../components/ServiceCardSkeleton';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
-  subscribeToServices,
-  subscribeToOrders,
   addService,
   updateService,
   deleteService
 } from '../services/firebaseService';
+import { useOrders } from '../hooks/useOrders';
+import { useServices } from '../hooks/useServices';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
 import './Services.css';
@@ -22,16 +22,6 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [services, setServices] = useState([]);
-  const [orders, setOrders] = useState({
-    recibidos: [],
-    proceso: [],
-    listos: [],
-    enEntrega: [],
-    completados: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -40,28 +30,26 @@ const Services = () => {
     type: 'default'
   });
 
-  // Subscribe to real-time services updates
+  // Use React Query hooks for real-time data
+  const { data: services = [], isLoading: servicesLoading, error: servicesError } = useServices();
+  const { data: orders = {
+    recibidos: [],
+    proceso: [],
+    listos: [],
+    enEntrega: [],
+    completados: []
+  }, isLoading: ordersLoading } = useOrders({ limitCount: 200 });
+
+  // Combined loading and error states
+  const loading = servicesLoading || ordersLoading;
+  const error = servicesError;
+
+  // Handle errors
   useEffect(() => {
-    setLoading(true);
-
-    const unsubscribe = subscribeToServices((servicesData) => {
-      setServices(servicesData);
-      setLoading(false);
-      setError(null);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to real-time orders updates
-  useEffect(() => {
-    const unsubscribe = subscribeToOrders((ordersData) => {
-      setOrders(ordersData);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    if (servicesError) {
+      showError('Error loading services: ' + servicesError.message);
+    }
+  }, [servicesError, showError]);
 
   // Calcular estadísticas de servicios basadas en órdenes
   const servicesWithStats = useMemo(() => {

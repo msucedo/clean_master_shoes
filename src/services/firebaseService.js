@@ -799,21 +799,20 @@ export const updateService = async (serviceId, serviceData) => {
 export const canDeleteService = async (serviceId) => {
   try {
     const ordersRef = collection(db, 'orders');
-    const querySnapshot = await getDocs(ordersRef);
-
     const activeStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega'];
+
+    // Optimized: Query only active orders
+    const q = query(ordersRef, where('orderStatus', 'in', activeStatuses));
+    const querySnapshot = await getDocs(q);
+
     let orderCount = 0;
 
     querySnapshot.forEach((doc) => {
       const order = doc.data();
-
-      // Check if order is active
-      if (activeStatuses.includes(order.orderStatus)) {
-        // Check if any service in the order references this serviceId
-        const hasService = order.services?.some(service => service.serviceId === serviceId);
-        if (hasService) {
-          orderCount++;
-        }
+      // Check if any service in the order references this serviceId
+      const hasService = order.services?.some(service => service.serviceId === serviceId);
+      if (hasService) {
+        orderCount++;
       }
     });
 
@@ -993,19 +992,18 @@ export const updateClient = async (clientId, clientData) => {
 export const canDeleteClient = async (clientId) => {
   try {
     const ordersRef = collection(db, 'orders');
-    const querySnapshot = await getDocs(ordersRef);
-
     const activeStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega'];
-    let orderCount = 0;
 
-    querySnapshot.forEach((doc) => {
-      const order = doc.data();
+    // Optimized: Query only active orders for this specific client
+    const q = query(
+      ordersRef,
+      where('clientId', '==', clientId),
+      where('orderStatus', 'in', activeStatuses),
+      limit(1) // We only need to know if at least one exists
+    );
+    const querySnapshot = await getDocs(q);
 
-      // Check if order is active and references this clientId
-      if (activeStatuses.includes(order.orderStatus) && order.clientId === clientId) {
-        orderCount++;
-      }
-    });
+    const orderCount = querySnapshot.size;
 
     return {
       canDelete: orderCount === 0,
@@ -1208,19 +1206,18 @@ export const updateEmployee = async (employeeId, employeeData) => {
 export const canDeleteEmployee = async (employeeId) => {
   try {
     const ordersRef = collection(db, 'orders');
-    const querySnapshot = await getDocs(ordersRef);
-
     const activeStatuses = ['recibidos', 'proceso', 'listos', 'enEntrega'];
-    let orderCount = 0;
 
-    querySnapshot.forEach((doc) => {
-      const order = doc.data();
+    // Optimized: Query only active orders for this specific employee
+    const q = query(
+      ordersRef,
+      where('authorId', '==', employeeId),
+      where('orderStatus', 'in', activeStatuses),
+      limit(1) // We only need to know if at least one exists
+    );
+    const querySnapshot = await getDocs(q);
 
-      // Check if order is active and assigned to this employee
-      if (activeStatuses.includes(order.orderStatus) && order.authorId === employeeId) {
-        orderCount++;
-      }
-    });
+    const orderCount = querySnapshot.size;
 
     return {
       canDelete: orderCount === 0,

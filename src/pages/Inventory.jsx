@@ -7,11 +7,11 @@ import InventoryForm from '../components/InventoryForm';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
-  subscribeToInventory,
   addProduct,
   updateProduct,
   deleteProduct
 } from '../services/firebaseService';
+import { useInventory } from '../hooks/useInventory';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
 import './Inventory.css';
@@ -24,8 +24,6 @@ const Inventory = () => {
   const [stockFilter, setStockFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -36,17 +34,15 @@ const Inventory = () => {
 
   const categories = ['Accesorios', 'Gorras', 'Bolsas', 'Pines', 'Agujetas'];
 
-  // Subscribe to real-time inventory updates
+  // Use React Query hook for real-time inventory data
+  const { data: products = [], isLoading: loading, error: productsError } = useInventory();
+
+  // Handle errors
   useEffect(() => {
-    setLoading(true);
-
-    const unsubscribe = subscribeToInventory((productsData) => {
-      setProducts(productsData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    if (productsError) {
+      showError('Error loading inventory: ' + productsError.message);
+    }
+  }, [productsError, showError]);
 
   const filterProducts = (productsList) => {
     let filtered = productsList;

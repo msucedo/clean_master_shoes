@@ -7,13 +7,13 @@ import StatCardSkeleton from '../components/StatCardSkeleton';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
-  subscribeToPromotions,
-  subscribeToServices,
-  subscribeToInventory,
   addPromotion,
   updatePromotion,
   deletePromotion
 } from '../services/firebaseService';
+import { usePromotions } from '../hooks/usePromotions';
+import { useServices } from '../hooks/useServices';
+import { useInventory } from '../hooks/useInventory';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
 import './Promotions.css';
@@ -25,10 +25,6 @@ const Promotions = () => {
   const [filterStatus, setFilterStatus] = useState('all'); // all, active, inactive
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
-  const [promotions, setPromotions] = useState([]);
-  const [services, setServices] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
@@ -38,35 +34,20 @@ const Promotions = () => {
     type: 'default'
   });
 
-  // Subscribe to promotions
+  // Use React Query hooks for real-time data
+  const { data: promotions = [], isLoading: promotionsLoading, error: promotionsError } = usePromotions();
+  const { data: services = [], isLoading: servicesLoading } = useServices();
+  const { data: products = [], isLoading: productsLoading } = useInventory();
+
+  // Combined loading state
+  const loading = promotionsLoading || servicesLoading || productsLoading;
+
+  // Handle errors
   useEffect(() => {
-    setLoading(true);
-
-    const unsubscribe = subscribeToPromotions((promotionsData) => {
-      setPromotions(promotionsData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to services (for form)
-  useEffect(() => {
-    const unsubscribe = subscribeToServices((servicesData) => {
-      setServices(servicesData);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to inventory (for form)
-  useEffect(() => {
-    const unsubscribe = subscribeToInventory((inventoryData) => {
-      setProducts(inventoryData);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    if (promotionsError) {
+      showError('Error loading promotions: ' + promotionsError.message);
+    }
+  }, [promotionsError, showError]);
 
   // Filter promotions
   const filteredPromotions = promotions.filter(promotion => {

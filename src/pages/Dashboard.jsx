@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import StatCard from '../components/StatCard';
 import OrderCard from '../components/OrderCard';
 import Modal from '../components/Modal';
 import OrderDetailView from '../components/OrderDetailView';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { subscribeToOrders, updateOrder, subscribeToEmployees } from '../services/firebaseService';
+import { updateOrder } from '../services/firebaseService';
+import { useOrders } from '../hooks/useOrders';
+import { useEmployees } from '../hooks/useEmployees';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
@@ -13,17 +15,8 @@ const Dashboard = () => {
   const { showSuccess, showError, showInfo } = useNotification();
   const { employee } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [orders, setOrders] = useState({
-    recibidos: [],
-    proceso: [],
-    listos: [],
-    enEntrega: [],
-    completados: []
-  });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [employees, setEmployees] = useState([]);
   const saveOnCloseRef = useRef(null);
   const [headerData, setHeaderData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({
@@ -34,30 +27,31 @@ const Dashboard = () => {
     type: 'default'
   });
 
-  // Subscribe to real-time orders updates
+  // Use React Query hooks for real-time data
+  const { data: orders = {
+    recibidos: [],
+    proceso: [],
+    listos: [],
+    enEntrega: [],
+    completados: []
+  }, isLoading: ordersLoading, error: ordersError } = useOrders({ limitCount: 200 });
+
+  const { data: employeesData = [], isLoading: employeesLoading } = useEmployees();
+
+  // Filter only active employees
+  const employees = useMemo(() => {
+    return employeesData.filter(emp => emp.status === 'active');
+  }, [employeesData]);
+
+  // Combined loading state
+  const loading = ordersLoading || employeesLoading;
+
+  // Handle errors
   useEffect(() => {
-    setLoading(true);
-
-    const unsubscribe = subscribeToOrders((ordersData) => {
-      setOrders(ordersData);
-      setLoading(false);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to real-time employees updates
-  useEffect(() => {
-    const unsubscribe = subscribeToEmployees((employeesData) => {
-      // Filtrar solo empleados activos
-      const activeEmployees = employeesData.filter(emp => emp.status === 'active');
-      setEmployees(activeEmployees);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
+    if (ordersError) {
+      showError('Error loading orders: ' + ordersError.message);
+    }
+  }, [ordersError, showError]);
 
   // Obtener fecha dinámica
   const getCurrentDate = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Modal from '../components/Modal';
 import OrderForm from '../components/OrderForm';
 import OrderFormMobile from '../components/OrderFormMobile';
@@ -8,14 +8,14 @@ import OrderCardSkeleton from '../components/OrderCardSkeleton';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import {
-  subscribeToOrders,
   updateOrder,
-  subscribeToEmployees,
   findClientByPhone,
   findClientByName,
   addClient,
   updateClient
 } from '../services/firebaseService';
+import { useOrders } from '../hooks/useOrders';
+import { useEmployees } from '../hooks/useEmployees';
 import { useNotification } from '../contexts/NotificationContext';
 import { printTicket } from '../services/printService';
 import { addPrintJob } from '../services/printQueueService';
@@ -37,10 +37,6 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState('recibidos');
-  const [orders, setOrders] = useState(EMPTY_ORDERS);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [employees, setEmployees] = useState([]);
   const saveOnCloseRef = useRef(null);
   const isPrintingRef = useRef(false);
   const [headerData, setHeaderData] = useState(null);
@@ -65,31 +61,25 @@ const Orders = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Subscribe to real-time orders updates
+  // Use React Query hooks for real-time data
+  const { data: orders = EMPTY_ORDERS, isLoading: ordersLoading, error: ordersError } = useOrders({ limitCount: 200 });
+  const { data: employeesData = [], isLoading: employeesLoading } = useEmployees();
+
+  // Filter only active employees
+  const employees = useMemo(() => {
+    return employeesData.filter(emp => emp.status === 'active');
+  }, [employeesData]);
+
+  // Combined loading and error states
+  const loading = ordersLoading || employeesLoading;
+  const error = ordersError;
+
+  // Handle errors
   useEffect(() => {
-    setLoading(true);
-
-    const unsubscribe = subscribeToOrders((ordersData) => {
-      setOrders(ordersData);
-      setLoading(false);
-      setError(null);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to real-time employees updates
-  useEffect(() => {
-    const unsubscribe = subscribeToEmployees((employeesData) => {
-      // Filtrar solo empleados activos
-      const activeEmployees = employeesData.filter(emp => emp.status === 'active');
-      setEmployees(activeEmployees);
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
+    if (ordersError) {
+      showError('Error loading orders: ' + ordersError.message);
+    }
+  }, [ordersError, showError]);
 
 
   const filterOrders = (ordersList) => {

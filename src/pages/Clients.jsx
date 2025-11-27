@@ -8,14 +8,14 @@ import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import StatCard from '../components/StatCard';
 import {
-  subscribeToOrders,
-  subscribeToClients,
-  subscribeToEmployees,
   addClient,
   updateClient,
   deleteClient,
   updateOrder
 } from '../services/firebaseService';
+import { useOrders } from '../hooks/useOrders';
+import { useClients } from '../hooks/useClients';
+import { useEmployees } from '../hooks/useEmployees';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
 import './Clients.css';
@@ -28,16 +28,6 @@ const Clients = () => {
   const [sortDirection, setSortDirection] = useState('asc'); // 'asc', 'desc'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const [clients, setClients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [employees, setEmployees] = useState([]);
-  const [orders, setOrders] = useState({
-    recibidos: [],
-    proceso: [],
-    listos: [],
-    enEntrega: [],
-    completados: []
-  });
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -52,35 +42,26 @@ const Clients = () => {
   const saveOnCloseRef = useRef(null);
   const [headerData, setHeaderData] = useState(null);
 
-  // Subscribe to real-time clients updates
+  // Use React Query hooks for real-time data
+  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = useClients();
+  const { data: orders = {
+    recibidos: [],
+    proceso: [],
+    listos: [],
+    enEntrega: [],
+    completados: []
+  }, isLoading: ordersLoading } = useOrders({ limitCount: 200 });
+  const { data: employees = [], isLoading: employeesLoading } = useEmployees();
+
+  // Combined loading state
+  const loading = clientsLoading || ordersLoading || employeesLoading;
+
+  // Handle errors
   useEffect(() => {
-    setLoading(true);
-
-    const unsubscribe = subscribeToClients((clientsData) => {
-      setClients(clientsData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to real-time orders for active clients filter
-  useEffect(() => {
-    const unsubscribe = subscribeToOrders((ordersData) => {
-      setOrders(ordersData);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Subscribe to real-time employees for author emoji
-  useEffect(() => {
-    const unsubscribe = subscribeToEmployees((employeesData) => {
-      setEmployees(employeesData);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    if (clientsError) {
+      showError('Error loading clients: ' + clientsError.message);
+    }
+  }, [clientsError, showError]);
 
   // Calcular métricas de clientes basadas en órdenes
   const clientMetrics = useMemo(() => {

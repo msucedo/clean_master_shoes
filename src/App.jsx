@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { queryClient } from './config/queryClient';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
@@ -35,7 +38,8 @@ function AppContent() {
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
   // Escuchar notificaciones de WhatsApp (solo si está autenticado)
-  useWhatsAppNotifications();
+  // Temporarily disabled to reduce Firestore quota usage - will optimize later
+  // useWhatsAppNotifications();
 
   // Monitorear conexión Bluetooth
   const { shouldShowAlert, dismissAlert, handleConnected } = useBluetoothConnectionMonitor();
@@ -107,13 +111,17 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <NotificationProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </NotificationProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </NotificationProvider>
+        </AuthProvider>
+        {/* React Query DevTools - only visible in development */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
