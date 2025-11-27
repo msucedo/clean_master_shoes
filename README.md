@@ -3,10 +3,7 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]mejorar experiencia de usuario, que el boton automatico azul de guardando borrador se mantenga en pantlla por 3segundos para poder leerlo bien
 -[]no mostrar promos en orderdetailview que no apliquen con el dia en curso
--[FIX]fix animacion de carga de pantalla de rastreo de ordenes
--[]agregar la foto de la orden a la pagina de rastreo
 
 // PRIORIDAD ALTA
 
@@ -59,6 +56,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]fix animacion de carga de pantalla de rastreo de ordenes
+-[]mejorar experiencia de usuario, que el boton automatico azul de guardando borrador se mantenga en pantlla por 3segundos para poder leerlo bien
 -[FIX]reafactored calls to firebase in corte de caja, was calling every 1s, now using best practices
 -[FIX]implemented react query to avoid multiple houndreds calls to firebase thru all tabs
 -[FIX]actualizar css de las tabs dentro de reportes para que hagan match con el css de los filtros de tab inventario
