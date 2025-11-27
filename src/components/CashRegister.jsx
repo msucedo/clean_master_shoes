@@ -5,7 +5,6 @@ import ExpenseForm from './ExpenseForm';
 import WithdrawalForm from './WithdrawalForm';
 import ConfirmDialog from './ConfirmDialog';
 import {
-  saveCashRegisterDraft,
   subscribeToCashRegisterDraft,
   deleteCashRegisterDraft,
   saveCashRegisterClosure,
@@ -13,6 +12,7 @@ import {
   subscribeToCashRegisterClosures
 } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
+import { useCashRegisterDraft } from '../hooks/useCashRegisterDraft';
 import './CashRegister.css';
 
 // eslint-disable-next-line no-unused-vars
@@ -62,6 +62,27 @@ const CashRegister = ({ orders, dateFilter }) => {
   // Transferencia - Lista de transferencias
   const [transferencias, setTransferencias] = useState([{ monto: '' }]);
 
+  // Prepare draft data for auto-save
+  const draftData = {
+    dineroInicial: dineroInicial,
+    billetes: billetes,
+    monedas: monedas,
+    cobrosTarjeta: cobrosTarjeta,
+    transferencias: transferencias,
+    gastos: expenses,
+    retiros: withdrawals,
+    notes: notes,
+    selectedEmployee: selectedEmployee
+  };
+
+  // Use custom hook for optimized auto-save with React Query
+  const { isPending: isSaving, isError: hasSaveError, debouncedSave } = useCashRegisterDraft(draftData);
+
+  // Trigger debounced save when data changes
+  useEffect(() => {
+    debouncedSave(draftData);
+  }, [dineroInicial, billetes, monedas, cobrosTarjeta, transferencias, expenses, withdrawals, notes, selectedEmployee, debouncedSave]);
+
   // Load employees
   useEffect(() => {
     const unsubscribe = subscribeToEmployees((employeesData) => {
@@ -102,29 +123,6 @@ const CashRegister = ({ orders, dateFilter }) => {
     return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Auto-save draft with debounce
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const draftData = {
-        dineroInicial: dineroInicial,
-        billetes: billetes,
-        monedas: monedas,
-        cobrosTarjeta: cobrosTarjeta,
-        transferencias: transferencias,
-        gastos: expenses,
-        retiros: withdrawals,
-        notes: notes,
-        selectedEmployee: selectedEmployee
-      };
-
-      saveCashRegisterDraft(draftData).catch(error => {
-        console.error('Error auto-saving draft:', error);
-      });
-    }, 1000); // 1 second debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [dineroInicial, billetes, monedas, cobrosTarjeta, transferencias, expenses, withdrawals, notes, selectedEmployee]);
 
   // Calculate financial summary
   const calculateSummary = () => {
@@ -1183,6 +1181,24 @@ const CashRegister = ({ orders, dateFilter }) => {
           onConfirm={confirmDialog.onConfirm}
           onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
         />
+      )}
+
+      {/* Auto-save Status Indicator */}
+      {(isSaving || hasSaveError) && (
+        <div className={`cr-autosave-indicator ${hasSaveError ? 'error' : 'saving'}`}>
+          {isSaving && (
+            <>
+              <span className="cr-autosave-spinner"></span>
+              <span>Guardando borrador...</span>
+            </>
+          )}
+          {hasSaveError && (
+            <>
+              <span className="cr-autosave-icon">⚠️</span>
+              <span>Error al guardar</span>
+            </>
+          )}
+        </div>
       )}
     </div>
   );

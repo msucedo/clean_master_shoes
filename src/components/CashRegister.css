@@ -1259,3 +1259,73 @@
     flex-direction: column;
   }
 }
+
+/* ==================== AUTO-SAVE INDICATOR ==================== */
+.cr-autosave-indicator {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  animation: slideInUp 0.3s ease-out;
+  transition: all 0.3s ease;
+}
+
+.cr-autosave-indicator.saving {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  border: 1px solid #3b82f6;
+  color: #fff;
+}
+
+.cr-autosave-indicator.error {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+  border: 1px solid #ef4444;
+  color: #fff;
+}
+
+.cr-autosave-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.cr-autosave-icon {
+  font-size: 18px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments for indicator */
+@media (max-width: 768px) {
+  .cr-autosave-indicator {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
