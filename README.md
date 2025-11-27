@@ -3,7 +3,7 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]actualizar css de las tabs dentro de reportes para que hagan match con el css de los filtros de tab inventario
+-[]mejorar experiencia de usuario, que el boton automatico azul de guardando borrador se mantenga en pantlla por 3segundos para poder leerlo bien
 -[]no mostrar promos en orderdetailview que no apliquen con el dia en curso
 -[FIX]fix animacion de carga de pantalla de rastreo de ordenes
 -[]agregar la foto de la orden a la pagina de rastreo
@@ -59,8 +59,11 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
--[]fixes corte de caja
--[]implementar subtab historial de ordenes
+-[FIX]reafactored calls to firebase in corte de caja, was calling every 1s, now using best practices
+-[FIX]implemented react query to avoid multiple houndreds calls to firebase thru all tabs
+-[FIX]actualizar css de las tabs dentro de reportes para que hagan match con el css de los filtros de tab inventario
+-[FIX]fixes corte de caja
+-[FEATURE]implementar subtab historial de ordenes
 -[FEATURE]handle async calls
 -[FEATURE]Enviar wapp al cliente: al recibir el calzado validar si hay foto entonces mandar msg+foto
     -[FIX]en meta console: agregar .company a url

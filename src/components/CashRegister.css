@@ -1284,6 +1284,10 @@
   color: #fff;
 }
 
+.cr-autosave-indicator.saving.fade-out {
+  animation: successFadeOut 2.5s forwards;
+}
+
 .cr-autosave-indicator.error {
   background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
   border: 1px solid #ef4444;
@@ -1317,6 +1321,17 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes successFadeOut {
+  0%, 80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
   }
 }
 

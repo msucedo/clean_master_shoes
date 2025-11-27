@@ -76,7 +76,7 @@ const CashRegister = ({ orders, dateFilter }) => {
   };
 
   // Use custom hook for optimized auto-save with React Query
-  const { isPending: isSaving, isError: hasSaveError, debouncedSave } = useCashRegisterDraft(draftData);
+  const { isPending: isSaving, isError: hasSaveError, isSuccess, debouncedSave } = useCashRegisterDraft(draftData);
 
   // Trigger debounced save when data changes
   useEffect(() => {
@@ -1184,9 +1184,13 @@ const CashRegister = ({ orders, dateFilter }) => {
       )}
 
       {/* Auto-save Status Indicator */}
-      {(isSaving || hasSaveError) && (
-        <div className={`cr-autosave-indicator ${hasSaveError ? 'error' : 'saving'}`}>
-          {isSaving && (
+      {(isSaving || isSuccess || hasSaveError) && (
+        <div className={`cr-autosave-indicator ${
+          hasSaveError ? 'error' :
+          isSuccess && !isSaving ? 'saving fade-out' :
+          'saving'
+        }`}>
+          {(isSaving || isSuccess) && (
             <>
               <span className="cr-autosave-spinner"></span>
               <span>Guardando borrador...</span>
