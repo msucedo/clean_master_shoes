@@ -924,7 +924,16 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
               {activePromotions.length > 0 && (
                 <div className="available-promotions-banner">
                   <div className="banner-title">🎉 Promociones Disponibles Hoy:</div>
-                  {activePromotions.map((promo, idx) => {
+                  {activePromotions
+                    .filter(promo => {
+                      // Filtrar promociones por día de la semana
+                      if (!promo.daysOfWeek || promo.daysOfWeek.length === 0) {
+                        return true; // Sin restricción de días, mostrar siempre
+                      }
+                      const currentDay = new Date().getDay();
+                      return promo.daysOfWeek.includes(currentDay);
+                    })
+                    .map((promo, idx) => {
                     const isApplied = appliedPromotions.some(ap => ap.id === promo.id);
                     const validation = promotionValidations[promo.id];
                     const isRelevant = isPromotionRelevantForCart(promo, cart);

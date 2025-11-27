@@ -3,7 +3,6 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]no mostrar promos en orderdetailview que no apliquen con el dia en curso
 
 // PRIORIDAD ALTA
 
@@ -56,6 +55,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]no mostrar promos en orderdetailview que no apliquen con el dia en curso
 -[FIX]fix animacion de carga de pantalla de rastreo de ordenes
 -[]mejorar experiencia de usuario, que el boton automatico azul de guardando borrador se mantenga en pantlla por 3segundos para poder leerlo bien
 -[FIX]reafactored calls to firebase in corte de caja, was calling every 1s, now using best practices
