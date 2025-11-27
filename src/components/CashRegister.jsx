@@ -633,9 +633,6 @@ const CashRegister = ({ orders, dateFilter }) => {
               <div className="cr-stat-value">
                 {formatCurrency(ingresosAcumuladosDia)}
               </div>
-              <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
-                {lastClosureToday ? 'Acumulado de todos los cortes de hoy' : 'Efectivo + Tarjeta + Transferencia'}
-              </div>
             </div>
           </div>
 
@@ -646,9 +643,14 @@ const CashRegister = ({ orders, dateFilter }) => {
               <div className="cr-stat-value">
                 {formatCurrency(efectivoDisponible)}
               </div>
-              <div className="cr-stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px' }}>
-                Total Ingresos - Retiros - Gastos
-              </div>
+            </div>
+          </div>
+
+          <div className="cr-stat-card withdrawals">
+            <div className="cr-stat-icon">💸</div>
+            <div className="cr-stat-info">
+              <div className="cr-stat-label">Total de Retiros del Día</div>
+              <div className="cr-stat-value expense">{formatCurrency(retirosAcumuladosDia)}</div>
             </div>
           </div>
 

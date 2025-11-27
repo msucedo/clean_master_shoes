@@ -156,6 +156,10 @@
   background: linear-gradient(90deg, #9d4edd 0%, #7b2cbf 100%);
 }
 
+.cr-stat-card.withdrawals::before {
+  background: linear-gradient(90deg, #ff8800 0%, #ff6600 100%);
+}
+
 .cr-stat-icon {
   font-size: 32px;
   width: 50px;
@@ -188,6 +192,10 @@
 
 .cr-stat-card.products .cr-stat-icon {
   background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+}
+
+.cr-stat-card.withdrawals .cr-stat-icon {
+  background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%);
 }
 
 .cr-stat-info {
