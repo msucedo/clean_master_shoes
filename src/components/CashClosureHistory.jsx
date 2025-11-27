@@ -104,7 +104,8 @@ const CashClosureHistory = ({ onViewDetails }) => {
               <th>Fecha del Corte</th>
               <th>Periodo</th>
               <th>Realizado por</th>
-              <th>Total Ingresos</th>
+              <th>Total Ingresos del Día</th>
+              <th>Total Ingresos de Este Corte</th>
               <th>Total Gastos</th>
               <th>Total Retiros</th>
               <th>Efectivo Final</th>
@@ -123,6 +124,7 @@ const CashClosureHistory = ({ onViewDetails }) => {
                 </td>
                 <td className="ch-author">{closure.autor?.nombre || 'N/A'}</td>
                 <td className="ch-income">{formatCurrency(closure.resultados?.ingresosTotal || 0)}</td>
+                <td className="ch-income">{formatCurrency(closure.conteoIngresos?.totalGeneral || 0)}</td>
                 <td className="ch-expenses">{formatCurrency(closure.gastos.total)}</td>
                 <td className="ch-expenses">{formatCurrency(closure.retiros?.total || 0)}</td>
                 <td className={`ch-final ${(() => {

@@ -130,16 +130,25 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 2. Total Ingresos */}
+          {/* 2. Total Ingresos de Este Corte */}
+          <div className="ccd-stat-card">
+            <div className="ccd-stat-icon">💰</div>
+            <div className="ccd-stat-info">
+              <div className="ccd-stat-label">Total Ingresos de Este Corte</div>
+              <div className="ccd-stat-value">{formatCurrency(closure.conteoIngresos?.totalGeneral || 0)}</div>
+            </div>
+          </div>
+
+          {/* 3. Total Ingresos del Día */}
           <div className="ccd-stat-card total">
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
-              <div className="ccd-stat-label">Total Ingresos</div>
+              <div className="ccd-stat-label">Total Ingresos del Día</div>
               <div className="ccd-stat-value">{formatCurrency(closure.resultados?.ingresosTotal || 0)}</div>
             </div>
           </div>
 
-          {/* 3. Ingresos de Efectivo (NUEVO) */}
+          {/* 4. Ingresos de Efectivo */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💵</div>
             <div className="ccd-stat-info">
@@ -148,7 +157,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 4. Ingresos de Tarjeta */}
+          {/* 5. Ingresos de Tarjeta */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💳</div>
             <div className="ccd-stat-info">
@@ -157,7 +166,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 5. Ingresos de Transferencia */}
+          {/* 6. Ingresos de Transferencia */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">🏦</div>
             <div className="ccd-stat-info">
@@ -166,7 +175,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 6. Gastos Totales */}
+          {/* 7. Gastos Totales */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">📝</div>
             <div className="ccd-stat-info">
@@ -175,7 +184,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 7. Retiros Totales */}
+          {/* 8. Retiros Totales */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💸</div>
             <div className="ccd-stat-info">
@@ -184,7 +193,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 8. Dinero Inicial en Caja */}
+          {/* 9. Dinero Inicial en Caja */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">💰</div>
             <div className="ccd-stat-info">
@@ -193,7 +202,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 8. Efectivo Final */}
+          {/* 10. Efectivo Final */}
           <div className="ccd-stat-card highlight">
             <div className="ccd-stat-icon">🏦</div>
             <div className="ccd-stat-info">
@@ -216,7 +225,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 9. Órdenes */}
+          {/* 11. Órdenes */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">📦</div>
             <div className="ccd-stat-info">
@@ -225,7 +234,7 @@ const CashClosureDetail = ({ closure, onClose }) => {
             </div>
           </div>
 
-          {/* 10. Productos */}
+          {/* 12. Productos */}
           <div className="ccd-stat-card">
             <div className="ccd-stat-icon">🛍️</div>
             <div className="ccd-stat-info">

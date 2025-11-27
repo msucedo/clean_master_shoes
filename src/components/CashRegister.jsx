@@ -271,8 +271,8 @@ const CashRegister = ({ orders, dateFilter }) => {
 
   const retirosAcumuladosDia = getTotalRetirosAcumulados();
 
-  // Efectivo disponible actual
-  const efectivoDisponible = ingresosAcumuladosDia - retirosAcumuladosDia - totalExpenses;
+  // Efectivo disponible actual (solo efectivo físico, no tarjeta ni transferencia)
+  const efectivoDisponible = (lastClosureToday?.efectivoFinal || 0) + efectivoContado - totalExpenses - totalWithdrawals;
 
   // Totales del sistema (ventas registradas + dinero inicial)
   const efectivoSistema = summary.cashIncome + dineroInicialNum;
@@ -629,7 +629,7 @@ const CashRegister = ({ orders, dateFilter }) => {
           <div className="cr-stat-card total">
             <div className="cr-stat-icon">💵</div>
             <div className="cr-stat-info">
-              <div className="cr-stat-label">Total Ingresos</div>
+              <div className="cr-stat-label">Total Ingresos acumulados del día</div>
               <div className="cr-stat-value">
                 {formatCurrency(ingresosAcumuladosDia)}
               </div>
