@@ -3,6 +3,11 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]agregar en dashboard, una subseccion "Calzado en espera del cliente"
+-[FIX]verdad absoluta del conteo de efectivo
+-[]agregarle a la plantilla de whatsapp que no le escriban por ese chat?, implementar una respuesta automatica redirigiendolos al numero correcto
+-[]reemplazar ordenes por calzados?
+-[]habilitar campañas, tab campañas
 
 // PRIORIDAD ALTA
 
@@ -55,6 +60,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]agregar card "total gastos del dia": resumen financiero, tabla de historial de cortes, modal de detalles del corte
 -[]no mostrar promos en orderdetailview que no apliquen con el dia en curso
 -[FIX]fix animacion de carga de pantalla de rastreo de ordenes
 -[]mejorar experiencia de usuario, que el boton automatico azul de guardando borrador se mantenga en pantlla por 3segundos para poder leerlo bien

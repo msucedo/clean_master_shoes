@@ -797,7 +797,7 @@ const Reports = () => {
               <option value="reportes">📊 Reportes</option>
               <option value="corte">💰 Corte de Caja</option>
               <option value="historial-cortes">📋 Historial de Cortes</option>
-              <option value="historial-ordenes">📦 Historial de Órdenes ✨ Nuevo</option>
+              <option value="historial-ordenes">📦 Historial de Órdenes</option>
             </select>
 
             {/* Botones para desktop/tablet (ocultos en móvil por CSS) */}
@@ -824,7 +824,6 @@ const Reports = () => {
               onClick={() => setActiveTab('historial-ordenes')}
             >
               📦 Historial de Órdenes
-              <span className="new-badge">Nuevo</span>
             </button>
           </div>
         }

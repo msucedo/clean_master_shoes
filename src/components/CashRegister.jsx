@@ -269,6 +269,25 @@ const CashRegister = ({ orders, dateFilter }) => {
 
   const retirosAcumuladosDia = getTotalRetirosAcumulados();
 
+  // Acumular gastos de todos los cortes de hoy
+  const getTotalGastosAcumulados = () => {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const todayClosures = closures.filter(closure => {
+      if (!closure.fechaCorte) return false;
+      const closureDate = new Date(closure.fechaCorte);
+      return closureDate >= startDate && closureDate <= endDate;
+    });
+
+    return todayClosures.reduce((sum, closure) => {
+      return sum + (parseFloat(closure.resultados?.gastosTotal) || 0);
+    }, 0) + totalExpenses; // Sumar gastos actuales no guardados
+  };
+
+  const gastosAcumuladosDia = getTotalGastosAcumulados();
+
   // Efectivo disponible actual (solo efectivo físico, no tarjeta ni transferencia)
   const efectivoDisponible = (lastClosureToday?.efectivoFinal || 0) + efectivoContado - totalExpenses - totalWithdrawals;
 
@@ -645,11 +664,19 @@ const CashRegister = ({ orders, dateFilter }) => {
           </div>
 
           <div className="cr-stat-card withdrawals">
-            <span className="new-badge">Nuevo</span>
             <div className="cr-stat-icon">💸</div>
             <div className="cr-stat-info">
               <div className="cr-stat-label">Total de Retiros del Día</div>
               <div className="cr-stat-value expense">{formatCurrency(retirosAcumuladosDia)}</div>
+            </div>
+          </div>
+
+          <div className="cr-stat-card expenses">
+            <span className="new-badge">Nuevo</span>
+            <div className="cr-stat-icon">💸</div>
+            <div className="cr-stat-info">
+              <div className="cr-stat-label">Total de Gastos del Día</div>
+              <div className="cr-stat-value expense">{formatCurrency(gastosAcumuladosDia)}</div>
             </div>
           </div>
 
@@ -970,10 +997,7 @@ const CashRegister = ({ orders, dateFilter }) => {
       {/* Withdrawals Section */}
       <div className="cr-section">
         <div className="cr-section-header">
-          <h3>
-            💸 Retiros del Periodo
-            <span className="new-badge">Nuevo</span>
-          </h3>
+          <h3>💸 Retiros del Periodo</h3>
           <button
             className="cr-btn-add"
             onClick={() => setIsWithdrawalModalOpen(true)}
