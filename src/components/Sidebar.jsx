@@ -9,7 +9,7 @@ const Sidebar = () => {
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
   const menuItems = [
-    { path: '/', icon: '🏠', label: 'Dashboard' },
+    { path: '/', icon: '🏠', label: 'Dashboard', badge: 'Nuevo' },
     { path: '/orders', icon: '📦', label: 'Órdenes' },
     { path: '/clients', icon: '👥', label: 'Clientes' },
     { path: '/services', icon: '💼', label: 'Servicios' },

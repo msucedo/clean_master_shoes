@@ -426,7 +426,10 @@ const Dashboard = () => {
           <div className="task-group-header">
             <div className="task-group-icon atrasadas">⏰</div>
             <div className="task-group-title-wrapper">
-              <div className="task-group-name">Calzado en Espera del Cliente</div>
+              <div className="task-group-name">
+                Calzado en Espera del Cliente
+                <span className="new-badge">Nuevo</span>
+              </div>
               <div className="task-group-count">{overdueDeliveries.length} {overdueDeliveries.length === 1 ? 'orden atrasada' : 'órdenes atrasadas'}</div>
             </div>
           </div>
