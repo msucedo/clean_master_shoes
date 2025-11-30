@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import StatCard from '../components/StatCard';
 import OrderCard from '../components/OrderCard';
+import OrderCardSkeleton from '../components/OrderCardSkeleton';
 import Modal from '../components/Modal';
 import OrderDetailView from '../components/OrderDetailView';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -111,7 +112,41 @@ const Dashboard = () => {
     return todayOrders;
   };
 
+  const getOverdueDeliveries = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const overdueOrders = [];
+
+    // Recorrer todas las columnas y agregar el status a cada orden
+    const columns = {
+      recibidos: orders.recibidos || [],
+      proceso: orders.proceso || [],
+      listos: orders.listos || [],
+      enEntrega: orders.enEntrega || []
+    };
+
+    for (const [status, ordersList] of Object.entries(columns)) {
+      ordersList.forEach(order => {
+        if (!order.deliveryDate) return;
+
+        const [year, month, day] = order.deliveryDate.split('-').map(Number);
+        const deliveryDate = new Date(year, month - 1, day);
+        deliveryDate.setHours(0, 0, 0, 0);
+
+        // Verificar si la fecha de entrega es menor que hoy (atrasada)
+        if (deliveryDate.getTime() < today.getTime()) {
+          // Agregar el status actual de la orden
+          overdueOrders.push({ ...order, currentStatus: status });
+        }
+      });
+    }
+
+    return overdueOrders;
+  };
+
   const todayDeliveries = getTodayDeliveries();
+  const overdueDeliveries = getOverdueDeliveries();
 
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
@@ -386,6 +421,38 @@ const Dashboard = () => {
 
       {/* Priority Tasks */}
       <div className="priority-section">
+        {/* Calzado en Espera del Cliente (Órdenes Atrasadas) */}
+        <div className="task-group">
+          <div className="task-group-header">
+            <div className="task-group-icon atrasadas">⏰</div>
+            <div className="task-group-title-wrapper">
+              <div className="task-group-name">Calzado en Espera del Cliente</div>
+              <div className="task-group-count">{overdueDeliveries.length} {overdueDeliveries.length === 1 ? 'orden atrasada' : 'órdenes atrasadas'}</div>
+            </div>
+          </div>
+          <div className="task-cards">
+            {loading ? (
+              <>
+                <OrderCardSkeleton />
+                <OrderCardSkeleton />
+                <OrderCardSkeleton />
+              </>
+            ) : overdueDeliveries.length === 0 ? (
+              <div className="empty-state">
+                <p>¡Excelente! No hay órdenes atrasadas</p>
+              </div>
+            ) : (
+              overdueDeliveries.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onOrderClick={handleOrderClick}
+                />
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Entregas de Hoy */}
         <div className="task-group">
           <div className="task-group-header">
@@ -396,7 +463,13 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="task-cards">
-            {todayDeliveries.length === 0 ? (
+            {loading ? (
+              <>
+                <OrderCardSkeleton />
+                <OrderCardSkeleton />
+                <OrderCardSkeleton />
+              </>
+            ) : todayDeliveries.length === 0 ? (
               <div className="empty-state">
                 <p>No hay entregas programadas para hoy</p>
               </div>
