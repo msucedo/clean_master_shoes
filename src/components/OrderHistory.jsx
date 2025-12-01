@@ -838,7 +838,7 @@ const OrderHistory = () => {
       <div className="oh-filter-controls-bar">
         <div className="oh-left-controls">
           <div className="oh-results-count">
-            {filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}
+            Mostrando {paginatedOrders.length} de {filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}
           </div>
           {activeFiltersCount > 0 && (
             <button
