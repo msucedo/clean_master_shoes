@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { useNotification } from '../contexts/NotificationContext';
 import './ExpenseForm.css';
 
 const ExpenseForm = ({ expense, onSave, onCancel }) => {
+  const { showValidationErrors } = useNotification();
   const [formData, setFormData] = useState({
     concept: '',
     amount: '',
@@ -67,13 +69,15 @@ const ExpenseForm = ({ expense, onSave, onCancel }) => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!validate()) {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      showValidationErrors(validationErrors);
       return;
     }
 

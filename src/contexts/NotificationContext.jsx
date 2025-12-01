@@ -12,6 +12,8 @@ export const useNotification = () => {
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [validationTimeout, setValidationTimeout] = useState(null);
 
   const addNotification = useCallback((message, type = 'info', duration = 4000) => {
     const id = Date.now() + Math.random();
@@ -49,6 +51,36 @@ export const NotificationProvider = ({ children }) => {
     return addNotification(message, 'info', duration);
   }, [addNotification]);
 
+  const showValidationErrors = useCallback((errorsObject) => {
+    // Clear any existing timeout
+    if (validationTimeout) {
+      clearTimeout(validationTimeout);
+    }
+
+    // Convert errors object to array of field names
+    const errorFields = Object.keys(errorsObject).map(key => {
+      // Capitalize first letter and format field name
+      return errorsObject[key] || key.charAt(0).toUpperCase() + key.slice(1);
+    });
+
+    setValidationErrors(errorFields);
+
+    // Auto-clear after 6 seconds
+    const timeout = setTimeout(() => {
+      setValidationErrors([]);
+    }, 6000);
+
+    setValidationTimeout(timeout);
+  }, [validationTimeout]);
+
+  const clearValidationErrors = useCallback(() => {
+    if (validationTimeout) {
+      clearTimeout(validationTimeout);
+    }
+    setValidationErrors([]);
+    setValidationTimeout(null);
+  }, [validationTimeout]);
+
   const value = {
     notifications,
     addNotification,
@@ -56,7 +88,10 @@ export const NotificationProvider = ({ children }) => {
     showSuccess,
     showError,
     showWarning,
-    showInfo
+    showInfo,
+    validationErrors,
+    showValidationErrors,
+    clearValidationErrors
   };
 
   return (

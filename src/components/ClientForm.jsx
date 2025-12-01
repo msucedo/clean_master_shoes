@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNotification } from '../contexts/NotificationContext';
 import './ClientForm.css';
 
 const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
+  const { showValidationErrors } = useNotification();
   const [showMenu, setShowMenu] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -51,7 +53,7 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
@@ -62,7 +64,9 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
       return;
     }
 
-    if (!validateForm()) {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      showValidationErrors(validationErrors);
       return;
     }
 

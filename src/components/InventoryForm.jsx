@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import ImageUpload from './ImageUpload';
 import './InventoryForm.css';
 
 const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
   const isAdmin = useAdminCheck();
+  const { showValidationErrors } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
     category: 'Tenis',
@@ -72,7 +74,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleChange = (e) => {
@@ -105,7 +107,9 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
       return;
     }
 
-    if (!validateForm()) {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      showValidationErrors(validationErrors);
       return;
     }
 

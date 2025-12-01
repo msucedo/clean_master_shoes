@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { deleteField } from 'firebase/firestore';
 import { useAdminCheck } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './PromotionForm.css';
 
 const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, services = [], products = [], isSubmitting = false }) => {
   const isAdmin = useAdminCheck();
+  const { showValidationErrors } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -168,12 +170,17 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      showValidationErrors(validationErrors);
+      return;
+    }
+    if (true) {
       // Detectar si es edición o creación
       const isEditing = !!initialData;
 

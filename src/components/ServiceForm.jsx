@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './ServiceForm.css';
 
 const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
   const isAdmin = useAdminCheck();
+  const { showValidationErrors } = useNotification();
   const [showMenu, setShowMenu] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -62,7 +64,7 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
@@ -73,7 +75,9 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
       return;
     }
 
-    if (!validateForm()) {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      showValidationErrors(validationErrors);
       return;
     }
 

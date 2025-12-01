@@ -4,9 +4,6 @@ Clean master shoes
 
 // WIP
 -[FEATURE]validar entrada de datos para los formularios de todas las paginas
--[FEATURE]agregar validaciones visuales de errores en formularios, un mensaje flotante en la parte superior de la pagina
--[FEATURE]agregar filtros a la tabla del historial de ordenes
-
 -[FIX]verdad absoluta del conteo de efectivo
 -[]agregarle a la plantilla de whatsapp que no le escriban por ese chat?, implementar una respuesta automatica redirigiendolos al numero correcto
 -[]reemplazar ordenes por calzados?
@@ -63,6 +60,8 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FEATURE]agregar validaciones visuales de errores en formularios, un mensaje flotante en la parte superior de la pagina
+-[FEATURE]agregar filtros a la tabla del historial de ordenes
 -[FIX]si una orden esta cancelada, y tiene metodo de pago en pendiente, entonces ponla en estado del pago cancelado
 -[]agregar en dashboard, una subseccion "Calzado en espera del cliente"
 -[]agregar card "total gastos del dia": resumen financiero, tabla de historial de cortes, modal de detalles del corte
