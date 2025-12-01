@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNotification } from '../contexts/NotificationContext';
+import { ValidatedTextInput, ValidatedPhoneInput, ValidatedEmailInput } from './inputs';
 import './ClientForm.css';
 
 const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
@@ -149,52 +150,37 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="client-form-content">
-        <div className="form-group">
-          <label className="form-label">
-            Nombre Completo <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            className={`form-input ${errors.name ? 'error' : ''}`}
-            placeholder="Ej: Juan Pérez González"
-            value={formData.name}
-            onChange={handleChange}
-            autoFocus
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
+        <ValidatedTextInput
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          label="Nombre Completo"
+          placeholder="Ej: Juan Pérez González"
+          required={true}
+          error={errors.name}
+          autoFocus={true}
+        />
 
-        <div className="form-group">
-          <label className="form-label">
-            Teléfono <span className="required">*</span>
-          </label>
-          <input
-            type="tel"
-            name="phone"
-            className={`form-input ${errors.phone ? 'error' : ''}`}
-            placeholder="555-123-4567"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-          {errors.phone && <span className="error-message">{errors.phone}</span>}
-        </div>
+        <ValidatedPhoneInput
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          label="Teléfono"
+          placeholder="5551234567"
+          required={true}
+          error={errors.phone}
+        />
 
-        <div className="form-group">
-          <label className="form-label">
-            Correo Electrónico <span className="optional">(Opcional)</span>
-          </label>
-          <input
-            type="email"
-            name="email"
-            className={`form-input ${errors.email ? 'error' : ''}`}
-            placeholder="ejemplo@correo.com"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          {errors.email && <span className="error-message">{errors.email}</span>}
-          <span className="field-hint">Se utilizará para enviar notificaciones por correo</span>
-        </div>
+        <ValidatedEmailInput
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          label="Correo Electrónico"
+          placeholder="ejemplo@correo.com"
+          required={false}
+          error={errors.email}
+          hint="Se utilizará para enviar notificaciones por correo"
+        />
 
         <div className="form-group">
           <label className="form-label">Notas Adicionales</label>

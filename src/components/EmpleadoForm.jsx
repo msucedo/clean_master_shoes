@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { ValidatedTextInput, ValidatedPhoneInput, ValidatedEmailInput } from './inputs';
 import './EmpleadoForm.css';
 
 const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
@@ -118,61 +119,46 @@ const EmpleadoForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
   return (
     <form className="empleado-form" onSubmit={handleSubmit}>
       <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="name">Nombre Completo *</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={errors.name ? 'error' : ''}
-            placeholder="Juan Pérez"
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
+        <ValidatedTextInput
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          label="Nombre Completo"
+          placeholder="Juan Pérez"
+          required={true}
+          error={errors.name}
+        />
 
-        <div className="form-group">
-          <label htmlFor="phone">Teléfono *</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className={errors.phone ? 'error' : ''}
-            placeholder="1234567890"
-          />
-          {errors.phone && <span className="error-message">{errors.phone}</span>}
-        </div>
+        <ValidatedPhoneInput
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          label="Teléfono"
+          placeholder="1234567890"
+          required={true}
+          error={errors.phone}
+        />
 
-        <div className="form-group">
-          <label htmlFor="email">Email (Gmail) *</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={errors.email ? 'error' : ''}
-            placeholder="empleado@gmail.com"
-          />
-          {errors.email && <span className="error-message">{errors.email}</span>}
-        </div>
+        <ValidatedEmailInput
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          label="Email (Gmail)"
+          placeholder="empleado@gmail.com"
+          required={true}
+          error={errors.email}
+          hint="Debe ser una cuenta de Gmail (@gmail.com)"
+        />
 
-        <div className="form-group">
-          <label htmlFor="role">Rol/Puesto *</label>
-          <input
-            type="text"
-            id="role"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className={errors.role ? 'error' : ''}
-            placeholder="Ej: Técnico, Vendedor, Gerente"
-          />
-          {errors.role && <span className="error-message">{errors.role}</span>}
-        </div>
+        <ValidatedTextInput
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          label="Rol/Puesto"
+          placeholder="Ej: Técnico, Vendedor, Gerente"
+          required={true}
+          error={errors.role}
+        />
 
         <div className="form-group">
           <label htmlFor="hireDate">Fecha de Contratación *</label>

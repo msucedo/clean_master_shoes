@@ -7,6 +7,7 @@ import PaymentScreen from './PaymentScreen';
 import VariablePriceModal from './VariablePriceModal';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
 import PromotionBadge from './PromotionBadge';
+import { ValidatedPhoneInput } from './inputs';
 import { useAuth } from '../contexts/AuthContext';
 import './OrderForm.css';
 
@@ -990,20 +991,15 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
                   {errors.client && <span className="error-message">{errors.client}</span>}
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">
-                    Teléfono <span className="required">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className={`form-input ${errors.phone ? 'error' : ''}`}
-                    placeholder="555-123-4567"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                  {errors.phone && <span className="error-message">{errors.phone}</span>}
-                </div>
+                <ValidatedPhoneInput
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  label="Teléfono"
+                  placeholder="5551234567"
+                  required={true}
+                  error={errors.phone}
+                />
               </div>
 
               <div className="form-section-header">

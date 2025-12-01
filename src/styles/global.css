@@ -54,3 +54,69 @@ body::before {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-gray-600);
 }
+
+/* ========================================
+   ESTILOS GLOBALES PARA INPUTS DE FECHA
+   Aplicados a todos los formularios
+   Basados en OrderHistory
+   ======================================== */
+
+/* Estilo base para todos los inputs de fecha */
+input[type="date"] {
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid #2a2a2a;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s;
+    color-scheme: dark;
+}
+
+/* Focus state */
+input[type="date"]:focus {
+    outline: none;
+    border-color: #FF006E;
+    background: rgba(255, 0, 110, 0.05);
+    box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
+}
+
+/* Icono del calendario (Chrome/Safari/Edge) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    cursor: pointer;
+    opacity: 1;
+    transition: all 0.3s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+}
+
+/* Estado de error */
+input[type="date"].error {
+    border-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    input[type="date"] {
+        background: rgba(0, 0, 0, 0.5);
+        border-color: #3a3a3a;
+    }
+
+    input[type="date"]:focus {
+        background: rgba(255, 0, 110, 0.08);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    input[type="date"] {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+}

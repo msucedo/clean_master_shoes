@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import ImageUpload from './ImageUpload';
+import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
 import './InventoryForm.css';
 
 const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
@@ -184,19 +185,16 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     <form className="inventory-form" onSubmit={handleSubmit}>
       <div className="form-grid">
         {/* Nombre */}
-        <div className="form-group full-width">
-          <label htmlFor="name">Nombre del Producto *</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={errors.name ? 'error' : ''}
-            placeholder="Ej: Tenis Nike Air Max"
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
+        <ValidatedTextInput
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          label="Nombre del Producto"
+          placeholder="Ej: Tenis Nike Air Max"
+          required={true}
+          error={errors.name}
+          className="full-width"
+        />
 
         {/* Categoría */}
         <div className="form-group">
@@ -219,13 +217,14 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         <div className="form-group">
           <label htmlFor="barcode">Código de Barras</label>
           <div className="barcode-input-group">
-            <input
-              type="text"
-              id="barcode"
+            <ValidatedNumberInput
               name="barcode"
               value={formData.barcode}
               onChange={handleChange}
               placeholder="Ej: 1234567890123"
+              required={false}
+              integer={true}
+              className=""
             />
             <button
               type="button"
@@ -255,38 +254,32 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         </div>
 
         {/* Precio de Compra */}
-        <div className="form-group">
-          <label htmlFor="purchasePrice">Precio de Compra *</label>
-          <input
-            type="number"
-            id="purchasePrice"
-            name="purchasePrice"
-            value={formData.purchasePrice}
-            onChange={handleChange}
-            className={errors.purchasePrice ? 'error' : ''}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-          />
-          {errors.purchasePrice && <span className="error-message">{errors.purchasePrice}</span>}
-        </div>
+        <ValidatedNumberInput
+          name="purchasePrice"
+          value={formData.purchasePrice}
+          onChange={handleChange}
+          label="Precio de Compra"
+          placeholder="0.00"
+          required={true}
+          error={errors.purchasePrice}
+          min={0}
+          step={0.01}
+          prefix="$"
+        />
 
         {/* Precio de Venta */}
-        <div className="form-group">
-          <label htmlFor="salePrice">Precio de Venta *</label>
-          <input
-            type="number"
-            id="salePrice"
-            name="salePrice"
-            value={formData.salePrice}
-            onChange={handleChange}
-            className={errors.salePrice ? 'error' : ''}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-          />
-          {errors.salePrice && <span className="error-message">{errors.salePrice}</span>}
-        </div>
+        <ValidatedNumberInput
+          name="salePrice"
+          value={formData.salePrice}
+          onChange={handleChange}
+          label="Precio de Venta"
+          placeholder="0.00"
+          required={true}
+          error={errors.salePrice}
+          min={0}
+          step={0.01}
+          prefix="$"
+        />
 
         {/* Ganancia Calculada */}
         {formData.purchasePrice && formData.salePrice && (
@@ -299,36 +292,32 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
         )}
 
         {/* Stock Actual */}
-        <div className="form-group">
-          <label htmlFor="stock">Stock Actual *</label>
-          <input
-            type="number"
-            id="stock"
-            name="stock"
-            value={formData.stock}
-            onChange={handleChange}
-            className={errors.stock ? 'error' : ''}
-            placeholder="0"
-            min="0"
-          />
-          {errors.stock && <span className="error-message">{errors.stock}</span>}
-        </div>
+        <ValidatedNumberInput
+          name="stock"
+          value={formData.stock}
+          onChange={handleChange}
+          label="Stock Actual"
+          placeholder="0"
+          required={true}
+          error={errors.stock}
+          min={0}
+          integer={true}
+          suffix="pzas"
+        />
 
         {/* Stock Mínimo */}
-        <div className="form-group">
-          <label htmlFor="minStock">Stock Mínimo *</label>
-          <input
-            type="number"
-            id="minStock"
-            name="minStock"
-            value={formData.minStock}
-            onChange={handleChange}
-            className={errors.minStock ? 'error' : ''}
-            placeholder="0"
-            min="0"
-          />
-          {errors.minStock && <span className="error-message">{errors.minStock}</span>}
-        </div>
+        <ValidatedNumberInput
+          name="minStock"
+          value={formData.minStock}
+          onChange={handleChange}
+          label="Stock Mínimo"
+          placeholder="0"
+          required={true}
+          error={errors.minStock}
+          min={0}
+          integer={true}
+          suffix="pzas"
+        />
 
         {/* Descripción */}
         <div className="form-group full-width">

@@ -4,6 +4,7 @@ import PaymentScreen from './PaymentScreen';
 import DeliveryCalendarModal from './DeliveryCalendarModal';
 import PromotionBadge from './PromotionBadge';
 import ImageUpload from './ImageUpload';
+import { ValidatedPhoneInput } from './inputs';
 import { useAuth } from '../contexts/AuthContext';
 import './OrderFormMobile.css';
 
@@ -805,18 +806,15 @@ const OrderFormMobile = ({ onSubmit, onCancel, initialData = null, employees = [
               </div>
 
               <div className="form-group-mobile">
-                <label className="form-label-mobile">
-                  Teléfono <span className="required">*</span>
-                </label>
-                <input
-                  type="tel"
+                <ValidatedPhoneInput
                   name="phone"
-                  className={`form-input-mobile ${errors.phone ? 'error' : ''}`}
-                  placeholder="555-123-4567"
                   value={formData.phone}
                   onChange={handleChange}
+                  label="Teléfono"
+                  placeholder="5551234567"
+                  required={true}
+                  error={errors.phone}
                 />
-                {errors.phone && <span className="error-message-mobile">{errors.phone}</span>}
               </div>
             </div>
 

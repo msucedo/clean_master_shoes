@@ -1,0 +1,179 @@
+/* Validated Input Styles */
+
+.validated-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Shake animation cuando se bloquea un carácter */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.form-input.shake {
+  animation: shake 0.3s ease-in-out;
+  border-color: #ff6b6b !important;
+}
+
+/* Input con validación válida */
+.form-input.valid {
+  border-color: #51cf66;
+}
+
+.form-input.valid:focus {
+  border-color: #51cf66;
+  box-shadow: 0 0 0 3px rgba(81, 207, 102, 0.1);
+}
+
+/* Feedback tooltip */
+.input-feedback {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff6b6b;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 1000;
+  animation: fadeInOut 3s ease-in-out;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.input-feedback::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #ff6b6b;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+/* Icono de validación */
+.validation-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: bold;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.validation-icon.valid {
+  color: #51cf66;
+}
+
+.validation-icon.incomplete {
+  color: #868e96;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Inputs con prefix/suffix */
+.number-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-prefix,
+.input-suffix {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ddd;
+  user-select: none;
+}
+
+.form-input.with-prefix {
+  padding-left: 12px;
+}
+
+.form-input.with-suffix {
+  padding-right: 12px;
+}
+
+/* Contador de caracteres */
+.character-count {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Field hint con warning */
+.field-hint.warning {
+  color: #ffa94d;
+  font-weight: 500;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .input-feedback {
+    background-color: #fa5252;
+  }
+
+  .input-feedback::after {
+    border-top-color: #fa5252;
+  }
+
+  .validation-icon.valid {
+    color: #69db7c;
+  }
+
+  .validation-icon.incomplete {
+    color: #adb5bd;
+  }
+
+  .field-hint.warning {
+    color: #ffd43b;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .input-feedback {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .validation-icon {
+    font-size: 14px;
+  }
+}

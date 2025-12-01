@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
 import './ServiceForm.css';
 
 const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
@@ -199,20 +200,15 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
           <span className="field-hint">Emoji que representa el servicio</span>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">
-            Nombre del Servicio <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            className={`form-input ${errors.name ? 'error' : ''}`}
-            placeholder="Ej: Lavado Básico"
-            value={formData.name}
-            onChange={handleChange}
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
+        <ValidatedTextInput
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          label="Nombre del Servicio"
+          placeholder="Ej: Lavado Básico"
+          required={true}
+          error={errors.name}
+        />
 
         <div className="form-group">
           <label className="form-label">
@@ -230,23 +226,18 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
           <span className="field-hint">Tiempo estimado para completar el servicio</span>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">
-            Precio
-          </label>
-          <input
-            type="number"
-            name="price"
-            className={`form-input ${errors.price ? 'error' : ''}`}
-            placeholder="150 (deja en 0 para precio por definir)"
-            value={formData.price}
-            onChange={handleChange}
-            min="0"
-            step="1"
-          />
-          {errors.price && <span className="error-message">{errors.price}</span>}
-          <span className="field-hint">💡 Usa $0 para servicios con precio variable (se definirá al cobrar)</span>
-        </div>
+        <ValidatedNumberInput
+          name="price"
+          value={formData.price}
+          onChange={handleChange}
+          label="Precio"
+          placeholder="150"
+          required={false}
+          error={errors.price}
+          min={0}
+          prefix="$"
+          hint="💡 Usa $0 para servicios con precio variable (se definirá al cobrar)"
+        />
 
         <div className="form-group">
           <label className="form-label">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { deleteField } from 'firebase/firestore';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
 import './PromotionForm.css';
 
 const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, services = [], products = [], isSubmitting = false }) => {
@@ -349,16 +350,15 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
             </div>
 
             <div className="form-group flex-grow">
-              <label>Nombre de la Promoción *</label>
-              <input
-                type="text"
+              <ValidatedTextInput
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                label="Nombre de la Promoción"
                 placeholder="Ej: Descuento de Verano"
-                className={errors.name ? 'error' : ''}
+                required={true}
+                error={errors.name}
               />
-              {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
           </div>
 

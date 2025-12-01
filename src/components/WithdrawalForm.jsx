@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNotification } from '../contexts/NotificationContext';
+import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
 import './ExpenseForm.css'; // Reutilizamos los estilos de ExpenseForm
 
 const WithdrawalForm = ({ withdrawal, efectivoDisponible, onSave, onCancel }) => {
@@ -97,35 +98,30 @@ const WithdrawalForm = ({ withdrawal, efectivoDisponible, onSave, onCancel }) =>
           </div>
         )}
 
-        <div className="form-group">
-          <label className="form-label">Concepto *</label>
-          <input
-            type="text"
-            name="concept"
-            className={`form-input ${errors.concept ? 'error' : ''}`}
-            value={formData.concept}
-            onChange={handleChange}
-            placeholder="Ej: Depósito banco, Retiro personal"
-            maxLength={100}
-          />
-          {errors.concept && <span className="error-message">{errors.concept}</span>}
-        </div>
+        <ValidatedTextInput
+          name="concept"
+          value={formData.concept}
+          onChange={handleChange}
+          label="Concepto"
+          placeholder="Ej: Depósito banco, Retiro personal"
+          required={true}
+          error={errors.concept}
+          maxLength={100}
+        />
 
         <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Monto *</label>
-            <input
-              type="number"
-              name="amount"
-              className={`form-input ${errors.amount ? 'error' : ''}`}
-              value={formData.amount}
-              onChange={handleChange}
-              placeholder="0.00"
-              step="0.01"
-              min="0"
-            />
-            {errors.amount && <span className="error-message">{errors.amount}</span>}
-          </div>
+          <ValidatedNumberInput
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            label="Monto"
+            placeholder="0.00"
+            required={true}
+            error={errors.amount}
+            min={0}
+            step={0.01}
+            prefix="$"
+          />
 
           <div className="form-group">
             <label className="form-label">Fecha *</label>
