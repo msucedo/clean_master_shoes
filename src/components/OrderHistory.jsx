@@ -1,9 +1,297 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
 import { subscribeToOrders, subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
 import OrderHistorySkeleton from './OrderHistorySkeleton';
 import './OrderHistory.css';
+
+// Filter Dropdown Component - Extracted outside to prevent re-renders
+const FilterDropdown = memo(({
+  columnName,
+  position = 'left',
+  openDropdown,
+  filters,
+  setFilters,
+  setOpenDropdown,
+  hasActiveFilter,
+  clearColumnFilter,
+  toggleCheckbox,
+  uniqueServices,
+  employees,
+  dropdownRef
+}) => {
+  if (openDropdown !== columnName) return null;
+
+  const renderContent = () => {
+    switch (columnName) {
+      case 'orderNumber':
+        return (
+          <div className="oh-dropdown-content">
+            <input
+              type="text"
+              className="oh-dropdown-input"
+              placeholder="Buscar # orden..."
+              value={filters.orderNumber}
+              onChange={(e) => setFilters(prev => ({ ...prev, orderNumber: e.target.value }))}
+              autoFocus
+            />
+          </div>
+        );
+
+      case 'photo':
+        return (
+          <div className="oh-dropdown-content">
+            <label className="oh-dropdown-radio">
+              <input
+                type="radio"
+                name="photo"
+                value="all"
+                checked={filters.photo === 'all'}
+                onChange={(e) => {
+                  setFilters(prev => ({ ...prev, photo: e.target.value }));
+                  setOpenDropdown(null);
+                }}
+              />
+              <span>Todas</span>
+            </label>
+            <label className="oh-dropdown-radio">
+              <input
+                type="radio"
+                name="photo"
+                value="with"
+                checked={filters.photo === 'with'}
+                onChange={(e) => {
+                  setFilters(prev => ({ ...prev, photo: e.target.value }));
+                  setOpenDropdown(null);
+                }}
+              />
+              <span>Con foto</span>
+            </label>
+            <label className="oh-dropdown-radio">
+              <input
+                type="radio"
+                name="photo"
+                value="without"
+                checked={filters.photo === 'without'}
+                onChange={(e) => {
+                  setFilters(prev => ({ ...prev, photo: e.target.value }));
+                  setOpenDropdown(null);
+                }}
+              />
+              <span>Sin foto</span>
+            </label>
+          </div>
+        );
+
+      case 'client':
+        return (
+          <div className="oh-dropdown-content">
+            <input
+              type="text"
+              className="oh-dropdown-input"
+              placeholder="Buscar cliente..."
+              value={filters.client}
+              onChange={(e) => setFilters(prev => ({ ...prev, client: e.target.value }))}
+              autoFocus
+            />
+          </div>
+        );
+
+      case 'createdDate':
+        return (
+          <div className="oh-dropdown-content">
+            <label className="oh-dropdown-label">Desde:</label>
+            <input
+              type="date"
+              className="oh-dropdown-input"
+              value={filters.createdDateFrom}
+              onChange={(e) => setFilters(prev => ({ ...prev, createdDateFrom: e.target.value }))}
+            />
+            <label className="oh-dropdown-label">Hasta:</label>
+            <input
+              type="date"
+              className="oh-dropdown-input"
+              value={filters.createdDateTo}
+              onChange={(e) => setFilters(prev => ({ ...prev, createdDateTo: e.target.value }))}
+            />
+          </div>
+        );
+
+      case 'deliveryDate':
+        return (
+          <div className="oh-dropdown-content">
+            <label className="oh-dropdown-label">Desde:</label>
+            <input
+              type="date"
+              className="oh-dropdown-input"
+              value={filters.deliveryDateFrom}
+              onChange={(e) => setFilters(prev => ({ ...prev, deliveryDateFrom: e.target.value }))}
+            />
+            <label className="oh-dropdown-label">Hasta:</label>
+            <input
+              type="date"
+              className="oh-dropdown-input"
+              value={filters.deliveryDateTo}
+              onChange={(e) => setFilters(prev => ({ ...prev, deliveryDateTo: e.target.value }))}
+            />
+          </div>
+        );
+
+      case 'statusOrder':
+        return (
+          <div className="oh-dropdown-content oh-dropdown-checkboxes">
+            {[
+              { value: 'recibidos', label: 'Recibido' },
+              { value: 'proceso', label: 'En Proceso' },
+              { value: 'listos', label: 'Listo' },
+              { value: 'enEntrega', label: 'En Entrega' },
+              { value: 'completados', label: 'Completado' },
+              { value: 'cancelado', label: 'Cancelado' }
+            ].map((status) => (
+              <label key={status.value} className="oh-dropdown-checkbox">
+                <input
+                  type="checkbox"
+                  checked={filters.statusOrder.includes(status.value)}
+                  onChange={() => toggleCheckbox('statusOrder', status.value)}
+                />
+                <span>{status.label}</span>
+              </label>
+            ))}
+          </div>
+        );
+
+      case 'services':
+        return (
+          <div className="oh-dropdown-content oh-dropdown-checkboxes">
+            {uniqueServices.length > 0 ? (
+              uniqueServices.map((service) => (
+                <label key={service.name} className="oh-dropdown-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={filters.services.includes(service.name)}
+                    onChange={() => toggleCheckbox('services', service.name)}
+                  />
+                  <span>{service.icon} {service.name}</span>
+                </label>
+              ))
+            ) : (
+              <div className="oh-dropdown-empty">No hay servicios</div>
+            )}
+          </div>
+        );
+
+      case 'total':
+        return (
+          <div className="oh-dropdown-content">
+            <label className="oh-dropdown-label">Mínimo:</label>
+            <input
+              type="number"
+              className="oh-dropdown-input"
+              placeholder="Ej: 100"
+              value={filters.totalMin}
+              onChange={(e) => setFilters(prev => ({ ...prev, totalMin: e.target.value }))}
+            />
+            <label className="oh-dropdown-label">Máximo:</label>
+            <input
+              type="number"
+              className="oh-dropdown-input"
+              placeholder="Ej: 1000"
+              value={filters.totalMax}
+              onChange={(e) => setFilters(prev => ({ ...prev, totalMax: e.target.value }))}
+            />
+          </div>
+        );
+
+      case 'paymentStatus':
+        return (
+          <div className="oh-dropdown-content oh-dropdown-checkboxes">
+            {[
+              { value: 'paid', label: 'Pagado' },
+              { value: 'partial', label: 'Parcial' },
+              { value: 'pending', label: 'Pendiente' },
+              { value: 'cancelled', label: 'Cancelado' }
+            ].map((status) => (
+              <label key={status.value} className="oh-dropdown-checkbox">
+                <input
+                  type="checkbox"
+                  checked={filters.paymentStatus.includes(status.value)}
+                  onChange={() => toggleCheckbox('paymentStatus', status.value)}
+                />
+                <span>{status.label}</span>
+              </label>
+            ))}
+          </div>
+        );
+
+      case 'paymentMethod':
+        return (
+          <div className="oh-dropdown-content oh-dropdown-checkboxes">
+            {[
+              { value: 'cash', label: 'Efectivo' },
+              { value: 'card', label: 'Tarjeta' },
+              { value: 'transfer', label: 'Transferencia' },
+              { value: 'pending', label: 'Pendiente' }
+            ].map((method) => (
+              <label key={method.value} className="oh-dropdown-checkbox">
+                <input
+                  type="checkbox"
+                  checked={filters.paymentMethod.includes(method.value)}
+                  onChange={() => toggleCheckbox('paymentMethod', method.value)}
+                />
+                <span>{method.label}</span>
+              </label>
+            ))}
+          </div>
+        );
+
+      case 'author':
+        return (
+          <div className="oh-dropdown-content oh-dropdown-checkboxes">
+            <label className="oh-dropdown-checkbox">
+              <input
+                type="checkbox"
+                checked={filters.author.includes('no-author')}
+                onChange={() => toggleCheckbox('author', 'no-author')}
+              />
+              <span>N/A</span>
+            </label>
+            {employees.map((employee) => (
+              <label key={employee.id} className="oh-dropdown-checkbox">
+                <input
+                  type="checkbox"
+                  checked={filters.author.includes(employee.id)}
+                  onChange={() => toggleCheckbox('author', employee.id)}
+                />
+                <span>{employee.emoji ? `${employee.emoji} ` : ''}{employee.name}</span>
+              </label>
+            ))}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div
+      ref={dropdownRef}
+      className={`oh-filter-dropdown ${position === 'right' ? 'oh-filter-dropdown-right' : ''}`}
+    >
+      {renderContent()}
+      {hasActiveFilter(columnName) && (
+        <button
+          className="oh-dropdown-clear"
+          onClick={() => clearColumnFilter(columnName)}
+        >
+          Limpiar filtro
+        </button>
+      )}
+    </div>
+  );
+});
+
+FilterDropdown.displayName = 'FilterDropdown';
 
 const OrderHistory = () => {
   const { showError } = useNotification();
@@ -63,6 +351,21 @@ const OrderHistory = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // For date dropdowns, allow full freedom for native date picker to work
+      const isDateDropdown = openDropdown === 'createdDate' || openDropdown === 'deliveryDate';
+
+      if (isDateDropdown) {
+        // Only close if clicking on another filter icon or outside the table
+        const clickedOnTable = event.target.closest('.oh-table');
+        const clickedOnFilterIcon = event.target.closest('.oh-filter-icon');
+
+        if (!clickedOnTable || clickedOnFilterIcon) {
+          setOpenDropdown(null);
+        }
+        return;
+      }
+
+      // For other dropdowns, normal behavior
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpenDropdown(null);
       }
@@ -346,8 +649,9 @@ const OrderHistory = () => {
 
     // Created date filter
     if (filters.createdDateFrom) {
-      const fromDate = new Date(filters.createdDateFrom);
-      fromDate.setHours(0, 0, 0, 0);
+      // Parse date string manually to avoid timezone issues
+      const [year, month, day] = filters.createdDateFrom.split('-').map(Number);
+      const fromDate = new Date(year, month - 1, day, 0, 0, 0, 0);
       filtered = filtered.filter(order => {
         if (!order.createdAt) return false;
         const orderDate = new Date(order.createdAt);
@@ -356,8 +660,9 @@ const OrderHistory = () => {
       });
     }
     if (filters.createdDateTo) {
-      const toDate = new Date(filters.createdDateTo);
-      toDate.setHours(23, 59, 59, 999);
+      // Parse date string manually to avoid timezone issues
+      const [year, month, day] = filters.createdDateTo.split('-').map(Number);
+      const toDate = new Date(year, month - 1, day, 23, 59, 59, 999);
       filtered = filtered.filter(order => {
         if (!order.createdAt) return false;
         const orderDate = new Date(order.createdAt);
@@ -367,21 +672,37 @@ const OrderHistory = () => {
 
     // Delivery date filter
     if (filters.deliveryDateFrom) {
-      const fromDate = new Date(filters.deliveryDateFrom);
-      fromDate.setHours(0, 0, 0, 0);
+      // Parse date string manually to avoid timezone issues
+      const [year, month, day] = filters.deliveryDateFrom.split('-').map(Number);
+      const fromDate = new Date(year, month - 1, day, 0, 0, 0, 0);
       filtered = filtered.filter(order => {
         if (!order.deliveryDate) return false;
-        const orderDate = new Date(order.deliveryDate);
-        orderDate.setHours(0, 0, 0, 0);
+        // Parse order deliveryDate manually if it's in YYYY-MM-DD format
+        let orderDate;
+        if (typeof order.deliveryDate === 'string' && order.deliveryDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [y, m, d] = order.deliveryDate.split('-').map(Number);
+          orderDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+        } else {
+          orderDate = new Date(order.deliveryDate);
+          orderDate.setHours(0, 0, 0, 0);
+        }
         return orderDate >= fromDate;
       });
     }
     if (filters.deliveryDateTo) {
-      const toDate = new Date(filters.deliveryDateTo);
-      toDate.setHours(23, 59, 59, 999);
+      // Parse date string manually to avoid timezone issues
+      const [year, month, day] = filters.deliveryDateTo.split('-').map(Number);
+      const toDate = new Date(year, month - 1, day, 23, 59, 59, 999);
       filtered = filtered.filter(order => {
         if (!order.deliveryDate) return false;
-        const orderDate = new Date(order.deliveryDate);
+        // Parse order deliveryDate manually if it's in YYYY-MM-DD format
+        let orderDate;
+        if (typeof order.deliveryDate === 'string' && order.deliveryDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [y, m, d] = order.deliveryDate.split('-').map(Number);
+          orderDate = new Date(y, m - 1, d, 23, 59, 59, 999);
+        } else {
+          orderDate = new Date(order.deliveryDate);
+        }
         return orderDate <= toDate;
       });
     }
@@ -465,279 +786,6 @@ const OrderHistory = () => {
     setPreviewImage(null);
   };
 
-  // Filter Dropdown Component
-  const FilterDropdown = ({ columnName, position = 'left' }) => {
-    if (openDropdown !== columnName) return null;
-
-    const renderContent = () => {
-      switch (columnName) {
-        case 'orderNumber':
-          return (
-            <div className="oh-dropdown-content">
-              <input
-                type="text"
-                className="oh-dropdown-input"
-                placeholder="Buscar # orden..."
-                value={filters.orderNumber}
-                onChange={(e) => setFilters(prev => ({ ...prev, orderNumber: e.target.value }))}
-                autoFocus
-              />
-            </div>
-          );
-
-        case 'photo':
-          return (
-            <div className="oh-dropdown-content">
-              <label className="oh-dropdown-radio">
-                <input
-                  type="radio"
-                  name="photo"
-                  value="all"
-                  checked={filters.photo === 'all'}
-                  onChange={(e) => {
-                    setFilters(prev => ({ ...prev, photo: e.target.value }));
-                    setOpenDropdown(null);
-                  }}
-                />
-                <span>Todas</span>
-              </label>
-              <label className="oh-dropdown-radio">
-                <input
-                  type="radio"
-                  name="photo"
-                  value="with"
-                  checked={filters.photo === 'with'}
-                  onChange={(e) => {
-                    setFilters(prev => ({ ...prev, photo: e.target.value }));
-                    setOpenDropdown(null);
-                  }}
-                />
-                <span>Con foto</span>
-              </label>
-              <label className="oh-dropdown-radio">
-                <input
-                  type="radio"
-                  name="photo"
-                  value="without"
-                  checked={filters.photo === 'without'}
-                  onChange={(e) => {
-                    setFilters(prev => ({ ...prev, photo: e.target.value }));
-                    setOpenDropdown(null);
-                  }}
-                />
-                <span>Sin foto</span>
-              </label>
-            </div>
-          );
-
-        case 'client':
-          return (
-            <div className="oh-dropdown-content">
-              <input
-                type="text"
-                className="oh-dropdown-input"
-                placeholder="Buscar cliente..."
-                value={filters.client}
-                onChange={(e) => setFilters(prev => ({ ...prev, client: e.target.value }))}
-                autoFocus
-              />
-            </div>
-          );
-
-        case 'createdDate':
-          return (
-            <div className="oh-dropdown-content">
-              <label className="oh-dropdown-label">Desde:</label>
-              <input
-                type="date"
-                className="oh-dropdown-input"
-                value={filters.createdDateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, createdDateFrom: e.target.value }))}
-              />
-              <label className="oh-dropdown-label">Hasta:</label>
-              <input
-                type="date"
-                className="oh-dropdown-input"
-                value={filters.createdDateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, createdDateTo: e.target.value }))}
-              />
-            </div>
-          );
-
-        case 'deliveryDate':
-          return (
-            <div className="oh-dropdown-content">
-              <label className="oh-dropdown-label">Desde:</label>
-              <input
-                type="date"
-                className="oh-dropdown-input"
-                value={filters.deliveryDateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, deliveryDateFrom: e.target.value }))}
-              />
-              <label className="oh-dropdown-label">Hasta:</label>
-              <input
-                type="date"
-                className="oh-dropdown-input"
-                value={filters.deliveryDateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, deliveryDateTo: e.target.value }))}
-              />
-            </div>
-          );
-
-        case 'statusOrder':
-          return (
-            <div className="oh-dropdown-content oh-dropdown-checkboxes">
-              {[
-                { value: 'recibidos', label: 'Recibido' },
-                { value: 'proceso', label: 'En Proceso' },
-                { value: 'listos', label: 'Listo' },
-                { value: 'enEntrega', label: 'En Entrega' },
-                { value: 'completados', label: 'Completado' },
-                { value: 'cancelado', label: 'Cancelado' }
-              ].map((status) => (
-                <label key={status.value} className="oh-dropdown-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={filters.statusOrder.includes(status.value)}
-                    onChange={() => toggleCheckbox('statusOrder', status.value)}
-                  />
-                  <span>{status.label}</span>
-                </label>
-              ))}
-            </div>
-          );
-
-        case 'services':
-          return (
-            <div className="oh-dropdown-content oh-dropdown-checkboxes">
-              {uniqueServices.length > 0 ? (
-                uniqueServices.map((service) => (
-                  <label key={service.name} className="oh-dropdown-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={filters.services.includes(service.name)}
-                      onChange={() => toggleCheckbox('services', service.name)}
-                    />
-                    <span>{service.icon} {service.name}</span>
-                  </label>
-                ))
-              ) : (
-                <div className="oh-dropdown-empty">No hay servicios</div>
-              )}
-            </div>
-          );
-
-        case 'total':
-          return (
-            <div className="oh-dropdown-content">
-              <label className="oh-dropdown-label">Mínimo:</label>
-              <input
-                type="number"
-                className="oh-dropdown-input"
-                placeholder="Ej: 100"
-                value={filters.totalMin}
-                onChange={(e) => setFilters(prev => ({ ...prev, totalMin: e.target.value }))}
-              />
-              <label className="oh-dropdown-label">Máximo:</label>
-              <input
-                type="number"
-                className="oh-dropdown-input"
-                placeholder="Ej: 1000"
-                value={filters.totalMax}
-                onChange={(e) => setFilters(prev => ({ ...prev, totalMax: e.target.value }))}
-              />
-            </div>
-          );
-
-        case 'paymentStatus':
-          return (
-            <div className="oh-dropdown-content oh-dropdown-checkboxes">
-              {[
-                { value: 'paid', label: 'Pagado' },
-                { value: 'partial', label: 'Parcial' },
-                { value: 'pending', label: 'Pendiente' },
-                { value: 'cancelled', label: 'Cancelado' }
-              ].map((status) => (
-                <label key={status.value} className="oh-dropdown-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={filters.paymentStatus.includes(status.value)}
-                    onChange={() => toggleCheckbox('paymentStatus', status.value)}
-                  />
-                  <span>{status.label}</span>
-                </label>
-              ))}
-            </div>
-          );
-
-        case 'paymentMethod':
-          return (
-            <div className="oh-dropdown-content oh-dropdown-checkboxes">
-              {[
-                { value: 'cash', label: 'Efectivo' },
-                { value: 'card', label: 'Tarjeta' },
-                { value: 'transfer', label: 'Transferencia' },
-                { value: 'pending', label: 'Pendiente' }
-              ].map((method) => (
-                <label key={method.value} className="oh-dropdown-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={filters.paymentMethod.includes(method.value)}
-                    onChange={() => toggleCheckbox('paymentMethod', method.value)}
-                  />
-                  <span>{method.label}</span>
-                </label>
-              ))}
-            </div>
-          );
-
-        case 'author':
-          return (
-            <div className="oh-dropdown-content oh-dropdown-checkboxes">
-              <label className="oh-dropdown-checkbox">
-                <input
-                  type="checkbox"
-                  checked={filters.author.includes('no-author')}
-                  onChange={() => toggleCheckbox('author', 'no-author')}
-                />
-                <span>N/A</span>
-              </label>
-              {employees.map((employee) => (
-                <label key={employee.id} className="oh-dropdown-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={filters.author.includes(employee.id)}
-                    onChange={() => toggleCheckbox('author', employee.id)}
-                  />
-                  <span>{employee.emoji ? `${employee.emoji} ` : ''}{employee.name}</span>
-                </label>
-              ))}
-            </div>
-          );
-
-        default:
-          return null;
-      }
-    };
-
-    return (
-      <div
-        ref={dropdownRef}
-        className={`oh-filter-dropdown ${position === 'right' ? 'oh-filter-dropdown-right' : ''}`}
-      >
-        {renderContent()}
-        {hasActiveFilter(columnName) && (
-          <button
-            className="oh-dropdown-clear"
-            onClick={() => clearColumnFilter(columnName)}
-          >
-            Limpiar filtro
-          </button>
-        )}
-      </div>
-    );
-  };
-
   if (loading) {
     return <OrderHistorySkeleton />;
   }
@@ -786,7 +834,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="orderNumber" position="left" />
+                <FilterDropdown
+                  columnName="orderNumber"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Photo */}
@@ -800,7 +861,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="photo" position="left" />
+                <FilterDropdown
+                  columnName="photo"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Cliente */}
@@ -814,7 +888,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="client" position="left" />
+                <FilterDropdown
+                  columnName="client"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Fecha Creación */}
@@ -828,7 +915,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="createdDate" position="left" />
+                <FilterDropdown
+                  columnName="createdDate"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Fecha Entrega */}
@@ -842,7 +942,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="deliveryDate" position="left" />
+                <FilterDropdown
+                  columnName="deliveryDate"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Estado Orden */}
@@ -856,7 +969,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="statusOrder" position="left" />
+                <FilterDropdown
+                  columnName="statusOrder"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Servicios */}
@@ -870,7 +996,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="services" position="left" />
+                <FilterDropdown
+                  columnName="services"
+                  position="left"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Total */}
@@ -884,7 +1023,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="total" position="right" />
+                <FilterDropdown
+                  columnName="total"
+                  position="right"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Estado Pago */}
@@ -898,7 +1050,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="paymentStatus" position="right" />
+                <FilterDropdown
+                  columnName="paymentStatus"
+                  position="right"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Método de Pago */}
@@ -912,7 +1077,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="paymentMethod" position="right" />
+                <FilterDropdown
+                  columnName="paymentMethod"
+                  position="right"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
 
               {/* Autor */}
@@ -926,7 +1104,20 @@ const OrderHistory = () => {
                     ▼
                   </button>
                 </div>
-                <FilterDropdown columnName="author" position="right" />
+                <FilterDropdown
+                  columnName="author"
+                  position="right"
+                  openDropdown={openDropdown}
+                  filters={filters}
+                  setFilters={setFilters}
+                  setOpenDropdown={setOpenDropdown}
+                  hasActiveFilter={hasActiveFilter}
+                  clearColumnFilter={clearColumnFilter}
+                  toggleCheckbox={toggleCheckbox}
+                  uniqueServices={uniqueServices}
+                  employees={employees}
+                  dropdownRef={dropdownRef}
+                />
               </th>
             </tr>
           </thead>
