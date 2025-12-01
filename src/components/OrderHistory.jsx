@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { subscribeToOrders, subscribeToEmployees } from '../services/firebaseService';
 import { useNotification } from '../contexts/NotificationContext';
@@ -17,8 +17,29 @@ const OrderHistory = () => {
   });
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    orderNumber: '',
+    photo: 'all', // 'all', 'with', 'without'
+    client: '',
+    createdDateFrom: '',
+    createdDateTo: '',
+    deliveryDateFrom: '',
+    deliveryDateTo: '',
+    statusOrder: [], // array of selected statuses
+    services: [], // array of selected service names
+    totalMin: '',
+    totalMax: '',
+    paymentStatus: [], // array of selected payment statuses
+    paymentMethod: [], // array of selected payment methods
+    author: [] // array of selected author IDs
+  });
+
+  // Dropdown state
+  const [openDropdown, setOpenDropdown] = useState(null); // 'orderNumber', 'photo', 'client', etc.
+  const dropdownRef = useRef(null);
 
   // Subscribe to orders
   useEffect(() => {
@@ -38,6 +59,23 @@ const OrderHistory = () => {
 
     return () => unsubscribe();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    if (openDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdown]);
 
   // Combine all orders from all statuses
   const allOrders = useMemo(() => {
@@ -156,32 +194,268 @@ const OrderHistory = () => {
     return Object.values(grouped);
   };
 
-  const filteredOrders = useMemo(() => {
-    if (!searchTerm) return allOrders;
-
-    const search = searchTerm.toLowerCase();
-    return allOrders.filter(order => {
-      const orderNumber = order.orderNumber?.toString().toLowerCase() || '';
-      const client = order.client?.toLowerCase() || '';
-      const createdDate = formatDate(order.createdAt).toLowerCase();
-      const deliveryDate = formatDate(order.deliveryDate).toLowerCase();
-      const status = getStatusLabel(order.statusCategory).toLowerCase();
-      const paymentStatus = getPaymentStatusLabel(order.paymentStatus).toLowerCase();
-      const paymentMethod = getPaymentMethodLabel(order.paymentMethod).toLowerCase();
-      const author = getAuthorInfo(order).name.toLowerCase();
-
-      return (
-        orderNumber.includes(search) ||
-        client.includes(search) ||
-        createdDate.includes(search) ||
-        deliveryDate.includes(search) ||
-        status.includes(search) ||
-        paymentStatus.includes(search) ||
-        paymentMethod.includes(search) ||
-        author.includes(search)
-      );
+  // Get unique services from all orders
+  const uniqueServices = useMemo(() => {
+    const servicesMap = new Map();
+    allOrders.forEach(order => {
+      if (order.services && order.services.length > 0) {
+        order.services.forEach(service => {
+          if (service.status !== 'cancelled' && service.serviceName) {
+            servicesMap.set(service.serviceName, {
+              name: service.serviceName,
+              icon: service.icon || '🛠️'
+            });
+          }
+        });
+      }
     });
-  }, [allOrders, searchTerm]);
+    return Array.from(servicesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [allOrders]);
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setFilters({
+      orderNumber: '',
+      photo: 'all',
+      client: '',
+      createdDateFrom: '',
+      createdDateTo: '',
+      deliveryDateFrom: '',
+      deliveryDateTo: '',
+      statusOrder: [],
+      services: [],
+      totalMin: '',
+      totalMax: '',
+      paymentStatus: [],
+      paymentMethod: [],
+      author: []
+    });
+  };
+
+  // Count active filters
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.orderNumber) count++;
+    if (filters.photo !== 'all') count++;
+    if (filters.client) count++;
+    if (filters.createdDateFrom || filters.createdDateTo) count++;
+    if (filters.deliveryDateFrom || filters.deliveryDateTo) count++;
+    if (filters.statusOrder.length > 0) count++;
+    if (filters.services.length > 0) count++;
+    if (filters.totalMin || filters.totalMax) count++;
+    if (filters.paymentStatus.length > 0) count++;
+    if (filters.paymentMethod.length > 0) count++;
+    if (filters.author.length > 0) count++;
+    return count;
+  }, [filters]);
+
+  // Toggle dropdown
+  const toggleDropdown = useCallback((columnName) => {
+    setOpenDropdown(prev => prev === columnName ? null : columnName);
+  }, []);
+
+  // Check if a column has active filter
+  const hasActiveFilter = (columnName) => {
+    switch (columnName) {
+      case 'orderNumber': return !!filters.orderNumber;
+      case 'photo': return filters.photo !== 'all';
+      case 'client': return !!filters.client;
+      case 'createdDate': return !!(filters.createdDateFrom || filters.createdDateTo);
+      case 'deliveryDate': return !!(filters.deliveryDateFrom || filters.deliveryDateTo);
+      case 'statusOrder': return filters.statusOrder.length > 0;
+      case 'services': return filters.services.length > 0;
+      case 'total': return !!(filters.totalMin || filters.totalMax);
+      case 'paymentStatus': return filters.paymentStatus.length > 0;
+      case 'paymentMethod': return filters.paymentMethod.length > 0;
+      case 'author': return filters.author.length > 0;
+      default: return false;
+    }
+  };
+
+  // Clear specific filter
+  const clearColumnFilter = useCallback((columnName) => {
+    setFilters(prev => {
+      switch (columnName) {
+        case 'orderNumber':
+          return { ...prev, orderNumber: '' };
+        case 'photo':
+          return { ...prev, photo: 'all' };
+        case 'client':
+          return { ...prev, client: '' };
+        case 'createdDate':
+          return { ...prev, createdDateFrom: '', createdDateTo: '' };
+        case 'deliveryDate':
+          return { ...prev, deliveryDateFrom: '', deliveryDateTo: '' };
+        case 'statusOrder':
+          return { ...prev, statusOrder: [] };
+        case 'services':
+          return { ...prev, services: [] };
+        case 'total':
+          return { ...prev, totalMin: '', totalMax: '' };
+        case 'paymentStatus':
+          return { ...prev, paymentStatus: [] };
+        case 'paymentMethod':
+          return { ...prev, paymentMethod: [] };
+        case 'author':
+          return { ...prev, author: [] };
+        default:
+          return prev;
+      }
+    });
+  }, []);
+
+  // Toggle checkbox in multi-select filters
+  const toggleCheckbox = useCallback((filterName, value) => {
+    setFilters(prev => {
+      const currentValues = prev[filterName];
+      const newValues = currentValues.includes(value)
+        ? currentValues.filter(v => v !== value)
+        : [...currentValues, value];
+      return { ...prev, [filterName]: newValues };
+    });
+    // Close dropdown after selection
+    setOpenDropdown(null);
+  }, []);
+
+  const filteredOrders = useMemo(() => {
+    let filtered = allOrders;
+
+    // Apply column filters
+    // Order number filter
+    if (filters.orderNumber) {
+      filtered = filtered.filter(order =>
+        order.orderNumber?.toString().includes(filters.orderNumber)
+      );
+    }
+
+    // Photo filter
+    if (filters.photo !== 'all') {
+      filtered = filtered.filter(order => {
+        const hasPhoto = order.orderImages && order.orderImages.length > 0;
+        return filters.photo === 'with' ? hasPhoto : !hasPhoto;
+      });
+    }
+
+    // Client filter
+    if (filters.client) {
+      const clientSearch = filters.client.toLowerCase();
+      filtered = filtered.filter(order =>
+        order.client?.toLowerCase().includes(clientSearch)
+      );
+    }
+
+    // Created date filter
+    if (filters.createdDateFrom) {
+      const fromDate = new Date(filters.createdDateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(order => {
+        if (!order.createdAt) return false;
+        const orderDate = new Date(order.createdAt);
+        orderDate.setHours(0, 0, 0, 0);
+        return orderDate >= fromDate;
+      });
+    }
+    if (filters.createdDateTo) {
+      const toDate = new Date(filters.createdDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(order => {
+        if (!order.createdAt) return false;
+        const orderDate = new Date(order.createdAt);
+        return orderDate <= toDate;
+      });
+    }
+
+    // Delivery date filter
+    if (filters.deliveryDateFrom) {
+      const fromDate = new Date(filters.deliveryDateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(order => {
+        if (!order.deliveryDate) return false;
+        const orderDate = new Date(order.deliveryDate);
+        orderDate.setHours(0, 0, 0, 0);
+        return orderDate >= fromDate;
+      });
+    }
+    if (filters.deliveryDateTo) {
+      const toDate = new Date(filters.deliveryDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(order => {
+        if (!order.deliveryDate) return false;
+        const orderDate = new Date(order.deliveryDate);
+        return orderDate <= toDate;
+      });
+    }
+
+    // Status order filter
+    if (filters.statusOrder.length > 0) {
+      filtered = filtered.filter(order =>
+        filters.statusOrder.includes(order.statusCategory)
+      );
+    }
+
+    // Services filter
+    if (filters.services.length > 0) {
+      filtered = filtered.filter(order => {
+        if (!order.services || order.services.length === 0) return false;
+        const orderServiceNames = order.services
+          .filter(s => s.status !== 'cancelled')
+          .map(s => s.serviceName);
+        return filters.services.some(serviceName =>
+          orderServiceNames.includes(serviceName)
+        );
+      });
+    }
+
+    // Total price filter
+    if (filters.totalMin) {
+      const min = parseFloat(filters.totalMin);
+      filtered = filtered.filter(order =>
+        (parseFloat(order.totalPrice) || 0) >= min
+      );
+    }
+    if (filters.totalMax) {
+      const max = parseFloat(filters.totalMax);
+      filtered = filtered.filter(order =>
+        (parseFloat(order.totalPrice) || 0) <= max
+      );
+    }
+
+    // Payment status filter
+    if (filters.paymentStatus.length > 0) {
+      filtered = filtered.filter(order =>
+        filters.paymentStatus.includes(order.paymentStatus)
+      );
+    }
+
+    // Payment method filter
+    if (filters.paymentMethod.length > 0) {
+      filtered = filtered.filter(order =>
+        filters.paymentMethod.includes(order.paymentMethod)
+      );
+    }
+
+    // Author filter
+    if (filters.author.length > 0) {
+      filtered = filtered.filter(order => {
+        const authorId = order.authorId || null;
+        const authorName = order.author || null;
+
+        if (!authorId && !authorName) {
+          // Include orders with no author if "N/A" is selected
+          return filters.author.includes('no-author');
+        }
+
+        // Check if author ID or name matches
+        return filters.author.includes(authorId) ||
+               filters.author.some(id => {
+                 const emp = employees.find(e => e.id === id);
+                 return emp?.name === authorName;
+               });
+      });
+    }
+
+    return filtered;
+  }, [allOrders, filters, employees]);
 
   const handleImageClick = (imageUrl) => {
     setPreviewImage(imageUrl);
@@ -189,6 +463,279 @@ const OrderHistory = () => {
 
   const closePreview = () => {
     setPreviewImage(null);
+  };
+
+  // Filter Dropdown Component
+  const FilterDropdown = ({ columnName, position = 'left' }) => {
+    if (openDropdown !== columnName) return null;
+
+    const renderContent = () => {
+      switch (columnName) {
+        case 'orderNumber':
+          return (
+            <div className="oh-dropdown-content">
+              <input
+                type="text"
+                className="oh-dropdown-input"
+                placeholder="Buscar # orden..."
+                value={filters.orderNumber}
+                onChange={(e) => setFilters(prev => ({ ...prev, orderNumber: e.target.value }))}
+                autoFocus
+              />
+            </div>
+          );
+
+        case 'photo':
+          return (
+            <div className="oh-dropdown-content">
+              <label className="oh-dropdown-radio">
+                <input
+                  type="radio"
+                  name="photo"
+                  value="all"
+                  checked={filters.photo === 'all'}
+                  onChange={(e) => {
+                    setFilters(prev => ({ ...prev, photo: e.target.value }));
+                    setOpenDropdown(null);
+                  }}
+                />
+                <span>Todas</span>
+              </label>
+              <label className="oh-dropdown-radio">
+                <input
+                  type="radio"
+                  name="photo"
+                  value="with"
+                  checked={filters.photo === 'with'}
+                  onChange={(e) => {
+                    setFilters(prev => ({ ...prev, photo: e.target.value }));
+                    setOpenDropdown(null);
+                  }}
+                />
+                <span>Con foto</span>
+              </label>
+              <label className="oh-dropdown-radio">
+                <input
+                  type="radio"
+                  name="photo"
+                  value="without"
+                  checked={filters.photo === 'without'}
+                  onChange={(e) => {
+                    setFilters(prev => ({ ...prev, photo: e.target.value }));
+                    setOpenDropdown(null);
+                  }}
+                />
+                <span>Sin foto</span>
+              </label>
+            </div>
+          );
+
+        case 'client':
+          return (
+            <div className="oh-dropdown-content">
+              <input
+                type="text"
+                className="oh-dropdown-input"
+                placeholder="Buscar cliente..."
+                value={filters.client}
+                onChange={(e) => setFilters(prev => ({ ...prev, client: e.target.value }))}
+                autoFocus
+              />
+            </div>
+          );
+
+        case 'createdDate':
+          return (
+            <div className="oh-dropdown-content">
+              <label className="oh-dropdown-label">Desde:</label>
+              <input
+                type="date"
+                className="oh-dropdown-input"
+                value={filters.createdDateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, createdDateFrom: e.target.value }))}
+              />
+              <label className="oh-dropdown-label">Hasta:</label>
+              <input
+                type="date"
+                className="oh-dropdown-input"
+                value={filters.createdDateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, createdDateTo: e.target.value }))}
+              />
+            </div>
+          );
+
+        case 'deliveryDate':
+          return (
+            <div className="oh-dropdown-content">
+              <label className="oh-dropdown-label">Desde:</label>
+              <input
+                type="date"
+                className="oh-dropdown-input"
+                value={filters.deliveryDateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, deliveryDateFrom: e.target.value }))}
+              />
+              <label className="oh-dropdown-label">Hasta:</label>
+              <input
+                type="date"
+                className="oh-dropdown-input"
+                value={filters.deliveryDateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, deliveryDateTo: e.target.value }))}
+              />
+            </div>
+          );
+
+        case 'statusOrder':
+          return (
+            <div className="oh-dropdown-content oh-dropdown-checkboxes">
+              {[
+                { value: 'recibidos', label: 'Recibido' },
+                { value: 'proceso', label: 'En Proceso' },
+                { value: 'listos', label: 'Listo' },
+                { value: 'enEntrega', label: 'En Entrega' },
+                { value: 'completados', label: 'Completado' },
+                { value: 'cancelado', label: 'Cancelado' }
+              ].map((status) => (
+                <label key={status.value} className="oh-dropdown-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={filters.statusOrder.includes(status.value)}
+                    onChange={() => toggleCheckbox('statusOrder', status.value)}
+                  />
+                  <span>{status.label}</span>
+                </label>
+              ))}
+            </div>
+          );
+
+        case 'services':
+          return (
+            <div className="oh-dropdown-content oh-dropdown-checkboxes">
+              {uniqueServices.length > 0 ? (
+                uniqueServices.map((service) => (
+                  <label key={service.name} className="oh-dropdown-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={filters.services.includes(service.name)}
+                      onChange={() => toggleCheckbox('services', service.name)}
+                    />
+                    <span>{service.icon} {service.name}</span>
+                  </label>
+                ))
+              ) : (
+                <div className="oh-dropdown-empty">No hay servicios</div>
+              )}
+            </div>
+          );
+
+        case 'total':
+          return (
+            <div className="oh-dropdown-content">
+              <label className="oh-dropdown-label">Mínimo:</label>
+              <input
+                type="number"
+                className="oh-dropdown-input"
+                placeholder="Ej: 100"
+                value={filters.totalMin}
+                onChange={(e) => setFilters(prev => ({ ...prev, totalMin: e.target.value }))}
+              />
+              <label className="oh-dropdown-label">Máximo:</label>
+              <input
+                type="number"
+                className="oh-dropdown-input"
+                placeholder="Ej: 1000"
+                value={filters.totalMax}
+                onChange={(e) => setFilters(prev => ({ ...prev, totalMax: e.target.value }))}
+              />
+            </div>
+          );
+
+        case 'paymentStatus':
+          return (
+            <div className="oh-dropdown-content oh-dropdown-checkboxes">
+              {[
+                { value: 'paid', label: 'Pagado' },
+                { value: 'partial', label: 'Parcial' },
+                { value: 'pending', label: 'Pendiente' },
+                { value: 'cancelled', label: 'Cancelado' }
+              ].map((status) => (
+                <label key={status.value} className="oh-dropdown-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={filters.paymentStatus.includes(status.value)}
+                    onChange={() => toggleCheckbox('paymentStatus', status.value)}
+                  />
+                  <span>{status.label}</span>
+                </label>
+              ))}
+            </div>
+          );
+
+        case 'paymentMethod':
+          return (
+            <div className="oh-dropdown-content oh-dropdown-checkboxes">
+              {[
+                { value: 'cash', label: 'Efectivo' },
+                { value: 'card', label: 'Tarjeta' },
+                { value: 'transfer', label: 'Transferencia' },
+                { value: 'pending', label: 'Pendiente' }
+              ].map((method) => (
+                <label key={method.value} className="oh-dropdown-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={filters.paymentMethod.includes(method.value)}
+                    onChange={() => toggleCheckbox('paymentMethod', method.value)}
+                  />
+                  <span>{method.label}</span>
+                </label>
+              ))}
+            </div>
+          );
+
+        case 'author':
+          return (
+            <div className="oh-dropdown-content oh-dropdown-checkboxes">
+              <label className="oh-dropdown-checkbox">
+                <input
+                  type="checkbox"
+                  checked={filters.author.includes('no-author')}
+                  onChange={() => toggleCheckbox('author', 'no-author')}
+                />
+                <span>N/A</span>
+              </label>
+              {employees.map((employee) => (
+                <label key={employee.id} className="oh-dropdown-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={filters.author.includes(employee.id)}
+                    onChange={() => toggleCheckbox('author', employee.id)}
+                  />
+                  <span>{employee.emoji ? `${employee.emoji} ` : ''}{employee.name}</span>
+                </label>
+              ))}
+            </div>
+          );
+
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <div
+        ref={dropdownRef}
+        className={`oh-filter-dropdown ${position === 'right' ? 'oh-filter-dropdown-right' : ''}`}
+      >
+        {renderContent()}
+        {hasActiveFilter(columnName) && (
+          <button
+            className="oh-dropdown-clear"
+            onClick={() => clearColumnFilter(columnName)}
+          >
+            Limpiar filtro
+          </button>
+        )}
+      </div>
+    );
   };
 
   if (loading) {
@@ -207,18 +754,20 @@ const OrderHistory = () => {
 
   return (
     <div className="order-history">
-      {/* Search Bar */}
-      <div className="oh-search-bar">
-        <input
-          type="text"
-          className="oh-search-input"
-          placeholder="Buscar por # orden, cliente, fecha, estado..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      {/* Filter Controls */}
+      <div className="oh-filter-controls-bar">
         <div className="oh-results-count">
           {filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}
         </div>
+        {activeFiltersCount > 0 && (
+          <button
+            className="oh-clear-filters-btn"
+            onClick={handleClearFilters}
+            title="Limpiar todos los filtros"
+          >
+            Limpiar Filtros ({activeFiltersCount})
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -226,17 +775,159 @@ const OrderHistory = () => {
         <table className="oh-table">
           <thead>
             <tr>
-              <th># Orden</th>
-              <th>Foto</th>
-              <th>Cliente</th>
-              <th>Fecha Creación</th>
-              <th>Fecha Entrega</th>
-              <th>Estado Orden</th>
-              <th>Servicios</th>
-              <th>Total</th>
-              <th>Estado Pago</th>
-              <th>Método de Pago</th>
-              <th>Autor</th>
+              {/* Order Number */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span># Orden</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('orderNumber') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('orderNumber')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="orderNumber" position="left" />
+              </th>
+
+              {/* Photo */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Foto</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('photo') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('photo')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="photo" position="left" />
+              </th>
+
+              {/* Cliente */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Cliente</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('client') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('client')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="client" position="left" />
+              </th>
+
+              {/* Fecha Creación */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Fecha Creación</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('createdDate') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('createdDate')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="createdDate" position="left" />
+              </th>
+
+              {/* Fecha Entrega */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Fecha Entrega</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('deliveryDate') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('deliveryDate')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="deliveryDate" position="left" />
+              </th>
+
+              {/* Estado Orden */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Estado Orden</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('statusOrder') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('statusOrder')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="statusOrder" position="left" />
+              </th>
+
+              {/* Servicios */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Servicios</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('services') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('services')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="services" position="left" />
+              </th>
+
+              {/* Total */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Total</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('total') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('total')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="total" position="right" />
+              </th>
+
+              {/* Estado Pago */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Estado Pago</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('paymentStatus') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('paymentStatus')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="paymentStatus" position="right" />
+              </th>
+
+              {/* Método de Pago */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Método de Pago</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('paymentMethod') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('paymentMethod')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="paymentMethod" position="right" />
+              </th>
+
+              {/* Autor */}
+              <th className="oh-header-with-filter">
+                <div className="oh-header-content">
+                  <span>Autor</span>
+                  <button
+                    className={`oh-filter-icon ${hasActiveFilter('author') ? 'active' : ''}`}
+                    onClick={() => toggleDropdown('author')}
+                  >
+                    ▼
+                  </button>
+                </div>
+                <FilterDropdown columnName="author" position="right" />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -319,15 +1010,6 @@ const OrderHistory = () => {
           </tbody>
         </table>
       </div>
-
-      {filteredOrders.length === 0 && searchTerm && (
-        <div className="oh-no-results">
-          <div className="oh-no-results-icon">🔍</div>
-          <div className="oh-no-results-text">
-            No se encontraron órdenes que coincidan con "{searchTerm}"
-          </div>
-        </div>
-      )}
 
       {/* Image Preview Modal */}
       {previewImage && (
