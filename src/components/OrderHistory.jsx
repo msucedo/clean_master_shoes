@@ -107,7 +107,8 @@ const OrderHistory = () => {
     const labels = {
       paid: 'Pagado',
       partial: 'Parcial',
-      pending: 'Pendiente'
+      pending: 'Pendiente',
+      cancelled: 'Cancelado'
     };
     return labels[paymentStatus] || paymentStatus;
   };

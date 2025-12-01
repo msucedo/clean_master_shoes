@@ -427,11 +427,19 @@ export const updateOrder = async (orderId, orderData) => {
     // Check if status is changing to "enEntrega"
     const statusChangingToEntrega = newStatus === 'enEntrega' && currentStatus !== 'enEntrega';
 
+    // Check if status is changing to "cancelado"
+    const statusChangingToCancelado = newStatus === 'cancelado' && currentStatus !== 'cancelado';
+
     let whatsappResult = null;
     let updateData = {
       ...orderData,
       updatedAt: new Date().toISOString()
     };
+
+    // If cancelling order with pending payment, update payment status
+    if (statusChangingToCancelado && currentOrderData.paymentStatus === 'pending') {
+      updateData.paymentStatus = 'cancelled';
+    }
 
     if (statusChangingToEntrega) {
       // Prepare complete order data for WhatsApp notification

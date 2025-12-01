@@ -106,7 +106,8 @@ export const generateInvoicePDF = async (order, businessProfile) => {
   pdf.text(`Saldo: $${((order.totalPrice || 0) - (order.advancePayment || 0)).toFixed(2)}`, 15, yPos);
   yPos += 7;
   const paymentStatusText = order.paymentStatus === 'paid' ? 'Pagado' :
-                           order.paymentStatus === 'partial' ? 'Parcial' : 'Pendiente';
+                           order.paymentStatus === 'partial' ? 'Parcial' :
+                           order.paymentStatus === 'cancelled' ? 'Cancelado' : 'Pendiente';
   pdf.text(`Estado de pago: ${paymentStatusText}`, 15, yPos);
 
   // Footer

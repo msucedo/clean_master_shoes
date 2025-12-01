@@ -323,6 +323,7 @@ const ClientItem = ({ client, onClick, onOrderClick, employees = [], clientNumbe
                       {order.paymentStatus === 'paid' && '✓ Pagado'}
                       {order.paymentStatus === 'partial' && '⚠ Parcial'}
                       {order.paymentStatus === 'pending' && '⏳ Pendiente'}
+                      {order.paymentStatus === 'cancelled' && '❌ Cancelado'}
                     </span>
                   </div>
                 </div>

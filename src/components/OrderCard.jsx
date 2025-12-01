@@ -122,7 +122,7 @@ const OrderCard = ({ order, onOrderClick }) => {
   }, [order.whatsappNotifications, order.hasUnreadMessages]);
 
   return (
-    <div className={`order-card ${dateInfo.className === 'overdue' ? 'overdue' : ''}`} onClick={() => onOrderClick(order)}>
+    <div className={`order-card ${dateInfo.className === 'overdue' && !['cancelado', 'completados'].includes(order.orderStatus) ? 'overdue' : ''}`} onClick={() => onOrderClick(order)}>
       {/* Header */}
       <div className="order-card-header">
         <div className="order-id-badge">#{parseInt(order.orderNumber, 10)}</div>

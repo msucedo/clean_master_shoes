@@ -408,6 +408,12 @@
     border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
+.order-status.status-cancelado {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 /* Servicios */
 .client-order-services {
     display: flex;
@@ -459,6 +465,12 @@
 }
 
 .payment-status.status-pending {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.payment-status.status-cancelled {
     background: rgba(239, 68, 68, 0.15);
     color: #ef4444;
     border: 1px solid rgba(239, 68, 68, 0.3);

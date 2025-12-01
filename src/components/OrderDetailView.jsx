@@ -973,6 +973,12 @@ const OrderDetailView = ({ order, currentTab, onClose, onSave, onCancel, onEmail
                 <span className="detail-value payment-status-badge">✅ Pagado Completo</span>
               </div>
             )}
+            {paymentData.paymentStatus === 'cancelled' && (
+              <div className="detail-row payment-cancelled">
+                <span className="detail-label">Estado de Pago:</span>
+                <span className="detail-value payment-status-badge cancelled">❌ Cancelado</span>
+              </div>
+            )}
           </div>
         </div>
 
