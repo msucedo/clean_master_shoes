@@ -293,6 +293,9 @@ const FilterDropdown = memo(({
 
 FilterDropdown.displayName = 'FilterDropdown';
 
+// Pagination constant
+const ITEMS_PER_PAGE = 25;
+
 const OrderHistory = () => {
   const { showError } = useNotification();
   const [orders, setOrders] = useState({
@@ -328,6 +331,9 @@ const OrderHistory = () => {
   // Dropdown state
   const [openDropdown, setOpenDropdown] = useState(null); // 'orderNumber', 'photo', 'client', etc.
   const dropdownRef = useRef(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Subscribe to orders
   useEffect(() => {
@@ -379,6 +385,11 @@ const OrderHistory = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [openDropdown]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   // Combine all orders from all statuses
   const allOrders = useMemo(() => {
@@ -778,6 +789,27 @@ const OrderHistory = () => {
     return filtered;
   }, [allOrders, filters, employees]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredOrders.slice(startIndex, endIndex);
+  }, [filteredOrders, currentPage]);
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
   const handleImageClick = (imageUrl) => {
     setPreviewImage(imageUrl);
   };
@@ -804,17 +836,44 @@ const OrderHistory = () => {
     <div className="order-history">
       {/* Filter Controls */}
       <div className="oh-filter-controls-bar">
-        <div className="oh-results-count">
-          {filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}
+        <div className="oh-left-controls">
+          <div className="oh-results-count">
+            {filteredOrders.length} {filteredOrders.length === 1 ? 'orden' : 'órdenes'}
+          </div>
+          {activeFiltersCount > 0 && (
+            <button
+              className="oh-clear-filters-btn"
+              onClick={handleClearFilters}
+              title="Limpiar todos los filtros"
+            >
+              Limpiar Filtros ({activeFiltersCount})
+            </button>
+          )}
         </div>
-        {activeFiltersCount > 0 && (
-          <button
-            className="oh-clear-filters-btn"
-            onClick={handleClearFilters}
-            title="Limpiar todos los filtros"
-          >
-            Limpiar Filtros ({activeFiltersCount})
-          </button>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="oh-pagination-controls">
+            <button
+              className="oh-pagination-btn"
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+              title="Página anterior"
+            >
+              ←
+            </button>
+            <span className="oh-pagination-info">
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              className="oh-pagination-btn"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              title="Página siguiente"
+            >
+              →
+            </button>
+          </div>
         )}
       </div>
 
@@ -1122,7 +1181,7 @@ const OrderHistory = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map((order) => {
+            {paginatedOrders.map((order) => {
               const authorInfo = getAuthorInfo(order);
               const serviceIcons = getServiceIcons(order);
               const firstImage = order.orderImages && order.orderImages.length > 0
