@@ -139,7 +139,8 @@ const Orders = () => {
       ...(orders.proceso || []),
       ...(orders.listos || []),
       ...(orders.enEntrega || []),
-      ...(orders.completados || [])
+      ...(orders.completados || []),
+      ...(orders.cancelado || [])
     ];
 
     // Find the highest order number
