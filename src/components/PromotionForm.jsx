@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { deleteField } from 'firebase/firestore';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
+import { ValidatedAlphanumericInput, ValidatedNumberInput } from './inputs';
 import './PromotionForm.css';
 
 const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, services = [], products = [], isSubmitting = false }) => {
@@ -168,6 +168,29 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
     // Validate day restriction (applies to all types)
     if (formData.hasDayRestriction && formData.daysOfWeek.length === 0) {
       newErrors.daysOfWeek = 'Selecciona al menos un día válido';
+    }
+
+    // Validate date range restriction
+    if (formData.hasDateRange) {
+      if (!formData.startDate && !formData.endDate) {
+        newErrors.dateRange = 'Debes especificar al menos una fecha (inicio o fin)';
+      } else if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
+        newErrors.dateRange = 'La fecha de inicio no puede ser posterior a la fecha fin';
+      }
+    }
+
+    // Validate max uses restriction
+    if (formData.hasMaxUses) {
+      if (!formData.maxUses || formData.maxUses <= 0) {
+        newErrors.maxUses = 'El número de usos debe ser mayor a 0';
+      }
+    }
+
+    // Validate min purchase restriction
+    if (formData.hasMinPurchase) {
+      if (!formData.minPurchaseAmount || formData.minPurchaseAmount <= 0) {
+        newErrors.minPurchaseAmount = 'El monto mínimo debe ser mayor a 0';
+      }
     }
 
     setErrors(newErrors);
@@ -350,12 +373,12 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
             </div>
 
             <div className="form-group flex-grow">
-              <ValidatedTextInput
+              <ValidatedAlphanumericInput
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 label="Nombre de la Promoción"
-                placeholder="Ej: Descuento de Verano"
+                placeholder="Ej: Promoción 2x1 Verano"
                 required={true}
                 error={errors.name}
               />
@@ -502,36 +525,38 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
 
           {(formData.type === 'percentage' || formData.type === 'dayOfWeek') && (
             <div className="form-group">
-              <label>Porcentaje de Descuento *</label>
-              <input
-                type="number"
+              <ValidatedNumberInput
                 name="discountValue"
                 value={formData.discountValue}
                 onChange={handleChange}
+                label="Porcentaje de Descuento"
                 placeholder="20"
-                min="1"
-                max="100"
-                className={errors.discountValue ? 'error' : ''}
+                min={1}
+                max={100}
+                integer={false}
+                suffix="%"
+                required={true}
+                error={errors.discountValue}
               />
-              {errors.discountValue && <span className="error-message">{errors.discountValue}</span>}
             </div>
           )}
 
           {formData.type === 'fixed' && (
             <>
               <div className="form-group">
-                <label>Monto de Descuento ($) *</label>
-                <input
-                  type="number"
+                <ValidatedNumberInput
                   name="discountValue"
                   value={formData.discountValue}
                   onChange={handleChange}
+                  label="Monto de Descuento"
                   placeholder="100"
-                  min="0"
-                  step="0.01"
-                  className={errors.discountValue ? 'error' : ''}
+                  min={0}
+                  max={999999}
+                  integer={false}
+                  prefix="$"
+                  required={true}
+                  error={errors.discountValue}
                 />
-                {errors.discountValue && <span className="error-message">{errors.discountValue}</span>}
               </div>
 
               <div className="form-group">
@@ -581,8 +606,8 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
 
               {formData.appliesTo === 'specific' && (
                 <div className="form-group">
-                  <label>Selecciona Items</label>
-                  <div className="items-selector">
+                  <label>Selecciona Items *</label>
+                  <div className={`items-selector ${errors.specificItems ? 'error' : ''}`}>
                     {allItems.map(item => (
                       <label key={item.id} className="item-checkbox">
                         <input
@@ -600,12 +625,17 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                                 specificItems: prev.specificItems.filter(id => id !== item.id)
                               }));
                             }
+                            // Clear error when user makes a selection
+                            if (errors.specificItems) {
+                              setErrors(prev => ({ ...prev, specificItems: '' }));
+                            }
                           }}
                         />
                         <span>{item.name} (${item.price})</span>
                       </label>
                     ))}
                   </div>
+                  {errors.specificItems && <span className="error-message">{errors.specificItems}</span>}
                 </div>
               )}
             </>
@@ -615,29 +645,33 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
             <>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Total de Items *</label>
-                  <input
-                    type="number"
+                  <ValidatedNumberInput
                     name="buyQuantity"
                     value={formData.buyQuantity}
                     onChange={handleChange}
-                    min="2"
-                    className={errors.buyQuantity ? 'error' : ''}
+                    label="Total de Items"
+                    placeholder="2"
+                    min={2}
+                    max={100}
+                    integer={true}
+                    required={true}
+                    error={errors.buyQuantity}
                   />
-                  {errors.buyQuantity && <span className="error-message">{errors.buyQuantity}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>Cantidad Gratis *</label>
-                  <input
-                    type="number"
+                  <ValidatedNumberInput
                     name="getQuantity"
                     value={formData.getQuantity}
                     onChange={handleChange}
-                    min="1"
-                    className={errors.getQuantity ? 'error' : ''}
+                    label="Cantidad Gratis"
+                    placeholder="1"
+                    min={1}
+                    max={100}
+                    integer={true}
+                    required={true}
+                    error={errors.getQuantity}
                   />
-                  {errors.getQuantity && <span className="error-message">{errors.getQuantity}</span>}
                 </div>
               </div>
 
@@ -692,31 +726,34 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
             <>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Cantidad de Items *</label>
-                  <input
-                    type="number"
+                  <ValidatedNumberInput
                     name="buyQuantity"
                     value={formData.buyQuantity}
                     onChange={handleChange}
-                    min="2"
-                    className={errors.buyQuantity ? 'error' : ''}
+                    label="Cantidad de Items"
+                    placeholder="2"
+                    min={2}
+                    max={100}
+                    integer={true}
+                    required={true}
+                    error={errors.buyQuantity}
                   />
-                  {errors.buyQuantity && <span className="error-message">{errors.buyQuantity}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>% de Descuento *</label>
-                  <input
-                    type="number"
+                  <ValidatedNumberInput
                     name="discountPercentage"
                     value={formData.discountPercentage}
                     onChange={handleChange}
-                    min="1"
-                    max="100"
+                    label="% de Descuento"
                     placeholder="50"
-                    className={errors.discountPercentage ? 'error' : ''}
+                    min={1}
+                    max={100}
+                    integer={false}
+                    suffix="%"
+                    required={true}
+                    error={errors.discountPercentage}
                   />
-                  {errors.discountPercentage && <span className="error-message">{errors.discountPercentage}</span>}
                 </div>
               </div>
 
@@ -770,18 +807,19 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
           {formData.type === 'combo' && (
             <>
               <div className="form-group">
-                <label>Precio del Combo ($) *</label>
-                <input
-                  type="number"
+                <ValidatedNumberInput
                   name="comboPrice"
                   value={formData.comboPrice}
                   onChange={handleChange}
+                  label="Precio del Combo"
                   placeholder="150"
-                  min="0"
-                  step="0.01"
-                  className={errors.comboPrice ? 'error' : ''}
+                  min={0}
+                  max={999999}
+                  integer={false}
+                  prefix="$"
+                  required={true}
+                  error={errors.comboPrice}
                 />
-                {errors.comboPrice && <span className="error-message">{errors.comboPrice}</span>}
               </div>
 
               <div className="form-group">
@@ -881,27 +919,32 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
           </div>
 
           {formData.hasDateRange && (
-            <div className="form-row">
-              <div className="form-group">
-                <label>Fecha Inicio</label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                />
-              </div>
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Fecha Inicio</label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    className={errors.dateRange ? 'error' : ''}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label>Fecha Fin</label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                />
+                <div className="form-group">
+                  <label>Fecha Fin</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                    className={errors.dateRange ? 'error' : ''}
+                  />
+                </div>
               </div>
-            </div>
+              {errors.dateRange && <span className="error-message" style={{ marginTop: '-8px', display: 'block' }}>{errors.dateRange}</span>}
+            </>
           )}
 
           <div className="form-group">
@@ -942,14 +985,17 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
 
           {formData.hasMaxUses && (
             <div className="form-group">
-              <label>Número Máximo de Usos</label>
-              <input
-                type="number"
+              <ValidatedNumberInput
                 name="maxUses"
                 value={formData.maxUses}
                 onChange={handleChange}
+                label="Número Máximo de Usos"
                 placeholder="100"
-                min="1"
+                min={1}
+                max={999999}
+                integer={true}
+                required={true}
+                error={errors.maxUses}
               />
             </div>
           )}
@@ -968,15 +1014,18 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
 
           {formData.hasMinPurchase && (
             <div className="form-group">
-              <label>Monto Mínimo ($)</label>
-              <input
-                type="number"
+              <ValidatedNumberInput
                 name="minPurchaseAmount"
                 value={formData.minPurchaseAmount}
                 onChange={handleChange}
+                label="Monto Mínimo"
                 placeholder="500"
-                min="0"
-                step="0.01"
+                min={0}
+                max={999999}
+                integer={false}
+                prefix="$"
+                required={true}
+                error={errors.minPurchaseAmount}
               />
             </div>
           )}
@@ -995,19 +1044,26 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
 
           {formData.hasDayRestriction && (
             <div className="form-group">
-              <label>Días Válidos:</label>
+              <label>Días Válidos: *</label>
               <div className="days-selector">
                 {dayNames.map((day, index) => (
                   <button
                     key={index}
                     type="button"
                     className={`day-button ${formData.daysOfWeek.includes(index) ? 'selected' : ''}`}
-                    onClick={() => handleDayToggle(index)}
+                    onClick={() => {
+                      handleDayToggle(index);
+                      // Clear error when user makes a selection
+                      if (errors.daysOfWeek) {
+                        setErrors(prev => ({ ...prev, daysOfWeek: '' }));
+                      }
+                    }}
                   >
                     {day}
                   </button>
                 ))}
               </div>
+              {errors.daysOfWeek && formData.hasDayRestriction && <span className="error-message">{errors.daysOfWeek}</span>}
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
-import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
+import { ValidatedAlphanumericInput, ValidatedNumberInput } from './inputs';
 import './ServiceForm.css';
 
 const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
@@ -200,12 +200,12 @@ const ServiceForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
           <span className="field-hint">Emoji que representa el servicio</span>
         </div>
 
-        <ValidatedTextInput
+        <ValidatedAlphanumericInput
           name="name"
           value={formData.name}
           onChange={handleChange}
           label="Nombre del Servicio"
-          placeholder="Ej: Lavado Básico"
+          placeholder="Ej: Lavado Premium 2x1"
           required={true}
           error={errors.name}
         />

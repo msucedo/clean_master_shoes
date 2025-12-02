@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNotification } from '../contexts/NotificationContext';
-import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
+import { ValidatedAlphanumericInput, ValidatedNumberInput } from './inputs';
 import './ExpenseForm.css';
 
 const ExpenseForm = ({ expense, onSave, onCancel }) => {
@@ -97,12 +97,12 @@ const ExpenseForm = ({ expense, onSave, onCancel }) => {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <ValidatedTextInput
+        <ValidatedAlphanumericInput
           name="concept"
           value={formData.concept}
           onChange={handleChange}
           label="Concepto"
-          placeholder="Ej: Compra de productos de limpieza"
+          placeholder="Ej: Compra de 5 productos limpieza"
           required={true}
           error={errors.concept}
           maxLength={100}

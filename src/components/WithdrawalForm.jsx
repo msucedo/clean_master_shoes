@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNotification } from '../contexts/NotificationContext';
-import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
+import { ValidatedAlphanumericInput, ValidatedNumberInput } from './inputs';
 import './ExpenseForm.css'; // Reutilizamos los estilos de ExpenseForm
 
 const WithdrawalForm = ({ withdrawal, efectivoDisponible, onSave, onCancel }) => {
@@ -98,12 +98,12 @@ const WithdrawalForm = ({ withdrawal, efectivoDisponible, onSave, onCancel }) =>
           </div>
         )}
 
-        <ValidatedTextInput
+        <ValidatedAlphanumericInput
           name="concept"
           value={formData.concept}
           onChange={handleChange}
           label="Concepto"
-          placeholder="Ej: Depósito banco, Retiro personal"
+          placeholder="Ej: Depósito banco #456"
           required={true}
           error={errors.concept}
           maxLength={100}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import ImageUpload from './ImageUpload';
-import { ValidatedTextInput, ValidatedNumberInput } from './inputs';
+import { ValidatedAlphanumericInput, ValidatedNumberInput } from './inputs';
 import './InventoryForm.css';
 
 const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
@@ -185,12 +185,12 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     <form className="inventory-form" onSubmit={handleSubmit}>
       <div className="form-grid">
         {/* Nombre */}
-        <ValidatedTextInput
+        <ValidatedAlphanumericInput
           name="name"
           value={formData.name}
           onChange={handleChange}
           label="Nombre del Producto"
-          placeholder="Ej: Tenis Nike Air Max"
+          placeholder="Ej: Nike Air Max 90"
           required={true}
           error={errors.name}
           className="full-width"
