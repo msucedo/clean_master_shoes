@@ -1968,12 +1968,16 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
 
     // 6. Check new clients only restriction
     if (promotion.newClientsOnly && clientPhone) {
-      const clientsRef = collection(db, 'clients');
-      const q = query(clientsRef, where('phone', '==', clientPhone));
-      const clientSnapshot = await getDocs(q);
+      // Buscar CUALQUIER orden previa del cliente (sin importar el estado)
+      const ordersRef = collection(db, 'orders');
+      const q = query(ordersRef,
+        where('phone', '==', clientPhone),
+        limit(1) // Solo necesitamos saber si existe al menos una
+      );
+      const orderSnapshot = await getDocs(q);
 
-      // Si el cliente ya existe, no aplicar la promoción
-      if (!clientSnapshot.empty) {
+      // Si tiene al menos una orden previa, ya no es cliente nuevo
+      if (!orderSnapshot.empty) {
         return { isValid: false, reason: 'Promoción solo para clientes nuevos' };
       }
     }

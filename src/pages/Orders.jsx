@@ -411,7 +411,9 @@ const Orders = () => {
         const newClient = {
           name: formData.client,
           phone: formData.phone,
-          email: formData.email || ''
+          email: formData.email || '',
+          lastVisit: new Date().toISOString(),
+          notes: ''
         };
         newClientId = await addClient(newClient);
         showSuccess('Cliente agregado exitosamente');
