@@ -44,8 +44,8 @@ const ClientForm = ({ onSubmit, onCancel, onDelete, initialData = null }) => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'El teléfono es requerido';
-    } else if (!/^[\d-]+$/.test(formData.phone)) {
-      newErrors.phone = 'Formato de teléfono inválido';
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'El teléfono debe tener exactamente 10 dígitos';
     }
 
     // Email is optional, but validate format if provided

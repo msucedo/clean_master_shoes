@@ -3,7 +3,7 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[FEATURE]validar entrada de datos para los formularios de todas las paginas
+-[]agregar las mismas validaciones de data entry para todas las opciones de promociones en la tab promociones
 -[FIX]verdad absoluta del conteo de efectivo
 -[]agregarle a la plantilla de whatsapp que no le escriban por ese chat?, implementar una respuesta automatica redirigiendolos al numero correcto
 -[]reemplazar ordenes por calzados?
@@ -60,6 +60,9 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[FIX]los numeros de telefono minimo deben ser 10 digitos, maximo ya esta
+-[FIX]agregar validaciones a nueva orden, mostrar el banner de validaciones
+-[FEATURE]validar entrada de datos para los formularios de todas las paginas
 -[FEATURE]agregar validaciones visuales de errores en formularios, un mensaje flotante en la parte superior de la pagina
 -[FEATURE]agregar filtros a la tabla del historial de ordenes
 -[FIX]si una orden esta cancelada, y tiene metodo de pago en pendiente, entonces ponla en estado del pago cancelado

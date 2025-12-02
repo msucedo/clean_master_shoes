@@ -9,6 +9,7 @@ import DeliveryCalendarModal from './DeliveryCalendarModal';
 import PromotionBadge from './PromotionBadge';
 import { ValidatedPhoneInput } from './inputs';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './OrderForm.css';
 
 // Función para generar IDs únicos
@@ -18,6 +19,7 @@ function generateId() {
 
 const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], allOrders = {} }) => {
   const { employee } = useAuth(); // Obtener empleado logueado
+  const { showValidationErrors } = useNotification();
   const [showMenu, setShowMenu] = useState(false);
   const [cart, setCart] = useState([]); // Carrito de servicios seleccionados
   const [showPayment, setShowPayment] = useState(false); // Controla si se muestra el carrito o el pago
@@ -524,14 +526,20 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
     }
     if (!formData.phone.trim()) {
       newErrors.phone = 'El teléfono es requerido';
-    } else if (!/^[\d-]+$/.test(formData.phone)) {
-      newErrors.phone = 'Formato de teléfono inválido';
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'El teléfono debe tener exactamente 10 dígitos';
     }
     if (cart.length === 0) {
       newErrors.cart = 'Debe agregar al menos un servicio al carrito';
     }
 
     setErrors(newErrors);
+
+    // Mostrar banner de validación si hay errores
+    if (Object.keys(newErrors).length > 0) {
+      showValidationErrors(newErrors);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -544,6 +552,12 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
     }
 
     setErrors(newErrors);
+
+    // Mostrar banner de validación si hay errores
+    if (Object.keys(newErrors).length > 0) {
+      showValidationErrors(newErrors);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 

@@ -91,7 +91,11 @@ const ValidatedPhoneInput = ({
           </span>
         )}
         {showFeedback && (
-          <div className="input-feedback">Solo se permiten números</div>
+          <div className="input-feedback">
+            {internalValue.length >= 10
+              ? 'Máximo 10 dígitos alcanzado'
+              : 'Solo se permiten números'}
+          </div>
         )}
       </div>
       {error && <span className="error-message">{error}</span>}
