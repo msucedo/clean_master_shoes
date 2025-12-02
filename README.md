@@ -3,7 +3,6 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]agregar las mismas validaciones de data entry para todas las opciones de promociones en la tab promociones
 -[FIX]verdad absoluta del conteo de efectivo
 -[]agregarle a la plantilla de whatsapp que no le escriban por ese chat?, implementar una respuesta automatica redirigiendolos al numero correcto
 -[]reemplazar ordenes por calzados?
@@ -19,7 +18,6 @@ Clean master shoes
 -[FEATURE]agregar notificacion push de cuando se recibe una respuesta de wapp, aparte de notificar con el badge rojo
 
 // BACKLOG
--[]validar integridad de datos en formularios y campos de entrada de datos del usuario
 -[]en configuracion, agregar una seccion para solo admins donde puedan habilitar/deshabilitar funcionalidades de la app para los empleados., quien puede crear o editar inventario o eliminar clientes?
 -[]agregar campo cumpleaños para el cliente
 -[]remover opcion de agregar cliente directamente desde tabs clientes, solo se agregan al crear una nueva orden en caso de no existir.
@@ -60,6 +58,7 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]agregar las mismas validaciones de data entry para todas las opciones de promociones en la tab promociones
 -[FIX]los numeros de telefono minimo deben ser 10 digitos, maximo ya esta
 -[FIX]agregar validaciones a nueva orden, mostrar el banner de validaciones
 -[FEATURE]validar entrada de datos para los formularios de todas las paginas
