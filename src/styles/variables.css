@@ -71,6 +71,7 @@
     /* Transitions */
     --transition-base: all 0.3s;
     --transition-fast: all 0.2s;
+    --transition-slow: all 0.6s;
 
     /* ========================================
        FLUID RESPONSIVE SYSTEM (2025)

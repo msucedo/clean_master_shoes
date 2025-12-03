@@ -9,9 +9,13 @@ const PageHeader = ({
   showSearch = false,
   searchValue = '',
   onSearchChange,
+  onSearchKeyPress,
   searchPlaceholder = 'Buscar...',
   filters = [],
-  tabs
+  tabs,
+  cartItemCount = 0,
+  isCartOpen = false,
+  onCartClick
 }) => {
   return (
     <div className="page-header">
@@ -22,6 +26,17 @@ const PageHeader = ({
           {buttonLabel && (
             <button className="btn-add-compact" onClick={onButtonClick} title={buttonLabel}>
               {buttonIcon || '+'}
+            </button>
+          )}
+          {/* Cart indicator - only show when cart has items and is closed */}
+          {cartItemCount > 0 && !isCartOpen && onCartClick && (
+            <button
+              className="cart-indicator-btn"
+              onClick={onCartClick}
+              title={`${cartItemCount} producto${cartItemCount > 1 ? 's' : ''} en el carrito`}
+            >
+              🛒
+              <span className="cart-badge">{cartItemCount}</span>
             </button>
           )}
         </div>
@@ -36,6 +51,7 @@ const PageHeader = ({
               placeholder={searchPlaceholder}
               value={searchValue}
               onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+              onKeyPress={(e) => onSearchKeyPress && onSearchKeyPress(e)}
             />
           </div>
         </div>
@@ -85,6 +101,7 @@ PageHeader.propTypes = {
   showSearch: PropTypes.bool,
   searchValue: PropTypes.string,
   onSearchChange: PropTypes.func,
+  onSearchKeyPress: PropTypes.func,
   searchPlaceholder: PropTypes.string,
   filters: PropTypes.arrayOf(
     PropTypes.shape({
@@ -94,7 +111,10 @@ PageHeader.propTypes = {
       active: PropTypes.bool
     })
   ),
-  tabs: PropTypes.node
+  tabs: PropTypes.node,
+  cartItemCount: PropTypes.number,
+  isCartOpen: PropTypes.bool,
+  onCartClick: PropTypes.func
 };
 
 export default PageHeader;

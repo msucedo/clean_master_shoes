@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import InventoryCard from '../components/InventoryCard';
 import InventoryCardSkeleton from '../components/InventoryCardSkeleton';
 import InventoryStatsSkeleton from '../components/InventoryStatsSkeleton';
@@ -6,6 +6,7 @@ import Modal from '../components/Modal';
 import InventoryForm from '../components/InventoryForm';
 import PageHeader from '../components/PageHeader';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Cart from '../components/Cart';
 import {
   addProduct,
   updateProduct,
@@ -14,11 +15,13 @@ import {
 import { useInventory } from '../hooks/useInventory';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAdminCheck } from '../contexts/AuthContext';
+import { useCart } from '../hooks/useCart';
 import './Inventory.css';
 
 const Inventory = () => {
   const { showSuccess, showError } = useNotification();
   const isAdmin = useAdminCheck();
+  const { addProductWithValidation, itemCount, isCartOpen, setIsCartOpen } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
@@ -31,6 +34,7 @@ const Inventory = () => {
     onConfirm: null,
     type: 'default'
   });
+  const searchInputRef = useRef(null);
 
   const categories = ['Accesorios', 'Gorras', 'Bolsas', 'Pines', 'Agujetas'];
 
@@ -134,6 +138,42 @@ const Inventory = () => {
     });
   };
 
+  // Detectar cuando se ingresa un código de barras y agregar al carrito
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+  };
+
+  // Detectar Enter para buscar por código de barras
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      // Buscar producto por código de barras
+      const productByBarcode = products.find(
+        p => p.barcode && p.barcode.toLowerCase() === searchTerm.trim().toLowerCase()
+      );
+
+      if (productByBarcode) {
+        // Agregar al carrito
+        const success = addProductWithValidation(productByBarcode, 1);
+        if (success) {
+          setSearchTerm(''); // Limpiar el campo de búsqueda
+        }
+      } else {
+        // Si no se encuentra por barcode exacto, verificar si solo hay un resultado en la búsqueda actual
+        const currentFiltered = filterProducts(products);
+        if (currentFiltered.length === 1) {
+          const product = currentFiltered[0];
+          const success = addProductWithValidation(product, 1);
+          if (success) {
+            setSearchTerm('');
+          }
+        } else if (currentFiltered.length === 0) {
+          showError('No se encontró ningún producto con ese código');
+        }
+        // Si hay múltiples resultados, no hacer nada (dejar que el usuario vea los resultados)
+      }
+    }
+  };
+
   const filteredProducts = filterProducts(products);
 
   // Calculate inventory stats
@@ -151,8 +191,12 @@ const Inventory = () => {
         onButtonClick={handleOpenNewProduct}
         showSearch={true}
         searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Buscar por nombre o código de barras..."
+        onSearchChange={handleSearchChange}
+        onSearchKeyPress={handleSearchKeyPress}
+        searchPlaceholder="Buscar por nombre o código de barras (presiona Enter para agregar al carrito)..."
+        cartItemCount={itemCount}
+        isCartOpen={isCartOpen}
+        onCartClick={() => setIsCartOpen(true)}
         filters={[
           {
             label: 'Todas',
@@ -283,6 +327,9 @@ const Inventory = () => {
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
       />
+
+      {/* Cart Component */}
+      <Cart />
     </div>
   );
 };

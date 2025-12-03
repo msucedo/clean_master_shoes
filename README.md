@@ -3,10 +3,12 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
+-[]actualizar en el dashboard, como se calcula la card de "ingresos hoy", que tome los ingresos totales del corte de caja
+-[]desde la tab inventario deberiamos poder vender un producto, escanear directamente en el search bar del header y de ahi mostrar la info del producto o el check out o opcion de añadirlo al carrito
 -[FIX]verdad absoluta del conteo de efectivo
--[]agregarle a la plantilla de whatsapp que no le escriban por ese chat?, implementar una respuesta automatica redirigiendolos al numero correcto
 -[]reemplazar ordenes por calzados?
 -[]habilitar campañas, tab campañas
+-[]agregarle a la plantilla de whatsapp que no le escriban por ese chat?, implementar una respuesta automatica redirigiendolos al numero correcto
 
 // PRIORIDAD ALTA
 

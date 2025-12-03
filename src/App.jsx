@@ -23,6 +23,7 @@ import PrintQueueListener from './components/PrintQueueListener';
 import BluetoothConnectionAlert from './components/BluetoothConnectionAlert';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { CartProvider } from './context/CartContext';
 import Notification from './components/Notification';
 import { useWhatsAppNotifications } from './hooks/useWhatsAppNotifications';
 import { useBluetoothConnectionMonitor } from './hooks/useBluetoothConnectionMonitor';
@@ -114,9 +115,11 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NotificationProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
+            <CartProvider>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </CartProvider>
           </NotificationProvider>
         </AuthProvider>
         {/* React Query DevTools - only visible in development */}
