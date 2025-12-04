@@ -3,6 +3,7 @@ import { useCart } from '../hooks/useCart';
 import { useInventory } from '../hooks/useInventory';
 import { useInputValidation } from '../hooks/useInputValidation';
 import CartPayment from './CartPayment';
+import PromotionBadge from './PromotionBadge';
 import { createSale, addSalePrintRecord } from '../services/salesService';
 import { printTicket } from '../services/printService';
 import { addPrintJob } from '../services/printQueueService';
@@ -35,7 +36,13 @@ const Cart = () => {
     canCheckout,
     selectedClient,
     setSelectedClient,
-    addProductWithValidation
+    addProductWithValidation,
+    // Estados de promociones
+    activePromotions,
+    appliedPromotions,
+    promotionValidations,
+    isPromotionRelevantForCart,
+    itemPromotionMap
   } = useCart();
 
   const [showPayment, setShowPayment] = useState(false);
@@ -131,11 +138,32 @@ const Cart = () => {
         clientName: selectedClient?.name || null,
         notes: notes,
         createdAt: new Date().toISOString(),
-        createdBy: employee?.name || user?.email || 'system'
+        createdBy: employee?.name || user?.email || 'system',
+        // Incluir promociones aplicadas (copiado de OrderForm)
+        appliedPromotions: appliedPromotions && appliedPromotions.length > 0
+          ? appliedPromotions.map(promo => ({
+              id: promo.id,
+              name: promo.name,
+              type: promo.type,
+              discountAmount: promo.discountAmount
+            }))
+          : []
       };
 
       // Crear la venta en Firebase (esto también actualiza el inventario)
       const saleId = await createSale(saleData);
+
+      // Incrementar uso de promociones (copiado de OrderForm)
+      if (appliedPromotions && appliedPromotions.length > 0) {
+        const { incrementPromotionUsage } = await import('../services/firebaseService');
+        for (const promo of appliedPromotions) {
+          try {
+            await incrementPromotionUsage(promo.id, selectedClient?.phone || '');
+          } catch (error) {
+            console.error('Error incrementing promotion usage:', error);
+          }
+        }
+      }
 
       showSuccess(`Venta completada exitosamente. ID: ${saleId.substring(0, 8)}`);
 
@@ -345,6 +373,37 @@ const Cart = () => {
           </div>
         </div>
 
+        {/* Banner de promociones disponibles hoy (copiado de OrderForm) */}
+        {activePromotions && activePromotions.length > 0 && (
+          <div className="available-promotions-banner">
+            <div className="banner-title">🎉 Promociones Disponibles Hoy:</div>
+            {activePromotions
+              .filter(promo => {
+                // Filtrar promociones por día de la semana
+                if (!promo.daysOfWeek || promo.daysOfWeek.length === 0) {
+                  return true; // Sin restricción de días, mostrar siempre
+                }
+                const currentDay = new Date().getDay();
+                return promo.daysOfWeek.includes(currentDay);
+              })
+              .map((promo, idx) => {
+                const isApplied = appliedPromotions.some(ap => ap.id === promo.id);
+                const validation = promotionValidations[promo.id];
+                const isRelevant = isPromotionRelevantForCart(promo, cartItems);
+                const notAppliedReason = !isApplied && validation && !validation.isValid && isRelevant ? validation.reason : null;
+
+                return (
+                  <div key={idx} className={`promo-item ${isApplied ? 'applied' : ''}`}>
+                    <span className="promo-emoji">{promo.emoji || '🎉'}</span>
+                    <span className="promo-name">{promo.name}</span>
+                    {isApplied && <span className="applied-badge">✓ APLICADA</span>}
+                    {notAppliedReason && <span className="not-applied-reason">{notAppliedReason}</span>}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
         {/* Contenido del carrito */}
         <div className="cart-content">
           {cartItems.length === 0 ? (
@@ -357,36 +416,52 @@ const Cart = () => {
             <>
               {/* Lista de productos - Tabla Compacta */}
               <div className="cart-items-compact">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="cart-item-row">
-                    <span className="item-emoji">{item.emoji}</span>
-                    <span className="item-name">{item.name}</span>
-                    <span className="item-price">${item.salePrice.toFixed(2)}</span>
-                    <div className="item-qty-controls">
-                      <button
-                        className="qty-btn-compact"
-                        onClick={() => decrementQuantity(item.id)}
-                      >
-                        −
-                      </button>
-                      <span className="qty-num">{item.quantity}</span>
-                      <button
-                        className="qty-btn-compact"
-                        onClick={() => incrementQuantity(item.id)}
-                      >
-                        +
-                      </button>
+                {cartItems.map((item) => {
+                  // Obtener la promoción asignada a este item (copiado de OrderForm)
+                  const assignedPromo = itemPromotionMap ? itemPromotionMap.get(item.id) : null;
+
+                  return (
+                    <div key={item.id} className="cart-item-row-wrapper">
+                      <div className="cart-item-row">
+                        <span className="item-emoji">{item.emoji}</span>
+                        <span className="item-name">{item.name}</span>
+                        <span className="item-price">${item.salePrice.toFixed(2)}</span>
+                        <div className="item-qty-controls">
+                          <button
+                            className="qty-btn-compact"
+                            onClick={() => decrementQuantity(item.id)}
+                          >
+                            −
+                          </button>
+                          <span className="qty-num">{item.quantity}</span>
+                          <button
+                            className="qty-btn-compact"
+                            onClick={() => incrementQuantity(item.id)}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <span className="item-subtotal">${(item.salePrice * item.quantity).toFixed(2)}</span>
+                        <button
+                          className="item-remove-btn"
+                          onClick={() => removeProduct(item.id)}
+                          title="Eliminar"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      {/* Mostrar badge de promoción si aplica */}
+                      {assignedPromo && (
+                        <div className="cart-item-promotion">
+                          <PromotionBadge
+                            promotion={assignedPromo}
+                            discountAmount={assignedPromo.discountAmount}
+                          />
+                        </div>
+                      )}
                     </div>
-                    <span className="item-subtotal">${(item.salePrice * item.quantity).toFixed(2)}</span>
-                    <button
-                      className="item-remove-btn"
-                      onClick={() => removeProduct(item.id)}
-                      title="Eliminar"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Sección de descuento - Compacta con validación */}
@@ -396,10 +471,11 @@ const Cart = () => {
                     type="text"
                     inputMode={discountTypeInput === 'percentage' ? 'numeric' : 'decimal'}
                     className={`discount-input-compact ${showDiscountFeedback ? 'shake' : ''}`}
-                    placeholder="Descuento"
+                    placeholder={appliedPromotions && appliedPromotions.length > 0 ? 'Promociones aplicadas' : 'Descuento'}
                     value={discountInput}
                     onChange={handleDiscountChange}
                     onKeyPress={handleDiscountKeyPress}
+                    disabled={appliedPromotions && appliedPromotions.length > 0}
                   />
                   {showDiscountFeedback && (
                     <div className="input-feedback">
@@ -414,6 +490,7 @@ const Cart = () => {
                     setDiscountTypeInput(e.target.value);
                     setDiscountInput(''); // Limpiar al cambiar tipo
                   }}
+                  disabled={appliedPromotions && appliedPromotions.length > 0}
                 >
                   <option value="amount">$</option>
                   <option value="percentage">%</option>
@@ -421,11 +498,11 @@ const Cart = () => {
                 <button
                   className="discount-btn-compact"
                   onClick={handleApplyDiscount}
-                  disabled={!discountInput}
+                  disabled={!discountInput || (appliedPromotions && appliedPromotions.length > 0)}
                 >
                   Aplicar
                 </button>
-                {discount > 0 && (
+                {discount > 0 && (!appliedPromotions || appliedPromotions.length === 0) && (
                   <span className="discount-badge">
                     -{discountType === 'percentage' ? `${discount}%` : `$${discount.toFixed(2)}`}
                   </span>
@@ -450,20 +527,39 @@ const Cart = () => {
         {cartItems.length > 0 && (
           <div className="cart-footer">
             <div className="cart-summary">
-              <div className="summary-row">
-                <span>Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              {discountAmount > 0 && (
-                <div className="summary-row discount-row">
-                  <span>Descuento:</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
-                </div>
+              {appliedPromotions && appliedPromotions.length > 0 ? (
+                <>
+                  <div className="summary-row">
+                    <span>Subtotal:</span>
+                    <span>${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="summary-row discount-row">
+                    <span>Descuentos:</span>
+                    <span>-${discountAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="summary-row total-row">
+                    <span>Total:</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="summary-row">
+                    <span>Subtotal:</span>
+                    <span>${subtotal.toFixed(2)}</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="summary-row discount-row">
+                      <span>Descuento:</span>
+                      <span>-${discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="summary-row total-row">
+                    <span>Total:</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                </>
               )}
-              <div className="summary-row total-row">
-                <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
             </div>
 
             <div className="cart-actions">
