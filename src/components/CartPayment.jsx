@@ -45,6 +45,22 @@ const CartPayment = ({
     }
   }, [paymentMethod, total]);
 
+  // Detectar tecla ESC para regresar al carrito
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isVisible && !isProcessing) {
+        event.preventDefault();
+        handleCancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isVisible, isProcessing]);
+
   const handleConfirm = async () => {
     // Validaciones para método de pago en efectivo
     if (paymentMethod === 'cash') {
