@@ -2247,6 +2247,33 @@ export const validatePromotion = async (promotion, cart, clientPhone, subtotal) 
         }
         break;
 
+      case 'specificPrice':
+        // For specificPrice, calculate discount as difference between current price and specific price
+        if (promotion.applicableItems && promotion.applicableItems.length > 0) {
+          const applicableItemsPrice = cart.filter(item => {
+            // Para servicios, comparar con serviceId
+            if (item.type === 'service' && item.serviceId) {
+              return promotion.applicableItems.includes(item.serviceId);
+            }
+            // Para productos, comparar con productId
+            if (item.type === 'product' && item.productId) {
+              return promotion.applicableItems.includes(item.productId);
+            }
+            return false;
+          });
+
+          if (applicableItemsPrice.length > 0) {
+            // Calcular descuento como diferencia entre precio actual y precio específico
+            discountAmount = applicableItemsPrice.reduce((sum, item) => {
+              const currentPrice = item.price;
+              const specificPrice = promotion.specificPrice;
+              const discount = Math.max(0, currentPrice - specificPrice);
+              return sum + (discount * item.quantity);
+            }, 0);
+          }
+        }
+        break;
+
       default:
         discountAmount = 0;
     }

@@ -128,6 +128,17 @@ export const CartProvider = ({ children }) => {
           });
         });
 
+      case 'specificPrice':
+        // Si no hay items específicos, no es relevante
+        if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+          return false;
+        }
+        // Verificar que al menos un item esté en el carrito
+        return cart.some(item => {
+          const itemId = item.id;
+          return promotion.applicableItems.includes(itemId);
+        });
+
       case 'dayOfWeek':
         // Aplica a cualquier compra en ese día
         return true;
@@ -145,6 +156,7 @@ export const CartProvider = ({ children }) => {
     if (promo.type === 'buyXgetY' && promo.applicableItems?.length > 0) return 1;
     if (promo.type === 'buyXgetYdiscount' && promo.applicableItems?.length > 0) return 1;
     if (promo.type === 'combo') return 1;
+    if (promo.type === 'specificPrice' && promo.applicableItems?.length > 0) return 1;
 
     // Prioridad MEDIA (por tipo): 2
     if (promo.type === 'percentage' && promo.appliesTo === 'services') return 2;
@@ -459,6 +471,12 @@ export const CartProvider = ({ children }) => {
           case 'combo':
             if (promo.comboItems) {
               applies = promo.comboItems.some(comboItem => comboItem.id === item.id);
+            }
+            break;
+
+          case 'specificPrice':
+            if (promo.applicableItems && promo.applicableItems.length > 0) {
+              applies = promo.applicableItems.includes(item.id);
             }
             break;
 

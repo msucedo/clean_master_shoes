@@ -23,6 +23,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
     applicableItems: [],
     comboItems: [],
     comboPrice: '',
+    specificPrice: '',
     daysOfWeek: [],
     // Restrictions
     hasDateRange: false,
@@ -59,6 +60,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
           quantity: ci.quantity || 1 // Compatibilidad con combos antiguos sin quantity
         })),
         comboPrice: initialData.comboPrice || '',
+        specificPrice: initialData.specificPrice || '',
         daysOfWeek: initialData.daysOfWeek || [],
         // Restrictions
         hasDateRange: !!(initialData.dateRange?.startDate || initialData.dateRange?.endDate),
@@ -161,6 +163,15 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       }
     }
 
+    if (formData.type === 'specificPrice') {
+      if (!formData.specificPrice || formData.specificPrice <= 0) {
+        newErrors.specificPrice = 'El precio específico debe ser mayor a 0';
+      }
+      if (!formData.applicableItems || formData.applicableItems.length === 0) {
+        newErrors.applicableItems = 'Debes seleccionar al menos un producto';
+      }
+    }
+
     if (formData.type === 'dayOfWeek' && formData.daysOfWeek.length === 0) {
       newErrors.daysOfWeek = 'Selecciona al menos un día';
     }
@@ -254,6 +265,15 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
           promotionData.comboPrice = deleteField();
         }
 
+        // Campos de specificPrice
+        if (formData.type !== 'specificPrice') {
+          promotionData.specificPrice = deleteField();
+          // applicableItems también lo usan fixed, buyXgetY, buyXgetYdiscount
+          if (!['fixed', 'buyXgetY', 'buyXgetYdiscount'].includes(formData.type)) {
+            promotionData.applicableItems = deleteField();
+          }
+        }
+
         // Campo discountValue (usado por percentage, fixed, dayOfWeek)
         if (!['percentage', 'fixed', 'dayOfWeek'].includes(formData.type)) {
           promotionData.discountValue = deleteField();
@@ -291,6 +311,11 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
       if (formData.type === 'combo') {
         promotionData.comboItems = formData.comboItems;
         promotionData.comboPrice = parseFloat(formData.comboPrice);
+      }
+
+      if (formData.type === 'specificPrice') {
+        promotionData.specificPrice = parseFloat(formData.specificPrice);
+        promotionData.applicableItems = formData.applicableItems;
       }
 
       if (formData.type === 'dayOfWeek') {
@@ -513,6 +538,23 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                 <span>
                   <span>Día de Semana</span>
                   <small className="type-example">Ej: Martes 15% OFF</small>
+                </span>
+              </span>
+            </label>
+
+            <label className={`type-option ${formData.type === 'specificPrice' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="type"
+                value="specificPrice"
+                checked={formData.type === 'specificPrice'}
+                onChange={handleChange}
+              />
+              <span className="type-label">
+                <span className="type-icon">💰</span>
+                <span>
+                  <span>Precio Específico</span>
+                  <small className="type-example">Ej: Producto a $50</small>
                 </span>
               </span>
             </label>
@@ -878,6 +920,57 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
                 )}
 
                 {errors.comboItems && <span className="error-message">{errors.comboItems}</span>}
+              </div>
+            </>
+          )}
+
+          {formData.type === 'specificPrice' && (
+            <>
+              <div className="form-group">
+                <ValidatedNumberInput
+                  name="specificPrice"
+                  value={formData.specificPrice}
+                  onChange={handleChange}
+                  label="Precio Específico"
+                  placeholder="50.00"
+                  min={0}
+                  max={999999}
+                  integer={false}
+                  prefix="$"
+                  required={true}
+                  error={errors.specificPrice}
+                />
+                <span className="field-hint">Este será el precio final del producto durante la promoción</span>
+              </div>
+
+              <div className="form-group">
+                <label>Productos Aplicables *</label>
+                <span className="field-hint">Selecciona los productos que tendrán este precio específico</span>
+                <div className="items-selector">
+                  {allItems.map(item => (
+                    <label key={item.id} className="item-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={formData.applicableItems.includes(item.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              applicableItems: [...prev.applicableItems, item.id]
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              applicableItems: prev.applicableItems.filter(id => id !== item.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <span>{item.name} (${item.price})</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.applicableItems && <span className="error-message">{errors.applicableItems}</span>}
               </div>
             </>
           )}

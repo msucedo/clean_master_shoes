@@ -208,6 +208,22 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
           });
         });
 
+      case 'specificPrice':
+        // Si no hay items específicos, no es relevante
+        if (!promotion.applicableItems || promotion.applicableItems.length === 0) {
+          return false;
+        }
+        // Verificar que al menos un item esté en el carrito
+        return cart.some(item => {
+          if (item.type === 'service' && item.serviceId) {
+            return promotion.applicableItems.includes(item.serviceId);
+          }
+          if (item.type === 'product' && item.productId) {
+            return promotion.applicableItems.includes(item.productId);
+          }
+          return false;
+        });
+
       case 'dayOfWeek':
         // Aplica a cualquier compra en ese día
         return true;
@@ -225,6 +241,7 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
     if (promo.type === 'buyXgetY' && promo.applicableItems?.length > 0) return 1;
     if (promo.type === 'buyXgetYdiscount' && promo.applicableItems?.length > 0) return 1;
     if (promo.type === 'combo') return 1;
+    if (promo.type === 'specificPrice' && promo.applicableItems?.length > 0) return 1;
 
     // Prioridad MEDIA (por tipo): 2
     if (promo.type === 'percentage' && promo.appliesTo === 'services') return 2;
@@ -848,6 +865,13 @@ const OrderForm = ({ onSubmit, onCancel, initialData = null, employees = [], all
             if (promo.comboItems?.length > 0) {
               const itemId = item.type === 'service' ? item.serviceId : item.productId;
               applies = promo.comboItems.some(ci => ci.id === itemId);
+            }
+            break;
+
+          case 'specificPrice':
+            if (promo.applicableItems && promo.applicableItems.length > 0) {
+              const itemId = item.type === 'service' ? item.serviceId : item.productId;
+              applies = promo.applicableItems.includes(itemId);
             }
             break;
 
