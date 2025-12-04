@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useInventory } from '../hooks/useInventory';
 import CartPayment from './CartPayment';
-import { createSale } from '../services/salesService';
+import { createSale, addSalePrintRecord } from '../services/salesService';
 import { printTicket } from '../services/printService';
+import { addPrintJob } from '../services/printQueueService';
 import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 import { useNotification } from '../contexts/NotificationContext';
 import './Cart.css';
@@ -98,10 +99,24 @@ const Cart = () => {
 
       showSuccess(`Venta completada exitosamente. ID: ${saleId.substring(0, 8)}`);
 
-      // Auto-imprimir SOLO si método es Bluetooth (replicando lógica de Orders.jsx)
-      const currentMethod = getPrinterMethodPreference();
-      const shouldAutoprint = currentMethod === PRINTER_METHODS.BLUETOOTH || currentMethod === 'bluetooth';
+      // ========== IMPRESIÓN ==========
+      // Obtener preferencia del usuario
+      const userPreference = getPrinterMethodPreference();
+      const shouldUseQueue = userPreference === PRINTER_METHODS.QUEUE || userPreference === 'queue';
+      const shouldAutoprint = userPreference === PRINTER_METHODS.BLUETOOTH || userPreference === 'bluetooth';
 
+      // FLUJO 1: Si usuario eligió "Impresión Remota en Cola": enviar automáticamente
+      if (shouldUseQueue) {
+        try {
+          await addPrintJob(saleId, saleId.substring(0, 8), 'sale');
+          console.log('✅ Ticket de venta enviado a cola de impresión');
+        } catch (error) {
+          console.error('Error al enviar ticket de venta a cola:', error);
+          // No bloquear el flujo si falla el envío a cola
+        }
+      }
+
+      // FLUJO 2: Si método es Bluetooth: auto-imprimir (silencioso, reconexión automática)
       if (shouldAutoprint && !isPrintingRef.current) {
         isPrintingRef.current = true;
         try {
@@ -112,6 +127,21 @@ const Cart = () => {
 
           if (printResult.success) {
             console.log('✅ Ticket de venta auto-impreso:', printResult.deviceName);
+
+            // Registrar en historial de impresiones
+            try {
+              const printData = {
+                type: 'sale',
+                printedAt: new Date().toISOString(),
+                printedBy: 'auto',
+                deviceInfo: printResult.method === 'bluetooth'
+                  ? `Bluetooth (${printResult.deviceName || 'Impresora'})`
+                  : 'Desktop'
+              };
+              await addSalePrintRecord(saleId, printData);
+            } catch (recordError) {
+              console.warn('⚠️ Error al registrar impresión:', recordError.message);
+            }
           } else if (!printResult.cancelled) {
             console.warn('⚠️ Auto-impresión de ticket de venta falló:', printResult.error);
           }

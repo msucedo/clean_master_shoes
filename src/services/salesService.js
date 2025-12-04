@@ -8,7 +8,8 @@ import {
   query,
   orderBy,
   getDoc,
-  runTransaction
+  runTransaction,
+  arrayUnion
 } from 'firebase/firestore';
 
 /**
@@ -240,5 +241,24 @@ export const cancelSale = async (saleId) => {
   } catch (error) {
     console.error('Error al cancelar venta:', error);
     throw error;
+  }
+};
+
+/**
+ * Agrega un registro de impresión al historial de una venta
+ * @param {string} saleId - ID de la venta
+ * @param {Object} printData - Datos de la impresión
+ * @returns {Promise<Object>}
+ */
+export const addSalePrintRecord = async (saleId, printData) => {
+  try {
+    const saleRef = doc(db, 'sales', saleId);
+    await updateDoc(saleRef, {
+      printHistory: arrayUnion(printData)
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Error adding sale print record:', error);
+    return { success: false, error: error.message };
   }
 };

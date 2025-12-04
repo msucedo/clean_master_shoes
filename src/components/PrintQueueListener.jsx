@@ -95,17 +95,19 @@ const PrintQueueListener = () => {
         return;
       }
 
-      // 2. Get full order data from Firestore (force server read to get latest completedDate)
-      const orderRef = doc(db, 'orders', job.orderId);
-      const orderSnap = await getDocFromServer(orderRef);
+      // 2. Get full order/sale data from Firestore (force server read to get latest data)
+      // Determinar colección basándose en el tipo de ticket
+      const collectionName = job.ticketType === 'sale' ? 'sales' : 'orders';
+      const docRef = doc(db, collectionName, job.orderId);
+      const docSnap = await getDocFromServer(docRef);
 
-      if (!orderSnap.exists()) {
-        throw new Error(`Order not found: ${job.orderId}`);
+      if (!docSnap.exists()) {
+        throw new Error(`Document not found in ${collectionName}: ${job.orderId}`);
       }
 
       const order = {
-        id: orderSnap.id,
-        ...orderSnap.data()
+        id: docSnap.id,
+        ...docSnap.data()
       };
 
       // 3. Print the ticket
@@ -122,14 +124,22 @@ const PrintQueueListener = () => {
 
       // 3.5. Register print in Firebase history (no bloquear si falla)
       try {
-        const { addPrintRecord } = await import('../services/firebaseService');
         const printData = {
           type: job.ticketType,
           printedAt: new Date().toISOString(),
           printedBy: 'queue',
           deviceInfo: `Bluetooth (${printResult.deviceName || 'Desktop Printer'})`
         };
-        await addPrintRecord(job.orderId, printData);
+
+        // Usar función apropiada según el tipo de documento
+        if (job.ticketType === 'sale') {
+          const { addSalePrintRecord } = await import('../services/salesService');
+          await addSalePrintRecord(job.orderId, printData);
+        } else {
+          const { addPrintRecord } = await import('../services/firebaseService');
+          await addPrintRecord(job.orderId, printData);
+        }
+
         console.log(`✅ Print registered in history for job #${job.orderNumber}`);
       } catch (registerError) {
         // No fallar: la impresión física fue exitosa
