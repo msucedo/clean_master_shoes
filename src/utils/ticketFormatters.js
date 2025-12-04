@@ -642,3 +642,264 @@ export const formatDeliveryTicketESCPOS = (order, businessInfo, copyInfo = null)
 
   return cmd.getBytes();
 };
+
+/**
+ * Genera HTML para ticket de venta (inventario)
+ * @param {string} copyInfo - Información de la copia (ej: "COPIA CLIENTE", "COPIA NEGOCIO")
+ */
+export const formatSalesTicketHTML = (sale, businessInfo, copyInfo = null) => {
+  // Construir lista de items
+  let itemsHTML = '';
+
+  // Products
+  if (sale.items && sale.items.length > 0) {
+    sale.items.forEach(item => {
+      const name = item.name || 'Producto';
+      const qty = item.quantity || 1;
+      const price = item.salePrice || 0;
+      const totalPrice = price * qty;
+      const dots = '.'.repeat(Math.max(1, 28 - name.length - qty.toString().length - 3 - formatCurrency(totalPrice).length));
+      itemsHTML += `    <div>• ${name} x${qty} ${dots} ${formatCurrency(totalPrice)}</div>\n`;
+    });
+  }
+
+  const paymentMethodMap = {
+    'cash': 'Efectivo',
+    'card': 'Tarjeta',
+    'transfer': 'Transferencia'
+  };
+  const paymentMethod = paymentMethodMap[sale.paymentMethod] || sale.paymentMethod || 'No especificado';
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket de Venta</title>
+  <style>
+    @page {
+      margin: 0;
+      size: 58mm auto;
+    }
+
+    body {
+      width: 58mm;
+      font-family: 'Courier New', monospace;
+      font-size: 10pt;
+      margin: 0;
+      padding: 5mm;
+      line-height: 1.3;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .bold {
+      font-weight: bold;
+    }
+
+    .large {
+      font-size: 12pt;
+    }
+
+    .line {
+      border-top: 1px dashed #000;
+      margin: 5px 0;
+    }
+
+    .separator {
+      text-align: center;
+      margin: 5px 0;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="center separator">==============================</div>
+  ${copyInfo ? `<div class="center bold" style="margin: 5px 0;">========= ${copyInfo} =========</div>` : ''}
+  <div class="center bold large">${businessInfo.businessName || 'CLEAN MASTER SHOES'}</div>
+  <div class="center">Tel: ${businessInfo.phone || ''}</div>
+  <div class="center">${businessInfo.address || ''}</div>
+  <div class="center separator">==============================</div>
+
+  <div class="center bold large" style="margin: 10px 0;">═══ TICKET DE VENTA ═══</div>
+
+  <div>
+    <div>Fecha: ${formatDate(sale.createdAt, true)}</div>
+    ${sale.clientName ? `<div>Cliente: ${sale.clientName}</div>` : ''}
+  </div>
+
+  <div class="line"></div>
+
+  <div class="bold">DETALLE:</div>
+${itemsHTML}
+
+  <div class="line"></div>
+
+  <div>
+    <div>Subtotal: ${'.'.repeat(13)} ${formatCurrency(sale.subtotal)}</div>
+    ${sale.discountAmount && sale.discountAmount > 0 ? `<div>Descuento: ${'.'.repeat(12)} -${formatCurrency(sale.discountAmount)}</div>` : ''}
+    <div class="bold">TOTAL: ${'.'.repeat(16)} ${formatCurrency(sale.total)}</div>
+    <div>Método: ${paymentMethod}</div>
+  </div>
+
+  <div class="line"></div>
+
+  <div class="center bold large">✓ VENTA COMPLETADA</div>
+
+  <div class="center" style="margin-top: 10px;">¡Gracias por su compra!</div>
+  <div class="center">¡Esperamos verle pronto!</div>
+  <div class="center separator">==============================</div>
+</body>
+</html>`;
+};
+
+/**
+ * Genera comandos ESC/POS para ticket de venta (inventario)
+ * Compatible con impresora térmica 58mm
+ * @param {string} copyInfo - Información de la copia (ej: "COPIA CLIENTE", "COPIA NEGOCIO")
+ */
+export const formatSalesTicketESCPOS = (sale, businessInfo, copyInfo = null) => {
+  const cmd = createESCPOS();
+
+  const paymentMethodMap = {
+    'cash': 'Efectivo',
+    'card': 'Tarjeta',
+    'transfer': 'Transferencia'
+  };
+  const paymentMethod = paymentMethodMap[sale.paymentMethod] || sale.paymentMethod || 'N/A';
+
+  // Inicializar impresora
+  cmd.init();
+
+  // Identificador de copia (si aplica)
+  if (copyInfo) {
+    cmd
+      .align('center')
+      .bold(true)
+      .text(`===== ${copyInfo} =====`)
+      .feed()
+      .bold(false);
+  }
+
+  // Header - Nombre del negocio
+  cmd
+    .align('center')
+    .bold(true)
+    .size(1, 2)
+    .text(businessInfo.businessName || 'CLEAN MASTER SHOES')
+    .feed()
+    .size(1, 1)
+    .bold(false);
+
+  // Información de contacto
+  if (businessInfo.phone) {
+    cmd.text(`Tel: ${businessInfo.phone}`).feed();
+  }
+  if (businessInfo.address) {
+    cmd.text(businessInfo.address).feed();
+  }
+
+  cmd.hr('-', 32).emptyLine();
+
+  // Título del ticket
+  cmd
+    .align('center')
+    .bold(true)
+    .size(1, 2)
+    .text('TICKET DE VENTA')
+    .feed()
+    .size(1, 1)
+    .bold(false)
+    .align('left')
+    .emptyLine();
+
+  // Información de la venta
+  cmd
+    .keyValue('Fecha', formatDate(sale.createdAt, true), 32);
+
+  if (sale.clientName) {
+    cmd.keyValue('Cliente', sale.clientName, 32);
+  }
+
+  cmd.emptyLine();
+
+  cmd.hr('-', 32);
+
+  // Detalle de items
+  cmd.bold(true).text('DETALLE:').feed().bold(false);
+
+  // Products
+  if (sale.items && sale.items.length > 0) {
+    sale.items.forEach(item => {
+      const name = item.name || 'Producto';
+      const qty = item.quantity || 1;
+      const price = formatCurrency((item.salePrice || 0) * qty);
+      cmd.tableRow(`${name} x${qty}`, price, 42);
+    });
+  }
+
+  cmd.hr('-', 32);
+
+  // Totales
+  cmd
+    .tableRow('Subtotal:', formatCurrency(sale.subtotal), 32);
+
+  // Mostrar descuento si aplica
+  if (sale.discountAmount && sale.discountAmount > 0) {
+    cmd.tableRow('Descuento:', `-${formatCurrency(sale.discountAmount)}`, 32);
+  }
+
+  cmd
+    .bold(true)
+    .tableRow('TOTAL:', formatCurrency(sale.total), 32)
+    .bold(false)
+    .tableRow('Metodo:', paymentMethod, 32);
+
+  cmd.hr('-', 32).emptyLine();
+
+  // Estado completado
+  cmd
+    .align('center')
+    .bold(true)
+    .size(2, 2)
+    .text('VENTA COMPLETADA')
+    .feed()
+    .size(1, 1)
+    .bold(false)
+    .emptyLine();
+
+  // QR Code con URL del sitio web
+  const websiteUrl = businessInfo.website || 'https://cleanmastershoes.com';
+  cmd
+    .qrCode(websiteUrl, 1, 6) // Error correction M, module size 6
+    .feed(2)
+    .text('Visitanos en nuestro sitio web!')
+    .feed()
+    .emptyLine();
+
+  // Despedida
+  cmd
+    .text('Gracias por su compra')
+    .feed()
+    .text('Esperamos verle pronto')
+    .feed(2);
+
+  cmd.hr('=', 32);
+
+  // Abrir cajón si el pago es en efectivo
+  if (sale.paymentMethod === 'cash') {
+    cmd.openDrawer(0, 120, 240); // Pin 2, 240ms ON, 480ms OFF
+  }
+
+  // Corte de papel
+  cmd.feed(2).cut();
+
+  return cmd.getBytes();
+};

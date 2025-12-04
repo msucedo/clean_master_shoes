@@ -13,7 +13,9 @@ import {
   formatReceiptTicketHTML,
   formatDeliveryTicketHTML,
   formatReceiptTicketESCPOS,
-  formatDeliveryTicketESCPOS
+  formatDeliveryTicketESCPOS,
+  formatSalesTicketHTML,
+  formatSalesTicketESCPOS
 } from '../utils/ticketFormatters';
 import { generateTicketPDFBlob } from '../utils/ticketPDFGenerator';
 import { bluetoothPrinter } from './bluetoothPrinterService';
@@ -85,6 +87,8 @@ export const printTicketDesktop = async (order, businessInfo, ticketType, copyIn
       html = formatReceiptTicketHTML(order, businessInfo, copyInfo);
     } else if (ticketType === 'delivery') {
       html = formatDeliveryTicketHTML(order, businessInfo, copyInfo);
+    } else if (ticketType === 'sale') {
+      html = formatSalesTicketHTML(order, businessInfo, copyInfo);
     } else {
       throw new Error('Tipo de ticket inválido');
     }
@@ -191,6 +195,8 @@ export const printTicketBluetooth = async (order, businessInfo, ticketType, copy
       escposData = formatReceiptTicketESCPOS(order, businessInfo, copyInfo);
     } else if (ticketType === 'delivery') {
       escposData = formatDeliveryTicketESCPOS(order, businessInfo, copyInfo);
+    } else if (ticketType === 'sale') {
+      escposData = formatSalesTicketESCPOS(order, businessInfo, copyInfo);
     } else {
       throw new Error('Tipo de ticket inválido');
     }
@@ -237,8 +243,8 @@ export const printTicketBluetooth = async (order, businessInfo, ticketType, copy
 export const printTicket = async (order, ticketType, options = {}) => {
   try {
     // Validar tipo de ticket
-    if (!['receipt', 'delivery'].includes(ticketType)) {
-      throw new Error('Tipo de ticket debe ser "receipt" o "delivery"');
+    if (!['receipt', 'delivery', 'sale'].includes(ticketType)) {
+      throw new Error('Tipo de ticket debe ser "receipt", "delivery" o "sale"');
     }
 
     // Obtener información del negocio desde Firebase

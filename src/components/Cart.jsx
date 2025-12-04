@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useInventory } from '../hooks/useInventory';
-import PaymentScreen from './PaymentScreen';
+import CartPayment from './CartPayment';
 import { createSale } from '../services/salesService';
+import { printTicket } from '../services/printService';
+import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 import { useNotification } from '../contexts/NotificationContext';
 import './Cart.css';
 
@@ -42,6 +44,9 @@ const Cart = () => {
   // Ref para el search bar del carrito
   const cartSearchInputRef = useRef(null);
 
+  // Ref para prevenir impresiones duplicadas
+  const isPrintingRef = useRef(false);
+
   const handleClose = () => {
     setIsCartOpen(false);
   };
@@ -62,11 +67,9 @@ const Cart = () => {
       return;
     }
 
-    // Iniciar animación
-    setPaymentAnimating(true);
-    setTimeout(() => {
-      setShowPayment(true);
-    }, 50); // pequeño delay para que la animación se active
+    // Ocultar carrito y mostrar payment
+    setShowPayment(true); // Cart se oculta con payment-active
+    setPaymentAnimating(true); // Payment aparece con visible
   };
 
   const handlePaymentConfirm = async (paymentData) => {
@@ -86,7 +89,8 @@ const Cart = () => {
         change: paymentData.change || 0,
         clientId: selectedClient?.id || null,
         clientName: selectedClient?.name || null,
-        notes: notes
+        notes: notes,
+        createdAt: new Date().toISOString()
       };
 
       // Crear la venta en Firebase (esto también actualiza el inventario)
@@ -94,9 +98,35 @@ const Cart = () => {
 
       showSuccess(`Venta completada exitosamente. ID: ${saleId.substring(0, 8)}`);
 
+      // Auto-imprimir SOLO si método es Bluetooth (replicando lógica de Orders.jsx)
+      const currentMethod = getPrinterMethodPreference();
+      const shouldAutoprint = currentMethod === PRINTER_METHODS.BLUETOOTH || currentMethod === 'bluetooth';
+
+      if (shouldAutoprint && !isPrintingRef.current) {
+        isPrintingRef.current = true;
+        try {
+          const printResult = await printTicket(saleData, 'sale', {
+            method: 'bluetooth',
+            allowFallback: false
+          });
+
+          if (printResult.success) {
+            console.log('✅ Ticket de venta auto-impreso:', printResult.deviceName);
+          } else if (!printResult.cancelled) {
+            console.warn('⚠️ Auto-impresión de ticket de venta falló:', printResult.error);
+          }
+        } catch (error) {
+          console.warn('⚠️ Error en auto-impresión de ticket de venta:', error.message);
+          // No mostrar error al usuario - es proceso background
+        } finally {
+          isPrintingRef.current = false;
+        }
+      }
+
       // Limpiar el carrito y cerrar
       clearCart();
       setShowPayment(false);
+      setPaymentAnimating(false);
       setIsCartOpen(false);
     } catch (error) {
       console.error('Error al procesar la venta:', error);
@@ -107,11 +137,13 @@ const Cart = () => {
   };
 
   const handlePaymentCancel = () => {
-    // Iniciar animación de salida
+    // Iniciar animación de salida del payment
     setPaymentAnimating(false);
+
+    // Esperar a que termine la animación del payment (1s) antes de mostrar el carrito
     setTimeout(() => {
       setShowPayment(false);
-    }, 500); // duración de la animación
+    }, 1000); // duración completa de la animación del CartPayment
   };
 
   // Focus automático en search bar del carrito después de agregar productos
@@ -184,27 +216,6 @@ const Cart = () => {
       }
     }
   };
-
-  if (showPayment) {
-    return (
-      <div className={`payment-screen-container ${paymentAnimating ? 'visible' : ''}`}>
-        <PaymentScreen
-          services={[]}
-          products={cartItems}
-          subtotal={subtotal}
-          totalDiscount={discountAmount}
-          appliedPromotions={[]}
-          totalPrice={total}
-          advancePayment={0}
-          paymentMethod="cash"
-          allowEditMethod={true}
-          requireFullPayment={true}
-          onConfirm={handlePaymentConfirm}
-          onCancel={handlePaymentCancel}
-        />
-      </div>
-    );
-  }
 
   return (
     <>
@@ -366,6 +377,18 @@ const Cart = () => {
           </div>
         )}
       </div>
+
+      {/* Cart Payment Screen - Slide desde la derecha */}
+      <CartPayment
+        className={paymentAnimating ? 'visible' : ''}
+        isVisible={paymentAnimating}
+        cartItems={cartItems}
+        subtotal={subtotal}
+        discountAmount={discountAmount}
+        total={total}
+        onConfirm={handlePaymentConfirm}
+        onCancel={handlePaymentCancel}
+      />
     </>
   );
 };

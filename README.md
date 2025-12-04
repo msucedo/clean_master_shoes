@@ -3,8 +3,9 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]actualizar en el dashboard, como se calcula la card de "ingresos hoy", que tome los ingresos totales del corte de caja
 -[]desde la tab inventario deberiamos poder vender un producto, escanear directamente en el search bar del header y de ahi mostrar la info del producto o el check out o opcion de añadirlo al carrito
+    -[]no usar paymentscreen, crear propio componente siguiendo el ux del carrito
+-[]actualizar en el dashboard, como se calcula la card de "ingresos hoy", que tome los ingresos totales del corte de caja
 -[FIX]verdad absoluta del conteo de efectivo
 -[]reemplazar ordenes por calzados?
 -[]habilitar campañas, tab campañas

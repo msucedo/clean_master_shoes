@@ -31,7 +31,12 @@ export const createSale = async (saleData) => {
   try {
     // Usar una transacción para garantizar la atomicidad
     const saleId = await runTransaction(db, async (transaction) => {
-      // Verificar stock disponible para todos los productos
+
+      // ========== FASE 1: TODAS LAS LECTURAS ==========
+      const productRefs = [];
+      const productDocs = [];
+
+      // Leer y validar todos los productos
       for (const item of saleData.items) {
         const productRef = doc(db, 'inventory', item.id);
         const productDoc = await transaction.get(productRef);
@@ -46,9 +51,15 @@ export const createSale = async (saleData) => {
             `Stock insuficiente para ${item.name}. Disponible: ${currentStock}, Requerido: ${item.quantity}`
           );
         }
+
+        // Almacenar refs y docs para fase 2
+        productRefs.push(productRef);
+        productDocs.push(productDoc);
       }
 
-      // Crear la venta
+      // ========== FASE 2: TODAS LAS ESCRITURAS ==========
+
+      // 1. Crear la venta
       const salesRef = collection(db, 'sales');
       const newSaleRef = doc(salesRef);
 
@@ -82,18 +93,16 @@ export const createSale = async (saleData) => {
 
       transaction.set(newSaleRef, saleRecord);
 
-      // Actualizar el stock de cada producto
-      for (const item of saleData.items) {
-        const productRef = doc(db, 'inventory', item.id);
-        const productDoc = await transaction.get(productRef);
-        const currentStock = productDoc.data().stock;
+      // 2. Actualizar stock usando datos almacenados (NO leer de nuevo)
+      saleData.items.forEach((item, index) => {
+        const currentStock = productDocs[index].data().stock;
         const newStock = currentStock - item.quantity;
 
-        transaction.update(productRef, {
+        transaction.update(productRefs[index], {
           stock: newStock,
           updatedAt: new Date().toISOString()
         });
-      }
+      });
 
       return newSaleRef.id;
     });
