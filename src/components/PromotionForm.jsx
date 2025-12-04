@@ -596,7 +596,7 @@ const PromotionForm = ({ onSubmit, onCancel, onDelete, initialData = null, servi
             <>
               <div className="form-group">
                 <label>Aplica a:</label>
-                <select name="appliesTo" value={formData.appliesTo} onChange={handleChange}>
+                <select name="appliesTo" value={formData.appliesTo} onChange={handleChange} className="applies-to-select">
                   <option value="all">Todos los items</option>
                   <option value="services">Solo servicios</option>
                   <option value="products">Solo productos</option>

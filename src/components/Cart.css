@@ -468,7 +468,6 @@
 .validated-input-wrapper {
   position: relative;
   display: flex;
-  flex-direction: column;
 }
 
 /* Animación shake cuando se bloquea un carácter */

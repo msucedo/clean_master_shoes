@@ -1173,6 +1173,7 @@ const CashRegister = ({ orders, dateFilter }) => {
         <Modal
           isOpen={isExpenseModalOpen}
           onClose={() => setIsExpenseModalOpen(false)}
+          title="Nuevo Gasto"
         >
           <ExpenseForm
             onSave={handleAddExpense}

@@ -222,7 +222,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className={errors.category ? 'error' : ''}
+            className={`category-select ${errors.category ? 'error' : ''}`}
           >
             {categories.map(cat => (
               <option key={cat} value={cat}>{cat}</option>

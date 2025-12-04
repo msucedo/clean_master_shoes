@@ -94,7 +94,7 @@ const ValidatedNumberInput = ({
       (max !== undefined && numValue > max));
 
   return (
-    <div className={`form-group ${className}`}>
+    <div className={`validated-input-container ${className}`}>
       {label && (
         <label className="form-label">
           {label}{' '}

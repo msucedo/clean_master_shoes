@@ -378,31 +378,37 @@
   .reports-tab-select-mobile {
     display: block;
     width: 100%;
-    padding: clamp(0.75rem, 3vw, 0.875rem) clamp(1rem, 4vw, 1.125rem);
-    background: var(--color-gray-900);
-    border: 1px solid var(--color-gray-800);
+    padding: clamp(0.75rem, 3vw, 0.875rem) clamp(2.5rem, 8vw, 3rem) clamp(0.75rem, 3vw, 0.875rem) clamp(1rem, 4vw, 1.125rem);
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
     border-radius: 10px;
-    color: var(--color-white);
+    color: #fff;
     font-size: clamp(0.813rem, 3vw, 0.875rem);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right clamp(0.75rem, 3vw, 1rem) center;
-    padding-right: clamp(2.5rem, 8vw, 3rem);
+  }
+
+  .reports-tab-select-mobile:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(59, 130, 246, 0.05);
   }
 
   .reports-tab-select-mobile:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px var(--bg-primary-10);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
   .reports-tab-select-mobile option {
-    background: var(--color-gray-900);
-    color: var(--color-white);
+    background: #1a1a1a;
+    color: #fff;
     padding: clamp(0.625rem, 2vw, 0.75rem);
   }
 }

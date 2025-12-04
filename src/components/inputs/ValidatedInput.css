@@ -1,5 +1,11 @@
 /* Validated Input Styles */
 
+.validated-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .validated-input-wrapper {
   position: relative;
   display: flex;

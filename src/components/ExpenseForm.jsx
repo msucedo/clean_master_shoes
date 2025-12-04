@@ -92,10 +92,6 @@ const ExpenseForm = ({ expense, onSave, onCancel }) => {
 
   return (
     <div className="expense-form">
-      <div className="form-header">
-        <h3>{expense ? 'Editar Gasto' : 'Nuevo Gasto'}</h3>
-      </div>
-
       <form onSubmit={handleSubmit}>
         <ValidatedAlphanumericInput
           name="concept"
@@ -139,7 +135,7 @@ const ExpenseForm = ({ expense, onSave, onCancel }) => {
           <label className="form-label">Categoría</label>
           <select
             name="category"
-            className="form-input"
+            className="category-select"
             value={formData.category}
             onChange={handleChange}
           >
