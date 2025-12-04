@@ -106,7 +106,7 @@ const Inventory = () => {
       // Real-time listener will update the UI automatically
     } catch (error) {
       console.error('Error saving product:', error);
-      showError('Error al guardar el producto. Por favor intenta de nuevo.');
+      showError(error.message || 'Error al guardar el producto. Por favor intenta de nuevo.');
     }
   };
 

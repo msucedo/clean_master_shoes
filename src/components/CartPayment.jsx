@@ -188,6 +188,9 @@ const CartPayment = ({
               step="0.01"
               disabled={isProcessing}
             />
+            {paymentMethod === 'cash' && !amountReceived && (
+              <span className="field-hint warning">⚠️ No has ingresado el monto recibido</span>
+            )}
             {amountReceived && (
               <div className="change-display">
                 <span>Cambio:</span>

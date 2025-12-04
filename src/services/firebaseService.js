@@ -1324,12 +1324,57 @@ export const subscribeToInventory = (callback) => {
 };
 
 /**
+ * Check if a barcode already exists in inventory
+ * @param {string} barcode - Barcode to check
+ * @param {string} excludeProductId - Product ID to exclude from check (for updates)
+ * @returns {Promise<boolean>} True if barcode exists
+ */
+export const checkBarcodeExists = async (barcode, excludeProductId = null) => {
+  try {
+    // Si el código de barras está vacío, no validar (es opcional)
+    if (!barcode || barcode.trim() === '') {
+      return false;
+    }
+
+    const inventoryRef = collection(db, 'inventory');
+    const q = query(inventoryRef, where('barcode', '==', barcode.trim()));
+    const querySnapshot = await getDocs(q);
+
+    // Si no encontramos ningún producto con ese código, está disponible
+    if (querySnapshot.empty) {
+      return false;
+    }
+
+    // Si estamos actualizando un producto, excluir el producto actual del check
+    if (excludeProductId) {
+      // Verificar si el único producto con ese código es el que estamos editando
+      const otherProducts = querySnapshot.docs.filter(doc => doc.id !== excludeProductId);
+      return otherProducts.length > 0;
+    }
+
+    // Si llegamos aquí, el código ya existe
+    return true;
+  } catch (error) {
+    console.error('Error checking barcode:', error);
+    throw error;
+  }
+};
+
+/**
  * Add a new product to inventory
  * @param {Object} productData - Product data
  * @returns {Promise<string>} Document ID of the created product
  */
 export const addProduct = async (productData) => {
   try {
+    // Validar que el código de barras no exista (si se proporcionó uno)
+    if (productData.barcode && productData.barcode.trim() !== '') {
+      const barcodeExists = await checkBarcodeExists(productData.barcode);
+      if (barcodeExists) {
+        throw new Error('Este código de barras ya está registrado en otro producto');
+      }
+    }
+
     const inventoryRef = collection(db, 'inventory');
     const docRef = await addDoc(inventoryRef, {
       ...productData,
@@ -1351,6 +1396,14 @@ export const addProduct = async (productData) => {
  */
 export const updateProduct = async (productId, productData) => {
   try {
+    // Validar que el código de barras no exista en otros productos (si se proporcionó uno)
+    if (productData.barcode && productData.barcode.trim() !== '') {
+      const barcodeExists = await checkBarcodeExists(productData.barcode, productId);
+      if (barcodeExists) {
+        throw new Error('Este código de barras ya está registrado en otro producto');
+      }
+    }
+
     const productRef = doc(db, 'inventory', productId);
     await updateDoc(productRef, {
       ...productData,

@@ -1,16 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useInventory } from '../hooks/useInventory';
+import { useInputValidation } from '../hooks/useInputValidation';
 import CartPayment from './CartPayment';
 import { createSale, addSalePrintRecord } from '../services/salesService';
 import { printTicket } from '../services/printService';
 import { addPrintJob } from '../services/printQueueService';
 import { getPrinterMethodPreference, PRINTER_METHODS } from '../utils/printerConfig';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAuth } from '../contexts/AuthContext';
 import './Cart.css';
 
 const Cart = () => {
-  const { showSuccess, showError } = useNotification();
+  const { showSuccess, showError, showWarning } = useNotification();
+  const { user, employee } = useAuth();
   const { data: products = [] } = useInventory();
   const {
     cartItems,
@@ -37,10 +40,8 @@ const Cart = () => {
 
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAnimating, setPaymentAnimating] = useState(false);
-  const [discountInput, setDiscountInput] = useState('');
   const [discountTypeInput, setDiscountTypeInput] = useState('amount');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [barcodeSearch, setBarcodeSearch] = useState('');
 
   // Ref para el search bar del carrito
   const cartSearchInputRef = useRef(null);
@@ -48,13 +49,51 @@ const Cart = () => {
   // Ref para prevenir impresiones duplicadas
   const isPrintingRef = useRef(false);
 
+  // Ref para guardar el timeout del payment cancel
+  const paymentCancelTimeoutRef = useRef(null);
+
+  // Input validado para descuento
+  const {
+    value: discountInput,
+    setValue: setDiscountInput,
+    onChange: handleDiscountChange,
+    onKeyPress: handleDiscountKeyPress,
+    showFeedback: showDiscountFeedback,
+  } = useInputValidation('', discountTypeInput === 'percentage' ? 'INTEGER' : 'NUMBER');
+
+  // Input validado para búsqueda por código de barras
+  const {
+    value: barcodeSearch,
+    setValue: setBarcodeSearch,
+    onChange: handleBarcodeChange,
+    onKeyPress: handleBarcodeKeyPress,
+    showFeedback: showBarcodeFeedback,
+  } = useInputValidation('', 'ALPHANUMERIC');
+
   const handleClose = () => {
     setIsCartOpen(false);
   };
 
   const handleApplyDiscount = () => {
     const value = parseFloat(discountInput) || 0;
+
+    // Validar límites según tipo de descuento
+    const maxDiscount = discountTypeInput === 'percentage' ? 100 : subtotal;
+
+    if (value > maxDiscount) {
+      showWarning(
+        `Descuento máximo: ${discountTypeInput === 'percentage' ? '100%' : `$${subtotal.toFixed(2)}`}`
+      );
+      return;
+    }
+
+    if (value < 0) {
+      showWarning('El descuento no puede ser negativo');
+      return;
+    }
+
     applyDiscount(value, discountTypeInput);
+    showSuccess('Descuento aplicado');
   };
 
   const handleClearCart = () => {
@@ -91,7 +130,8 @@ const Cart = () => {
         clientId: selectedClient?.id || null,
         clientName: selectedClient?.name || null,
         notes: notes,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        createdBy: employee?.name || user?.email || 'system'
       };
 
       // Crear la venta en Firebase (esto también actualiza el inventario)
@@ -143,11 +183,12 @@ const Cart = () => {
               console.warn('⚠️ Error al registrar impresión:', recordError.message);
             }
           } else if (!printResult.cancelled) {
-            console.warn('⚠️ Auto-impresión de ticket de venta falló:', printResult.error);
+            showWarning('⚠️ No se pudo imprimir el ticket automáticamente. Puedes imprimirlo desde el historial.');
+            console.warn('Auto-impresión falló:', printResult.error);
           }
         } catch (error) {
-          console.warn('⚠️ Error en auto-impresión de ticket de venta:', error.message);
-          // No mostrar error al usuario - es proceso background
+          showWarning('⚠️ Error al imprimir ticket. Puedes imprimirlo desde el historial.');
+          console.warn('Error en auto-impresión:', error.message);
         } finally {
           isPrintingRef.current = false;
         }
@@ -160,7 +201,29 @@ const Cart = () => {
       setIsCartOpen(false);
     } catch (error) {
       console.error('Error al procesar la venta:', error);
-      showError(error.message || 'Error al procesar la venta. Por favor intenta de nuevo.');
+
+      // Parsear el mensaje de error para mostrar info más específica
+      let errorMessage = 'Error al procesar la venta. Por favor intenta de nuevo.';
+
+      if (error.message && error.message.includes('Stock insuficiente')) {
+        // Extraer el nombre del producto del mensaje de error
+        const match = error.message.match(/Stock insuficiente para (.+?)\./);
+        if (match) {
+          errorMessage = `⚠️ No hay suficiente stock de "${match[1]}". Por favor verifica el inventario.`;
+        } else {
+          errorMessage = '⚠️ Stock insuficiente para completar la venta. Verifica las cantidades.';
+        }
+      } else if (error.message && error.message.includes('no encontrado')) {
+        errorMessage = '⚠️ Uno o más productos ya no están disponibles en el inventario.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      showError(errorMessage);
+
+      // Resetear estados de pago para que usuario pueda volver al carrito
+      setShowPayment(false);
+      setPaymentAnimating(false);
     } finally {
       setIsProcessing(false);
     }
@@ -170,11 +233,25 @@ const Cart = () => {
     // Iniciar animación de salida del payment
     setPaymentAnimating(false);
 
+    // Limpiar timeout previo si existe
+    if (paymentCancelTimeoutRef.current) {
+      clearTimeout(paymentCancelTimeoutRef.current);
+    }
+
     // Esperar a que termine la animación del payment (1s) antes de mostrar el carrito
-    setTimeout(() => {
+    paymentCancelTimeoutRef.current = setTimeout(() => {
       setShowPayment(false);
     }, 1000); // duración completa de la animación del CartPayment
   };
+
+  // Cleanup del timeout cuando se desmonta el componente
+  useEffect(() => {
+    return () => {
+      if (paymentCancelTimeoutRef.current) {
+        clearTimeout(paymentCancelTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Focus automático en search bar del carrito después de agregar productos
   useEffect(() => {
@@ -204,27 +281,8 @@ const Cart = () => {
 
   // Manejar presión de tecla ESC
   const handleEscapePress = () => {
-    // Si el carrito está vacío, solo cerrarlo
-    if (cartItems.length === 0) {
-      setIsCartOpen(false);
-      return;
-    }
-
-    // Si tiene productos, preguntar qué hacer
-    const message =
-      `Tienes ${itemCount} producto${itemCount > 1 ? 's' : ''} en el carrito.\n\n` +
-      `• ACEPTAR: Solo cerrar (mantener productos)\n` +
-      `• CANCELAR: Vaciar carrito y cerrar`;
-
-    const soloCerrar = window.confirm(message);
-
-    if (soloCerrar) {
-      // Solo cerrar, mantener productos
-      setIsCartOpen(false);
-    } else {
-      // Vaciar y cerrar
-      clearCart();
-    }
+    // Solo cerrar el carrito, mantener productos
+    setIsCartOpen(false);
   };
 
   // Buscar y agregar producto por código de barras desde el carrito
@@ -265,17 +323,25 @@ const Cart = () => {
             </button>
           </div>
 
-          {/* Search bar para escanear productos */}
+          {/* Search bar para escanear productos - Con validación */}
           <div className="cart-search-bar">
-            <input
-              ref={cartSearchInputRef}
-              type="text"
-              className="cart-search-input"
-              placeholder="Escanear código de barras..."
-              value={barcodeSearch}
-              onChange={(e) => setBarcodeSearch(e.target.value)}
-              onKeyPress={handleBarcodeSearch}
-            />
+            <div className="validated-input-wrapper">
+              <input
+                ref={cartSearchInputRef}
+                type="text"
+                className={`cart-search-input ${showBarcodeFeedback ? 'shake' : ''}`}
+                placeholder="Escanear código de barras..."
+                value={barcodeSearch}
+                onChange={handleBarcodeChange}
+                onKeyPress={(e) => {
+                  handleBarcodeKeyPress(e);
+                  handleBarcodeSearch(e);
+                }}
+              />
+              {showBarcodeFeedback && (
+                <div className="input-feedback">Carácter no permitido</div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -323,20 +389,31 @@ const Cart = () => {
                 ))}
               </div>
 
-              {/* Sección de descuento - Compacta */}
+              {/* Sección de descuento - Compacta con validación */}
               <div className="cart-discount-compact">
-                <input
-                  type="number"
-                  className="discount-input-compact"
-                  placeholder="Descuento"
-                  value={discountInput}
-                  onChange={(e) => setDiscountInput(e.target.value)}
-                  min="0"
-                />
+                <div className="validated-input-wrapper">
+                  <input
+                    type="text"
+                    inputMode={discountTypeInput === 'percentage' ? 'numeric' : 'decimal'}
+                    className={`discount-input-compact ${showDiscountFeedback ? 'shake' : ''}`}
+                    placeholder="Descuento"
+                    value={discountInput}
+                    onChange={handleDiscountChange}
+                    onKeyPress={handleDiscountKeyPress}
+                  />
+                  {showDiscountFeedback && (
+                    <div className="input-feedback">
+                      {discountTypeInput === 'percentage' ? 'Solo números enteros' : 'Solo números'}
+                    </div>
+                  )}
+                </div>
                 <select
                   className="discount-type-compact"
                   value={discountTypeInput}
-                  onChange={(e) => setDiscountTypeInput(e.target.value)}
+                  onChange={(e) => {
+                    setDiscountTypeInput(e.target.value);
+                    setDiscountInput(''); // Limpiar al cambiar tipo
+                  }}
                 >
                   <option value="amount">$</option>
                   <option value="percentage">%</option>
@@ -344,6 +421,7 @@ const Cart = () => {
                 <button
                   className="discount-btn-compact"
                   onClick={handleApplyDiscount}
+                  disabled={!discountInput}
                 >
                   Aplicar
                 </button>

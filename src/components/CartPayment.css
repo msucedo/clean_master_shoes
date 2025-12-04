@@ -335,6 +335,19 @@
   transform: none;
 }
 
+/* Field hint con warning */
+.field-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
+}
+
+.field-hint.warning {
+  color: #ffa94d;
+  font-weight: 500;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .cart-payment {
@@ -343,5 +356,9 @@
 
   .payment-method-btn {
     min-width: 100%;
+  }
+
+  .field-hint.warning {
+    color: #ffd43b;
   }
 }

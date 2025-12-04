@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { checkBarcodeExists } from '../services/firebaseService';
 import ImageUpload from './ImageUpload';
 import { ValidatedAlphanumericInput, ValidatedNumberInput } from './inputs';
 import './InventoryForm.css';
@@ -43,7 +44,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
     }
   }, [initialData]);
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
@@ -72,6 +73,23 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
 
     if (formData.minStock === '' || isNaN(formData.minStock) || parseInt(formData.minStock) < 0) {
       newErrors.minStock = 'El stock mínimo debe ser un número positivo';
+    }
+
+    // Validar código de barras requerido
+    if (!formData.barcode || formData.barcode.trim() === '') {
+      newErrors.barcode = 'El código de barras es requerido';
+    } else {
+      // Validar código de barras único (solo si se ingresó uno)
+      try {
+        const excludeId = initialData?.id || null;
+        const barcodeExists = await checkBarcodeExists(formData.barcode, excludeId);
+        if (barcodeExists) {
+          newErrors.barcode = 'Este código de barras ya está registrado en otro producto';
+        }
+      } catch (error) {
+        console.error('Error validando código de barras:', error);
+        newErrors.barcode = 'Error al validar el código de barras';
+      }
     }
 
     setErrors(newErrors);
@@ -108,7 +126,7 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
       return;
     }
 
-    const validationErrors = validateForm();
+    const validationErrors = await validateForm();
     if (Object.keys(validationErrors).length > 0) {
       showValidationErrors(validationErrors);
       return;
@@ -222,8 +240,9 @@ const InventoryForm = ({ onSubmit, onCancel, onDelete, initialData }) => {
               value={formData.barcode}
               onChange={handleChange}
               placeholder="Ej: 1234567890123"
-              required={false}
+              required={true}
               integer={true}
+              error={errors.barcode}
               className=""
             />
             <button

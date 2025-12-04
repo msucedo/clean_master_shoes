@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useRef, useMemo } from 'react';
 
 export const CartContext = createContext();
 
@@ -11,6 +11,9 @@ export const CartProvider = ({ children }) => {
   const [notes, setNotes] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+
+  // Ref para debounce de guardado en localStorage
+  const saveTimeoutRef = useRef(null);
 
   // Cargar carrito desde localStorage al montar
   useEffect(() => {
@@ -29,20 +32,35 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Guardar carrito en localStorage cuando cambie
+  // Guardar carrito en localStorage con debounce de 500ms
   useEffect(() => {
-    try {
-      const cartData = {
-        items: cartItems,
-        discount,
-        discountType,
-        notes,
-        selectedClient
-      };
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData));
-    } catch (error) {
-      console.error('Error saving cart to localStorage:', error);
+    // Limpiar timeout previo
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
+
+    // Guardar después de 500ms de inactividad
+    saveTimeoutRef.current = setTimeout(() => {
+      try {
+        const cartData = {
+          items: cartItems,
+          discount,
+          discountType,
+          notes,
+          selectedClient
+        };
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartData));
+      } catch (error) {
+        console.error('Error saving cart to localStorage:', error);
+      }
+    }, 500);
+
+    // Cleanup: cancelar timeout si el componente se desmonta
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [cartItems, discount, discountType, notes, selectedClient]);
 
   // Agregar producto al carrito
@@ -139,6 +157,12 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((sum, item) => sum + item.quantity, 0);
   };
 
+  // Memoizar cálculos para evitar recalcular en cada render
+  const subtotal = useMemo(() => calculateSubtotal(), [cartItems]);
+  const discountAmount = useMemo(() => calculateDiscountAmount(), [discount, discountType, cartItems]);
+  const total = useMemo(() => calculateTotal(), [cartItems, discount, discountType]);
+  const itemCount = useMemo(() => getItemCount(), [cartItems]);
+
   const value = {
     cartItems,
     discount,
@@ -154,10 +178,10 @@ export const CartProvider = ({ children }) => {
     updateQuantity,
     applyDiscount,
     clearCart,
-    subtotal: calculateSubtotal(),
-    discountAmount: calculateDiscountAmount(),
-    total: calculateTotal(),
-    itemCount: getItemCount()
+    subtotal,
+    discountAmount,
+    total,
+    itemCount
   };
 
   return (
