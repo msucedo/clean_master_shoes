@@ -8,6 +8,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import { updateOrder } from '../services/firebaseService';
 import { useOrders } from '../hooks/useOrders';
 import { useEmployees } from '../hooks/useEmployees';
+import { useCashRegisterClosures } from '../hooks/useCashRegisterClosures';
 import { useNotification } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
@@ -38,6 +39,9 @@ const Dashboard = () => {
   }, isLoading: ordersLoading, error: ordersError } = useOrders({ limitCount: 200 });
 
   const { data: employeesData = [], isLoading: employeesLoading } = useEmployees();
+
+  // Use React Query hook for cash register closures
+  const { data: closures = [], isLoading: closuresLoading } = useCashRegisterClosures();
 
   // Filter only active employees
   const employees = useMemo(() => {
@@ -301,8 +305,36 @@ const Dashboard = () => {
     ).length;
   };
 
-  // Calcular ingresos de hoy (órdenes completadas hoy)
+  // Get last closure of today (if exists)
+  const getLastClosureToday = () => {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const todayClosures = closures.filter(closure => {
+      if (!closure.fechaCorte) return false;
+      const closureDate = new Date(closure.fechaCorte);
+      return closureDate >= startDate && closureDate <= endDate;
+    });
+
+    // Sort by fechaCorte descending and return the most recent
+    if (todayClosures.length > 0) {
+      return todayClosures.sort((a, b) => new Date(b.fechaCorte) - new Date(a.fechaCorte))[0];
+    }
+
+    return null;
+  };
+
+  // Calcular ingresos de hoy (del último corte o de órdenes completadas hoy)
   const getTodayIncome = () => {
+    // Primero intentar obtener del último corte del día
+    const lastClosureToday = getLastClosureToday();
+
+    if (lastClosureToday && lastClosureToday.resultados?.ingresosTotal !== undefined) {
+      return lastClosureToday.resultados.ingresosTotal;
+    }
+
+    // Fallback: calcular de órdenes completadas hoy (cuando no hay corte)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

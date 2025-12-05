@@ -3,11 +3,6 @@ Clean master shoes
 // OBJETIVO: MEJORAR EXPERIENCIA DE USUARIO
 
 // WIP
--[]parece que en prod la tab inventario y promociones no muestran el skeleton loading
--[]agregar una promo "precio final" a un producto o servicio
--[]desde la tab inventario deberiamos poder vender un producto, escanear directamente en el search bar del header y de ahi mostrar la info del producto o el check out o opcion de añadirlo al carrito
-    -[]no usar paymentscreen, crear propio componente siguiendo el ux del carrito
--[]actualizar en el dashboard, como se calcula la card de "ingresos hoy", que tome los ingresos totales del corte de caja
 -[FIX]verdad absoluta del conteo de efectivo
 -[]reemplazar ordenes por calzados?
 -[]habilitar campañas, tab campañas
@@ -63,6 +58,10 @@ Clean master shoes
      │ 16. Configurar CI/CD básico      
 
 // COMPLETADO
+-[]actualizar en el dashboard, como se calcula la card de "ingresos hoy", que tome los ingresos totales del corte de caja
+-[]agregar una promo "precio final" a un producto o servicio
+-[]desde la tab inventario deberiamos poder vender un producto, escanear directamente en el search bar del header y de ahi mostrar la info del producto o el check out o opcion de añadirlo al carrito
+    -[]no usar paymentscreen, crear propio componente siguiendo el ux del carrito
 -[]agregar las mismas validaciones de data entry para todas las opciones de promociones en la tab promociones
 -[FIX]los numeros de telefono minimo deben ser 10 digitos, maximo ya esta
 -[FIX]agregar validaciones a nueva orden, mostrar el banner de validaciones
